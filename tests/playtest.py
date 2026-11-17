@@ -87,6 +87,9 @@ def main():
             print("Logout, then login to same permanent account")
             alice.locator("#logout").click()
             expect(alice.locator("#joinScreen")).to_be_visible(timeout=10000)
+            expect(alice.locator("#logout")).to_be_hidden()
+            expect(alice.locator("#message")).to_be_disabled()
+            expect(alice.locator("#members")).not_to_contain_text(NAME_A)
             login(alice, NAME_A)
             expect(alice.locator("#lines")).to_contain_text("Reply from mobile player", timeout=10000)
             alice.wait_for_function("""async () => {
