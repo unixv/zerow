@@ -193,6 +193,45 @@ def login():
         return create_session(con, user["id"])
 
 
+@app.post("/api/change-password")
+def change_password():
+    """Rotate a password and revoke all existing sessions, including this one."""
+    data = request.get_json(silent=True) or {}
+    old_password = data.get("current_password")
+    new_password = data.get("new_password")
+    if not isinstance(old_password, str) or not isinstance(new_password, str):
+        return error("Passwords are required.")
+    if not 10 <= len(new_password) <= 128:
+        return error("New password must be 10–128 characters.")
+    if secrets.compare_digest(old_password, new_password):
+        return error("New password must be different.")
+    with connect() as con:
+        user = identity(con)
+        if user is None:
+            return error("Log in first.", 401)
+        # Bound expensive verification attempts per account, including authenticated sessions.
+        now = time.time()
+        key = "password:" + str(user["id"])
+        limit = con.execute(
+            "SELECT attempts,reset_at FROM login_attempts WHERE username=?", (key,)
+        ).fetchone()
+        if limit and limit["reset_at"] > now and limit["attempts"] >= 6:
+            return error("Too many attempts. Try again in 15 minutes.", 429)
+        if not check_password_hash(user["password_hash"], old_password):
+            if not limit or limit["reset_at"] <= now:
+                con.execute("REPLACE INTO login_attempts VALUES(?,?,?)", (key, 1, now + 900))
+            else:
+                con.execute("UPDATE login_attempts SET attempts=attempts+1 WHERE username=?", (key,))
+            return error("Current password is incorrect.", 401)
+        hashed = generate_password_hash(new_password, method=PASSWORD_METHOD)
+        con.execute("UPDATE users SET password_hash=? WHERE id=?", (hashed, user["id"]))
+        con.execute("DELETE FROM sessions WHERE user_id=?", (user["id"],))
+        con.execute("DELETE FROM login_attempts WHERE username=?", (key,))
+    resp = make_response(jsonify(ok=True, message="Password changed. Please log in again."))
+    resp.delete_cookie("zerow_session", path="/")
+    return resp
+
+
 @app.post("/api/logout")
 def logout():
     token = request.cookies.get("zerow_session", "")
