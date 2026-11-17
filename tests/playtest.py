@@ -115,6 +115,18 @@ def main():
               return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
             }""", timeout=10000)
 
+            print("Revoked session clears previously rendered chat and player state")
+            # Simulate server-side revocation without a page reload: the old UI
+            # must not continue displaying private account state.
+            a.clear_cookies()
+            expect(alice.locator("#joinScreen")).to_be_visible(timeout=10000)
+            expect(alice.locator("#lines")).to_be_empty(timeout=10000)
+            expect(alice.locator("#members")).not_to_contain_text(NAME_A)
+            expect(alice.locator("#message")).to_be_disabled()
+            login(alice, NAME_A)
+            expect(alice.locator("#lines")).to_contain_text(
+                "Reply from mobile player", timeout=10000)
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
