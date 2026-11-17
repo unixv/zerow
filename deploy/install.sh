@@ -23,11 +23,11 @@ runuser -u zerow -- /opt/zerow/.venv/bin/python -m pip install -r /opt/zerow/req
 
 cp /opt/zerow/deploy/zerow.service /etc/systemd/system/
 cp /opt/zerow/deploy/zerow-update.service /etc/systemd/system/
-cp /opt/zerow/deploy/zerow-update.timer /etc/systemd/system/
+cp /opt/zerow/deploy/zerow-update.timer /etc/systemd/system/\ncp /opt/zerow/deploy/zerow-backup.service /etc/systemd/system/\ncp /opt/zerow/deploy/zerow-backup.timer /etc/systemd/system/
 
 systemctl daemon-reload
 systemctl enable --now zerow.service
-systemctl enable --now zerow-update.timer
+systemctl enable --now zerow-update.timer\nsystemctl enable --now zerow-backup.timer
 
 echo "Zero W: http://<PI_IP>:8000"
-echo "Automatic updates: systemctl list-timers zerow-update.timer"
+echo "Automatic updates: systemctl list-timers zerow-update.timer"\necho "Daily backups: systemctl list-timers zerow-backup.timer"
