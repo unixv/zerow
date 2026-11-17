@@ -1,0 +1,9 @@
+[Unit]
+Description=ZeroW SQLite consistent backup
+
+[Service]
+Type=oneshot
+User=zerow
+WorkingDirectory=/opt/zerow
+ExecStart=/opt/zerow/.venv/bin/python /opt/zerow/deploy/backup.py
+NoNewPrivileges=true
