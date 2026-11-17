@@ -1,0 +1,12 @@
+[Unit]
+Description=Check GitHub main for Zero W updates
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=60s
+RandomizedDelaySec=0
+Persistent=true
+Unit=zerow-update.service
+
+[Install]
+WantedBy=timers.target
