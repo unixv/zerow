@@ -1,54 +1,47 @@
 # Zero W Game
 
-Minimal Flask game starter for a Raspberry Pi Zero W. The homepage has a clickable counter so you can confirm the app is running from a browser.
+A tiny Flask click-counter game for Raspberry Pi Zero W. The app serves on port 8000 and provides a health endpoint at `/health`.
 
-## Run on Raspberry Pi
+## One-time setup (automatic deployment)
+
+On your Pi, run:
 
 ```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv
+sudo apt-get update
+sudo apt-get install -y git
 git clone https://github.com/unixv/zerow.git
 cd zerow
+sudo bash deploy/install.sh
+```
+
+The installer creates a dedicated unprivileged `zerow` user, installs the app into `/opt/zerow`, creates its Python virtual environment, and enables the web service and automatic deployment timer. It does not require any inbound SSH access from GitHub.
+
+Open `http://<PI_IP>:8000` from your LAN. Check `http://<PI_IP>:8000/health` to verify the app.
+
+## How deployment works
+
+Every ~60 seconds, the Pi checks the public GitHub repository for changes to `main`. When new code is merged it fetches the commit, updates dependencies, restarts the app, and checks the health endpoint. If the health check or installation fails, it attempts to roll back to the previous commit. All of this happens outbound from the Pi; no GitHub Actions runners, tokens, or inbound ports are needed.
+
+```bash
+# Follow application logs
+sudo journalctl -u zerow.service -f
+
+# Inspect deployment attempts
+sudo journalctl -u zerow-update.service -n 50 --no-pager
+
+# See next scheduled deployment check
+systemctl list-timers zerow-update.timer
+
+# Force an update check
+sudo systemctl start zerow-update.service
+```
+
+The install script assumes port 8000 is unused. Stop any manually launched copy of the game first. Run `sudo bash deploy/install.sh` again if the systemd unit files themselves change; ordinary application code changes deploy automatically.
+
+## Local development
+
+```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python app.py
 ```
-
-Visit `http://<PI_IP>:8000` from another device on your network. Check `http://<PI_IP>:8000/health` for JSON `{"status":"ok"}`.
-
-## Run as a service
-
-Create `/etc/systemd/system/zerow.service` (replace `pi` and paths with your Pi username):
-
-```ini
-[Unit]
-Description=Zero W Flask Game
-After=network.target
-
-[Service]
-User=pi
-WorkingDirectory=/home/pi/zerow
-ExecStart=/home/pi/zerow/.venv/bin/python /home/pi/zerow/app.py
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now zerow
-sudo systemctl status zerow
-```
-
-## Deploy updates manually (until your CI/CD is connected)
-
-```bash
-cd ~/zerow
-git pull --ff-only origin main
-.venv/bin/pip install -r requirements.txt
-sudo systemctl restart zerow
-```
-
-No deployment workflow or credentials are committed to this repository. You can connect your own CI/CD pipeline later.
