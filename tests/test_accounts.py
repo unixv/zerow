@@ -88,6 +88,40 @@ class AccountTests(unittest.TestCase):
             "current_password": "initial-password-123", "new_password": "replacement-password-123"
         }).status_code, 429)
 
+    def test_logout_removes_player_from_other_clients_immediately(self):
+        observer = self.mod.app.test_client()
+        self.assertEqual(self.post("/api/register", {
+            "name": "Alice", "password": "alice-password-123"
+        }).status_code, 200)
+        self.assertEqual(observer.post("/api/register", json={
+            "name": "Bob", "password": "bob-password-123"
+        }, headers={"Origin": "http://localhost"}).status_code, 200)
+        self.assertEqual(len(observer.get("/api/state").json["players"]), 2)
+        self.assertEqual(self.post("/api/logout", {}).status_code, 200)
+        names = [p["name"] for p in observer.get("/api/state").json["players"]]
+        self.assertEqual(names, ["Bob"])
+        self.assertEqual(self.post("/api/login", {
+            "name": "Alice", "password": "alice-password-123"
+        }).status_code, 200)
+        self.assertEqual(len(observer.get("/api/state").json["players"]), 1)
+        self.assertEqual(self.client.get("/api/state").json["me"], "Alice")
+        self.assertEqual(len(observer.get("/api/state").json["players"]), 2)
+
+    def test_password_rotation_removes_presence_immediately(self):
+        observer = self.mod.app.test_client()
+        self.assertEqual(self.post("/api/register", {
+            "name": "Alice", "password": "alice-password-123"
+        }).status_code, 200)
+        self.assertEqual(observer.post("/api/register", json={
+            "name": "Bob", "password": "bob-password-123"
+        }, headers={"Origin": "http://localhost"}).status_code, 200)
+        self.assertEqual(len(observer.get("/api/state").json["players"]), 2)
+        self.assertEqual(self.post("/api/change-password", {
+            "current_password": "alice-password-123",
+            "new_password": "alice-password-456"
+        }).status_code, 200)
+        self.assertEqual([p["name"] for p in observer.get("/api/state").json["players"]], ["Bob"])
+
     def test_origin_check(self):
         r = self.client.post("/api/register", json={"name": "alice", "password": "long password"})
         self.assertEqual(r.status_code, 403)
