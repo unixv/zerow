@@ -43,7 +43,7 @@ button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
 </head>
 <body>
 <div class="shell">
-<header><div><div class="brand">ZERO<span>W</span> / THE LOBBY</div><div class="sub">A tiny multiplayer world running on a Raspberry Pi</div></div><div class="pill" id="connection">Connecting…</div></header>
+<header><div><div class="brand">ZERO<span>W</span> / THE LOBBY</div><div class="sub">A tiny multiplayer world running on a Raspberry Pi</div></div><div style="display:flex;align-items:center;gap:10px"><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
 <aside class="left"><h2>Spaces</h2><div class="room">◈ Lobby <small>Public room · everyone welcome</small></div><div class="hint">Click a tile to move.<br>Chat with people in the room.<br>No downloads needed.</div></aside>
 <section class="game">
 <div class="titlebar"><strong>◈ Lobby</strong><small id="population">0 people here</small></div>
@@ -58,8 +58,9 @@ button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
 </section>
 </div>
 <div class="modalbg" id="joinScreen"><div class="modal">
-<h1>Welcome to ZeroW</h1><p>Choose your unique name to enter the room, move around, and talk to other players.</p>
-<form id="joinForm"><input id="nickname" placeholder="Your nickname" maxlength="18" autocomplete="nickname" required autofocus><button>Join</button></form>
+<h1>Welcome to ZeroW</h1><p id="authDescription">Create a permanent account to explore and chat. Your name belongs to you.</p>
+<form id="joinForm" style="display:grid;gap:10px"><input id="nickname" placeholder="Username (3–18 characters)" maxlength="18" autocomplete="username" required autofocus><input id="password" type="password" placeholder="Password (at least 10 characters)" autocomplete="new-password" minlength="10" maxlength="128" required><button id="authSubmit">Create account</button></form>
+<div style="margin-top:12px;font-size:13px;color:#b8d2dd"><span id="authPrompt">Already registered?</span> <button type="button" id="authToggle" style="background:none;color:#8ef1b3;padding:4px">Log in</button></div>
 <div class="error" id="joinError"></div>
 </div></div>
 <script>
@@ -67,7 +68,7 @@ button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
 const canvas=document.querySelector("#world"),ctx=canvas.getContext("2d");
 const lines=document.querySelector("#lines"),members=document.querySelector("#members");
 const joinScreen=document.querySelector("#joinScreen"),message=document.querySelector("#message");
-let me=null,people=[],history=[],busy=false,noticeTimeout=null;
+let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register";
 const W=16,H=11,C=60;
 function color(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return "hsl("+(h%360)+" 66% 68%)";}
 function shade(x,y){return (x+y)%2===0?"#344a52":"#3b5058";}
@@ -138,20 +139,37 @@ async function refresh(){
  try{
   const result=await api("/api/state");
   document.querySelector("#connection").textContent="● Connected";
-  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;}
+  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";}
   else{
-    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;
+    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";
   }
   people=result.players;history=result.messages;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
  finally{busy=false;}
 }
+document.querySelector("#authToggle").addEventListener("click",()=>{
+ authMode=authMode==="register"?"login":"register";
+ document.querySelector("#authSubmit").textContent=authMode==="register"?"Create account":"Log in";
+ document.querySelector("#authToggle").textContent=authMode==="register"?"Log in":"Create an account";
+ document.querySelector("#authPrompt").textContent=authMode==="register"?"Already registered?":"New here?";
+ document.querySelector("#authDescription").textContent=authMode==="register"?"Create a permanent account to explore and chat. Your name belongs to you.":"Log in to your account and return to the Lobby.";
+ document.querySelector("#password").autocomplete=authMode==="register"?"new-password":"current-password";
+ document.querySelector("#joinError").textContent="";
+});
 document.querySelector("#joinForm").addEventListener("submit",async e=>{
  e.preventDefault();const error=document.querySelector("#joinError");error.textContent="";
  try{
-  const result=await api("/api/join","POST",{name:document.querySelector("#nickname").value});
-  me=result.name;await refresh();message.focus();
+  await api(authMode==="register"?"/api/register":"/api/login","POST",{
+    name:document.querySelector("#nickname").value,
+    password:document.querySelector("#password").value
+  });
+  document.querySelector("#password").value="";
+  await refresh();message.focus();
  }catch(err){error.textContent=err.message;}
+});
+document.querySelector("#logout").addEventListener("click",async()=>{
+ try{await api("/api/logout","POST");me=null;people=[];history=[];lines.dataset.lastId="";await refresh();}
+ catch(err){notify(err.message);}
 });
 document.querySelector("#chatForm").addEventListener("submit",async e=>{
  e.preventDefault();const text=message.value.trim();if(!me||!text)return;
