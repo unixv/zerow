@@ -124,6 +124,49 @@ class AccountTests(unittest.TestCase):
         }).status_code, 200)
         self.assertEqual([p["name"] for p in observer.get("/api/state").json["players"]], ["Bob"])
 
+    def test_presence_heartbeat_is_throttled_without_losing_presence(self):
+        from unittest.mock import patch
+        import sqlite3
+
+        with patch.object(self.mod.time, "time", return_value=1000.0):
+            self.assertEqual(self.post("/api/register", {
+                "name": "heartbeat", "password": "long-enough-password"
+            }).status_code, 200)
+            first = self.client.get("/api/state").json
+        self.assertEqual(first["me"], "heartbeat")
+        self.assertEqual(len(first["players"]), 1)
+
+        with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+            seen = db.execute("SELECT last_seen FROM users WHERE name='heartbeat'").fetchone()[0]
+        self.assertEqual(seen, 1000.0)
+
+        for t in (1001.0, 1005.0, 1009.0):
+            with patch.object(self.mod.time, "time", return_value=t):
+                result = self.client.get("/api/state").json
+            self.assertEqual(len(result["players"]), 1)
+            with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+                unchanged = db.execute("SELECT last_seen FROM users WHERE name='heartbeat'").fetchone()[0]
+            self.assertEqual(unchanged, 1000.0)
+
+        with patch.object(self.mod.time, "time", return_value=1010.0):
+            self.assertEqual(len(self.client.get("/api/state").json["players"]), 1)
+        with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+            updated = db.execute("SELECT last_seen FROM users WHERE name='heartbeat'").fetchone()[0]
+        self.assertEqual(updated, 1010.0)
+
+    def test_move_refreshes_presence_immediately(self):
+        from unittest.mock import patch
+        import sqlite3
+
+        with patch.object(self.mod.time, "time", return_value=2000.0):
+            self.post("/api/register", {"name": "moving", "password": "long-enough-password"})
+            self.client.get("/api/state")
+        with patch.object(self.mod.time, "time", return_value=2002.0):
+            self.assertEqual(self.post("/api/move", {"x": 2, "y": 3}).status_code, 200)
+        with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+            seen, x, y = db.execute("SELECT last_seen,x,y FROM users WHERE name='moving'").fetchone()
+        self.assertEqual((seen, x, y), (2002.0, 2, 3))
+
     def test_origin_check(self):
         r = self.client.post("/api/register", json={"name": "alice", "password": "long password"})
         self.assertEqual(r.status_code, 403)
