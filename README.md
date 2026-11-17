@@ -34,7 +34,7 @@ Create a consistent SQLite backup (including data in SQLite WAL):
 sudo -u zerow /opt/zerow/.venv/bin/python /opt/zerow/deploy/backup.py
 ```
 
-The script keeps the latest seven local snapshots in `/opt/zerow/data/backups/`. Run it daily with a timer/cron job and **copy backups off the Pi**, since an SD card failure could destroy both the database and local backups.
+The script makes an atomic, integrity-checked online snapshot (including WAL records), refuses to create an empty database when the source is missing, and retains the seven newest snapshots in `/opt/zerow/data/backups/`. Fresh installations enable `zerow-backup.timer` for daily backups. **Copy backups off the Pi**: an SD card failure could destroy the database and all local snapshots.\n\nFor an existing Pi installation, the updater deploys the script but does not install new systemd units. Run `sudo bash /opt/zerow/deploy/install.sh` once to enable the timer, then check `systemctl list-timers zerow-backup.timer` and `sudo journalctl -u zerow-backup.service -n 30 --no-pager`. Existing database data is not reset by the installer.
 
 ## Fresh Pi install
 

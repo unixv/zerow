@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily ZeroW SQLite backup
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=15m
+Persistent=true
+Unit=zerow-backup.service
+
+[Install]
+WantedBy=timers.target
