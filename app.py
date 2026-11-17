@@ -282,7 +282,7 @@ def state():
             con.execute("UPDATE users SET last_seen=? WHERE id=? AND last_seen<=?",
                         (now, user["id"], now - PRESENCE_HEARTBEAT_SECONDS))
         people = [dict(row) for row in con.execute(
-            "SELECT name,x,y FROM users WHERE last_seen>? ORDER BY name LIMIT 100", (now - 40,))]
+            "SELECT u.name,u.x,u.y FROM users u WHERE u.last_seen>? AND EXISTS (SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?) ORDER BY u.name LIMIT 100", (now - 40, now))]
         messages = [dict(row) for row in con.execute(
             """SELECT id, CASE WHEN user_id IS NULL THEN 'Guest · ' || name ELSE name END AS name,
                       body,created FROM (SELECT * FROM messages ORDER BY id DESC LIMIT 60)
