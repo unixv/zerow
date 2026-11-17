@@ -111,7 +111,7 @@ function draw(){
 function notify(text){const el=document.querySelector("#notice");el.textContent=text;el.style.display="block";clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>el.style.display="none",3500);}
 async function api(path,method="GET",data){
  const opt={method,credentials:"same-origin",headers:{"Content-Type":"application/json"}};
- if(data)opt.body=JSON.stringify(data);
+ if(method!=="GET")opt.body=JSON.stringify(data??{});
  const resp=await fetch(path,opt);
  const body=await resp.json().catch(()=>({error:"Server error"}));
  if(!resp.ok)throw Error(body.error||"Request failed");
