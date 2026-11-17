@@ -52,6 +52,21 @@ class BackupTests(unittest.TestCase):
         self.assertFalse(results[1].exists())
         self.assertTrue(results[-1].exists())
 
+    def test_empty_sqlite_database_does_not_publish_backup(self):
+        with sqlite3.connect(self.db):
+            pass
+        with self.assertRaisesRegex(RuntimeError, "empty SQLite"):
+            backup_module.backup(self.db)
+        self.assertFalse(list((self.root / "backups").glob("zerow-*.sqlite3")))
+
+    def test_invalid_retention_cannot_delete_fresh_backup(self):
+        with sqlite3.connect(self.db) as db:
+            db.execute("CREATE TABLE users (name TEXT)")
+        for keep in (0, -1, True, 1.5):
+            with self.subTest(keep=keep), self.assertRaises(ValueError):
+                backup_module.backup(self.db, keep=keep)
+        self.assertFalse(list((self.root / "backups").glob("zerow-*.sqlite3")))
+
     def test_invalid_database_does_not_publish_backup(self):
         self.db.write_bytes(b"not a sqlite database")
         with self.assertRaises(sqlite3.DatabaseError):
