@@ -238,6 +238,42 @@ class AccountTests(unittest.TestCase):
                     "SELECT COUNT(*) FROM users WHERE name='Alice'"
                 ).fetchone()[0], 1)
 
+    def test_chat_cooldown_index_preserves_legacy_messages(self):
+        import sqlite3
+        from unittest.mock import patch
+
+        path = os.environ["ZEROW_DB"]
+        with sqlite3.connect(path) as db:
+            db.execute("CREATE TABLE messages(id INTEGER PRIMARY KEY, name TEXT, body TEXT, created REAL)")
+            db.execute("INSERT INTO messages VALUES(1, 'oldguest', 'historic', 1.0)")
+        with patch.object(self.mod.time, "time", return_value=1000.0):
+            self.assertEqual(self.post("/api/register", {
+                "name": "Alice", "password": "alice-password-123"
+            }).status_code, 200)
+            self.assertEqual(self.post("/api/chat", {"message": "first"}).status_code, 200)
+            self.assertEqual(self.post("/api/chat", {"message": "too soon"}).status_code, 429)
+        with sqlite3.connect(path) as db:
+            index = db.execute(
+                "PRAGMA index_list(messages)"
+            ).fetchall()
+            self.assertIn("messages_user_latest_idx", [row[1] for row in index])
+            plan = db.execute(
+                "EXPLAIN QUERY PLAN SELECT created FROM messages "
+                "WHERE user_id=? ORDER BY id DESC LIMIT 1", (1,)
+            ).fetchall()
+            # SQLite can use the covering index to locate this user's latest message.
+            self.assertTrue(any("messages_user_latest_idx" in row[3] for row in plan), plan)
+            self.assertEqual(db.execute(
+                "SELECT body FROM messages WHERE id=1"
+            ).fetchone()[0], "historic")
+        with patch.object(self.mod.time, "time", return_value=1002.0):
+            self.assertEqual(self.post("/api/chat", {"message": "after cooldown"}).status_code, 200)
+        # Keep the mocked clock active: the test session was issued at t=1000.
+        with patch.object(self.mod.time, "time", return_value=1002.0):
+            messages = self.client.get("/api/state").json["messages"]
+        self.assertEqual([m["body"] for m in messages],
+                         ["historic", "first", "after cooldown"])
+
     def test_origin_check(self):
         r = self.client.post("/api/register", json={"name": "alice", "password": "long password"})
         self.assertEqual(r.status_code, 403)
