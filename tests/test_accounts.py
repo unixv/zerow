@@ -206,6 +206,38 @@ class AccountTests(unittest.TestCase):
                     self.assertIn(response.status_code, (400, 401))
                     self.assertIn("error", response.json)
 
+    def test_expired_session_disappears_without_erasing_account(self):
+        import sqlite3
+        from unittest.mock import patch
+
+        observer = self.mod.app.test_client()
+        with patch.object(self.mod.time, "time", return_value=1000.0):
+            self.assertEqual(self.post("/api/register", {
+                "name": "Alice", "password": "alice-password-123"
+            }).status_code, 200)
+            self.client.get("/api/state")
+            self.assertEqual(observer.post("/api/register", json={
+                "name": "Bob", "password": "bob-password-123"
+            }, headers={"Origin": "http://localhost"}).status_code, 200)
+            self.assertEqual(
+                [p["name"] for p in observer.get("/api/state").json["players"]],
+                ["Alice", "Bob"],
+            )
+            with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+                db.execute(
+                    "UPDATE sessions SET expires=999 WHERE user_id="
+                    "(SELECT id FROM users WHERE name='Alice')"
+                )
+            self.assertEqual(
+                [p["name"] for p in observer.get("/api/state").json["players"]],
+                ["Bob"],
+            )
+            self.assertIsNone(self.client.get("/api/state").json["me"])
+            with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+                self.assertEqual(db.execute(
+                    "SELECT COUNT(*) FROM users WHERE name='Alice'"
+                ).fetchone()[0], 1)
+
     def test_origin_check(self):
         r = self.client.post("/api/register", json={"name": "alice", "password": "long password"})
         self.assertEqual(r.status_code, 403)
