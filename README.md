@@ -6,6 +6,7 @@ A small Atrium-style multiplayer room for Raspberry Pi Zero W, built with Flask 
 
 - Permanent unique usernames (3–18 letters/numbers/underscore/hyphen)
 - Passwords hashed using scrypt; plaintext passwords are never stored
+- Password change from the Account menu, with current-password verification, session revocation, and failed-attempt throttling
 - Login, logout and revocable 30-day sessions (random tokens stored as SHA-256 hashes)
 - Persistent avatar positions, messages and account creation timestamps
 - Six failed logins per username trigger a 15-minute lockout
