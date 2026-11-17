@@ -85,6 +85,7 @@ def create_session(con, user_id):
     token = secrets.token_urlsafe(32)
     now = time.time()
     con.execute("DELETE FROM sessions WHERE user_id=? OR expires<?", (user_id, now))
+    con.execute("UPDATE users SET last_seen=0 WHERE id=?", (user_id,))
     con.execute("INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)",
                 (token_hash(token), user_id, now + SESSION_SECONDS))
     response = make_response(jsonify(ok=True))
@@ -226,6 +227,7 @@ def change_password():
         hashed = generate_password_hash(new_password, method=PASSWORD_METHOD)
         con.execute("UPDATE users SET password_hash=? WHERE id=?", (hashed, user["id"]))
         con.execute("DELETE FROM sessions WHERE user_id=?", (user["id"],))
+        con.execute("UPDATE users SET last_seen=0 WHERE id=?", (user["id"],))
         con.execute("DELETE FROM login_attempts WHERE username=?", (key,))
     resp = make_response(jsonify(ok=True, message="Password changed. Please log in again."))
     resp.delete_cookie("zerow_session", path="/")
@@ -237,7 +239,10 @@ def logout():
     token = request.cookies.get("zerow_session", "")
     if token:
         with connect() as con:
+            user = identity(con)
             con.execute("DELETE FROM sessions WHERE token_hash=?", (token_hash(token),))
+            if user is not None:
+                con.execute("UPDATE users SET last_seen=0 WHERE id=?", (user["id"],))
     resp = make_response(jsonify(ok=True))
     resp.delete_cookie("zerow_session", path="/")
     return resp
