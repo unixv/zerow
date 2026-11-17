@@ -256,13 +256,13 @@ class AccountTests(unittest.TestCase):
             index = db.execute(
                 "PRAGMA index_list(messages)"
             ).fetchall()
-            self.assertIn("messages_user_created_idx", [row[1] for row in index])
+            self.assertIn("messages_user_latest_idx", [row[1] for row in index])
             plan = db.execute(
                 "EXPLAIN QUERY PLAN SELECT created FROM messages "
                 "WHERE user_id=? ORDER BY id DESC LIMIT 1", (1,)
             ).fetchall()
             # SQLite can use the covering index to locate this user's latest message.
-            self.assertTrue(any("messages_user_created_idx" in row[3] for row in plan), plan)
+            self.assertTrue(any("messages_user_latest_idx" in row[3] for row in plan), plan)
             self.assertEqual(db.execute(
                 "SELECT body FROM messages WHERE id=1"
             ).fetchone()[0], "historic")
