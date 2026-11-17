@@ -1,30 +1,42 @@
-# ZeroW — Multiplayer Lobby
+# ZeroW — Persistent multiplayer Lobby
 
-A small Atrium-style multiplayer room for Raspberry Pi Zero W, powered by Flask and SQLite.
+A small Atrium-style multiplayer room for Raspberry Pi Zero W, built with Flask and SQLite. **No SQL server is required.**
 
-## First iteration
-- Join the **Lobby** with a unique nickname (2–18 letters, numbers, spaces, underscores, hyphens)
-- Click a tile to move your avatar anywhere in the 16×11 room
-- See other active players and their positions (refreshed every 1.5 seconds)
-- Send messages to everyone in the Lobby; chat appears as speech bubbles above avatars
-- Retain the latest 500 messages in SQLite, with the latest 60 shown in the UI
-- Server-side validation, simple per-player chat cooldown, and HTTP-only session cookies
+## Accounts
 
-There are no passwords or account recovery in this prototype; names are claimed by the browser's cookie. Do not use this as an authenticated or moderated public chat until those features exist.
+- Permanent unique usernames (3–18 letters/numbers/underscore/hyphen)
+- Passwords hashed using scrypt; plaintext passwords are never stored
+- Login, logout and revocable 30-day sessions (random tokens stored as SHA-256 hashes)
+- Persistent avatar positions, messages and account creation timestamps
+- Six failed logins per username trigger a 15-minute lockout
+- Origin validation for all state-changing API requests
+- Legacy guest messages remain in the database, labeled `Guest · name`; the old guest cookie no longer authenticates
 
-## Already configured Pi — automatic deployment
+**Limitations:** There is no password reset or email verification yet. The login throttle is basic; it is not a substitute for Cloudflare WAF/rate limiting, moderation and abuse prevention. Use HTTPS for internet access. If terminating HTTPS at a local HTTP proxy/tunnel, set `Environment=ZEROW_SECURE_COOKIES=1` in `/etc/systemd/system/zerow.service`, run `sudo systemctl daemon-reload && sudo systemctl restart zerow.service`, then use only the HTTPS hostname. Don't enable Secure cookies when browsing via HTTP LAN address.
 
-The Pi's `zerow-update.timer` checks `main` approximately once per minute and deploys new commits automatically.
+## Existing Raspberry Pi: automatic updates
+
+`zerow-update.timer` checks GitHub `main` about once a minute, installs code changes, restarts the service and checks `/health`.
 
 ```bash
 systemctl list-timers zerow-update.timer
-sudo journalctl -u zerow-update.service -n 40 --no-pager
-sudo journalctl -u zerow.service -n 40 --no-pager
+sudo journalctl -u zerow-update.service -n 50 --no-pager
+sudo journalctl -u zerow.service -n 50 --no-pager
 ```
 
-Open `http://<PI_IP>:8000` from the local network or use your existing reverse proxy/tunnel. Database is stored at `/opt/zerow/data/atrium.sqlite3` and is not committed to Git. Existing data survives updates.
+User data lives in `/opt/zerow/data/atrium.sqlite3`, outside Git-tracked files; it survives deployments and device restarts. Avoid removing this directory. A failed deployment attempts a code rollback, **not** a database downgrade.
 
-## Fresh Raspberry Pi setup
+## Backups
+
+Create a consistent SQLite backup (including data in SQLite WAL):
+
+```bash
+sudo -u zerow /opt/zerow/.venv/bin/python /opt/zerow/deploy/backup.py
+```
+
+The script keeps the latest seven local snapshots in `/opt/zerow/data/backups/`. Run it daily with a timer/cron job and **copy backups off the Pi**, since an SD card failure could destroy both the database and local backups.
+
+## Fresh Pi install
 
 ```bash
 sudo apt-get update
@@ -34,18 +46,17 @@ cd zerow
 sudo bash deploy/install.sh
 ```
 
-The installer sets up a dedicated `zerow` user, `/opt/zerow`, a Python virtual environment, a systemd web service, and an update timer. This needs to be done only once, unless the service/timer configurations are changed.
-
-## Development on another machine
+## Local development and tests
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ZEROW_DB=./data/atrium.sqlite3 .venv/bin/python app.py
+python3 -m unittest discover -s tests -v
 ```
 
-Visit `http://localhost:8000`. Visit `/health` for a database-aware health check.
+Visit `http://localhost:8000` and `/health`.
 
-## Future iterations
+## Next milestones
 
-Rooms and furniture, avatar customization, account recovery, server-side moderation and rate limits, and real-time WebSockets can be added separately once the first shared room is verified on the Pi.
+Email-based recovery, moderation and abuse controls, secure HTTPS-only production entry, off-device automated backups, and load/concurrency testing should precede opening registration to the wider internet.
