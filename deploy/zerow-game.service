@@ -1,0 +1,21 @@
+[Unit]
+Description=Zero W Browser Game
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/zerow
+Environment=PYTHONUNBUFFERED=1
+Environment=ZEROW_HOST=127.0.0.1
+Environment=ZEROW_PORT=8080
+ExecStart=/usr/bin/python3 /home/pi/zerow/server.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
