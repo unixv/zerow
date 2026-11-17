@@ -154,6 +154,39 @@ class AccountTests(unittest.TestCase):
             updated = db.execute("SELECT last_seen FROM users WHERE name='heartbeat'").fetchone()[0]
         self.assertEqual(updated, 1010.0)
 
+    def test_chat_restores_presence_after_temporary_disconnect(self):
+        """A returning player's chat should immediately make them visible again."""
+        import sqlite3
+        from unittest.mock import patch
+
+        observer = self.mod.app.test_client()
+        with patch.object(self.mod.time, "time", return_value=1000.0):
+            self.assertEqual(self.post("/api/register", {
+                "name": "Alice", "password": "alice-password-123"
+            }).status_code, 200)
+            self.client.get("/api/state")
+            self.assertEqual(observer.post("/api/register", json={
+                "name": "Bob", "password": "bob-password-123"
+            }, headers={"Origin": "http://localhost"}).status_code, 200)
+
+        # Alice's browser loses connectivity for longer than the presence TTL.
+        with patch.object(self.mod.time, "time", return_value=1045.0):
+            self.assertEqual(
+                [p["name"] for p in observer.get("/api/state").json["players"]],
+                ["Bob"],
+            )
+            # A queued chat request arrives before Alice's next state poll.
+            self.assertEqual(self.post("/api/chat", {
+                "message": "I'm back!"
+            }).status_code, 200)
+            state = observer.get("/api/state").json
+            self.assertEqual([p["name"] for p in state["players"]], ["Alice", "Bob"])
+            self.assertEqual(state["messages"][-1]["body"], "I'm back!")
+        with sqlite3.connect(os.environ["ZEROW_DB"]) as db:
+            self.assertEqual(db.execute(
+                "SELECT last_seen FROM users WHERE name='Alice'"
+            ).fetchone()[0], 1045.0)
+
     def test_move_refreshes_presence_immediately(self):
         from unittest.mock import patch
         import sqlite3
