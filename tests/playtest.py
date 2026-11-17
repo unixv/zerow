@@ -20,7 +20,7 @@ PASSWORD = "LocalPlaytestPassword-123456"
 
 def register(page, name):
     page.goto(BASE + "/", wait_until="domcontentloaded")
-    expect(page.get_by_text("Welcome to ZeroW")).to_be_visible(timeout=15000)
+    expect(page.get_by_text("Welcome to Atrium")).to_be_visible(timeout=15000)
     page.locator("#nickname").fill(name)
     page.locator("#password").fill(PASSWORD)
     page.locator("#authSubmit").click()
@@ -31,7 +31,7 @@ def register(page, name):
 
 def login(page, name):
     page.goto(BASE + "/", wait_until="domcontentloaded")
-    expect(page.get_by_text("Welcome to ZeroW")).to_be_visible()
+    expect(page.get_by_text("Welcome to Atrium")).to_be_visible()
     page.locator("#authToggle").click()
     page.locator("#nickname").fill(name)
     page.locator("#password").fill(PASSWORD)
@@ -91,6 +91,19 @@ def main():
             canvas.click(position={"x": bounds["width"] * 6.5 / 16,
                                    "y": bounds["height"] * 4.5 / 11})
             # Confirm the live game UI sends movement and the shared API reflects it.
+            alice.wait_for_function("""async () => {
+              const state=await fetch('/api/state').then(r=>r.json());
+              return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
+            }""", timeout=10000)
+
+            print("Keyboard exploration moves player A using WASD and arrows")
+            alice.locator("#world").focus()
+            alice.keyboard.press("d")
+            alice.wait_for_function("""async () => {
+              const state=await fetch('/api/state').then(r=>r.json());
+              return state.players.some(p=>p.name==='playtest_alice' && p.x===7 && p.y===4);
+            }""", timeout=10000)
+            alice.keyboard.press("ArrowLeft")
             alice.wait_for_function("""async () => {
               const state=await fetch('/api/state').then(r=>r.json());
               return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
