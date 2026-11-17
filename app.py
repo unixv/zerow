@@ -330,6 +330,8 @@ def chat():
             return error("Slow down a little.", 429)
         con.execute("INSERT INTO messages(name,body,created,user_id) VALUES(?,?,?,?)",
                     (user["name"], body, now, user["id"]))
+        # Chat activity also restores presence after a disconnected browser returns.
+        con.execute("UPDATE users SET last_seen=? WHERE id=?", (now, user["id"]))
         con.execute("DELETE FROM messages WHERE id < (SELECT COALESCE(MAX(id),0)-500 FROM messages)")
     return jsonify(ok=True)
 
