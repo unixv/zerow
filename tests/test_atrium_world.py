@@ -36,6 +36,14 @@ class AtriumWorldTests(unittest.TestCase):
         self.assertIn('document.querySelector("#chatForm").addEventListener("submit"', PAGE)
         self.assertNotIn('api("/api/chat","POST",{message:button.dataset.quick})', PAGE)
 
+    def test_inline_script_has_no_literal_escaped_line_breaks(self):
+        # A prior release inserted raw backslash-n tokens between JS statements,
+        # preventing the entire game from initializing in Chromium.
+        script = PAGE.split("<script>", 1)[1].split("</script>", 1)[0]
+        self.assertNotIn(chr(92) + "n ", script)
+        self.assertNotIn(chr(92) + "ncanvas.", script)
+        self.assertNotIn(chr(92) + "ndocument.", script)
+
     def test_scenery_and_character_rendering(self):
         for token in ('const scenery=', 't:"tree"', 't:"fountain"', 't:"lamp"',
                       'ctx.roundRect', 'ctx.ellipse', 'function draw()'):
