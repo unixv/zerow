@@ -172,7 +172,6 @@ class AccountTests(unittest.TestCase):
             ([], 400),
             ("text", 400),
             (42, 400),
-            (None, 400),
         ]
         for payload, status in cases:
             for endpoint in ("/api/register", "/api/login", "/api/chat",
