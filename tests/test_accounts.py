@@ -268,7 +268,10 @@ class AccountTests(unittest.TestCase):
             ).fetchone()[0], "historic")
         with patch.object(self.mod.time, "time", return_value=1002.0):
             self.assertEqual(self.post("/api/chat", {"message": "after cooldown"}).status_code, 200)
-        self.assertEqual([m["body"] for m in self.client.get("/api/state").json["messages"]],
+        # Keep the mocked clock active: the test session was issued at t=1000.
+        with patch.object(self.mod.time, "time", return_value=1002.0):
+            messages = self.client.get("/api/state").json["messages"]
+        self.assertEqual([m["body"] for m in messages],
                          ["historic", "first", "after cooldown"])
 
     def test_origin_check(self):
