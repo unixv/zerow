@@ -67,6 +67,22 @@ def main():
             bob.locator("#send").click()
             expect(alice.locator("#lines")).to_contain_text("Reply from mobile player", timeout=10000)
 
+            print("Recovering missed chat after temporary browser network loss")
+            a.set_offline(True)
+            # Keep the browser open while its polling requests cannot reach Flask.
+            alice.wait_for_timeout(2500)
+            bob.locator("#message").fill("Message sent while Alice was offline")
+            bob.locator("#send").click()
+            expect(bob.locator("#lines")).to_contain_text(
+                "Message sent while Alice was offline", timeout=10000
+            )
+            a.set_offline(False)
+            expect(alice.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            expect(alice.locator("#lines")).to_contain_text(
+                "Message sent while Alice was offline", timeout=15000
+            )
+            expect(alice.locator("#logout")).to_be_visible()
+
             print("Moving player A by clicking the game canvas")
             canvas = alice.locator("#world")
             bounds = canvas.bounding_box()
