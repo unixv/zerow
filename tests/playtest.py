@@ -97,6 +97,31 @@ def main():
               return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
             }""", timeout=10000)
 
+            print("Mobile browser reload preserves its own account")
+            bob.reload()
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            expect(bob.locator("#members")).to_contain_text(NAME_B, timeout=10000)
+
+            print("Second browser login invalidates previous session")
+            replacement = browser.new_context(viewport={"width": 900, "height": 700})
+            replacement_page = replacement.new_page()
+            replacement_page.on("pageerror", lambda exc: errors.append(str(exc)))
+            try:
+                login(replacement_page, NAME_A)
+                expect(replacement_page.locator("#members")).to_contain_text(NAME_A, timeout=10000)
+                alice.wait_for_function("""async () => {
+                  const state = await fetch('/api/state').then(r => r.json());
+                  return state.me === null;
+                }""", timeout=10000)
+                expect(alice.locator("#joinScreen")).to_be_visible(timeout=12000)
+                expect(alice.locator("#message")).to_be_disabled()
+                expect(replacement_page.locator("#lines")).to_contain_text(
+                    "Reply from mobile player", timeout=10000)
+                replacement_page.screenshot(
+                    path=str(ARTIFACTS / "replacement-session.png"), full_page=True)
+            finally:
+                replacement.close()
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
