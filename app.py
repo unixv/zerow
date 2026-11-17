@@ -89,7 +89,7 @@ def create_session(con, user_id):
                 (token_hash(token), user_id, now + SESSION_SECONDS))
     response = make_response(jsonify(ok=True))
     response.set_cookie("zerow_session", token, max_age=SESSION_SECONDS, httponly=True,
-                        samesite="Lax", secure=bool(int(os.environ.get("ZEROW_SECURE_COOKIES", "0"))),
+                        samesite="Lax", secure=request.is_secure or os.environ.get("ZEROW_SECURE_COOKIES", "0") == "1",
                         path="/")
     response.delete_cookie("zerow_player", path="/")
     return response
