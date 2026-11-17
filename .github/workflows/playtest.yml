@@ -1,0 +1,55 @@
+name: ZeroW Player Playtest
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "43 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zerow-playtest
+  cancel-in-progress: false
+
+jobs:
+  playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install app and browser test dependencies
+        run: |
+          python -m pip install -r requirements.txt playwright
+          python -m playwright install --with-deps chromium
+      - name: Start local multiplayer server with isolated SQLite database
+        env:
+          ZEROW_DB: ${{ runner.temp }}/zerow-playtest.sqlite3
+        run: |
+          python app.py > "${{ runner.temp }}/zerow-server.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/health > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "${{ runner.temp }}/zerow-server.log"
+          exit 1
+      - name: Play game with two registered browser accounts
+        env:
+          ZEROW_BASE_URL: http://127.0.0.1:8000
+          ZEROW_PLAYTEST_ARTIFACTS: playtest-artifacts
+        run: python tests/playtest.py
+      - name: Save screenshots and server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zerow-playtest-${{ github.run_id }}
+          path: |
+            playtest-artifacts/
+            ${{ runner.temp }}/zerow-server.log
+          retention-days: 7
+          if-no-files-found: warn
