@@ -167,6 +167,46 @@ class AccountTests(unittest.TestCase):
             seen, x, y = db.execute("SELECT last_seen,x,y FROM users WHERE name='moving'").fetchone()
         self.assertEqual((seen, x, y), (2002.0, 2, 3))
 
+    def test_api_rejects_malformed_json_shapes_without_server_errors(self):
+        cases = [
+            ([], 400),
+            ("text", 400),
+            (42, 400),
+            (None, 400),
+        ]
+        for payload, status in cases:
+            for endpoint in ("/api/register", "/api/login", "/api/chat",
+                             "/api/move", "/api/change-password", "/api/logout"):
+                with self.subTest(endpoint=endpoint, payload=payload):
+                    result = self.client.post(endpoint, json=payload,
+                                              headers={"Origin": "http://localhost"})
+                    self.assertEqual(result.status_code, status)
+                    self.assertIn("error", result.json)
+
+    def test_api_rejects_non_json_and_large_payloads(self):
+        result = self.client.post("/api/register", data="name=Alice",
+                                  headers={"Origin": "http://localhost"},
+                                  content_type="application/x-www-form-urlencoded")
+        self.assertEqual(result.status_code, 415)
+        self.assertIn("error", result.json)
+        result = self.client.post("/api/register", data="{",
+                                  headers={"Origin": "http://localhost"},
+                                  content_type="application/json")
+        self.assertEqual(result.status_code, 400)
+        result = self.client.post("/api/chat", data='{"message":"' + "x" * 5000 + '"}',
+                                  headers={"Origin": "http://localhost"},
+                                  content_type="application/json")
+        self.assertEqual(result.status_code, 413)
+        self.assertIn("error", result.json)
+
+    def test_username_types_do_not_get_coerced_to_strings(self):
+        for endpoint in ("/api/register", "/api/login"):
+            for value in (123, [], {}, True):
+                with self.subTest(endpoint=endpoint, value=value):
+                    response = self.post(endpoint, {"name": value, "password": "valid-password-123"})
+                    self.assertIn(response.status_code, (400, 401))
+                    self.assertIn("error", response.json)
+
     def test_origin_check(self):
         r = self.client.post("/api/register", json={"name": "alice", "password": "long password"})
         self.assertEqual(r.status_code, 403)
