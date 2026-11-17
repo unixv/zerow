@@ -62,6 +62,9 @@ def connect():
     cols = {r["name"] for r in con.execute("PRAGMA table_info(messages)")}
     if "user_id" not in cols:
         con.execute("ALTER TABLE messages ADD COLUMN user_id INTEGER")
+    # The per-user chat cooldown otherwise scans message history on each send.
+    # Create after the legacy schema migration so existing databases upgrade safely.
+    con.execute("CREATE INDEX IF NOT EXISTS messages_user_created_idx ON messages(user_id, created DESC)")
     con.commit()
     try:
         with con:
