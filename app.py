@@ -16,6 +16,7 @@ app = Flask(__name__, static_folder="static")
 DB = Path(os.environ.get("ZEROW_DB", "/opt/zerow/data/atrium.sqlite3"))
 WIDTH, HEIGHT = 16, 11
 SESSION_SECONDS = 30 * 24 * 3600
+PRESENCE_HEARTBEAT_SECONDS = 10  # Avoid writing for every browser poll.
 USERNAME_PATTERN = re.compile(r"[A-Za-z0-9_-]{3,18}\Z")
 PASSWORD_METHOD = "scrypt:32768:8:1"
 
@@ -255,7 +256,11 @@ def state():
         if user is None:
             return jsonify(me=None, players=[], messages=[])
         now = time.time()
-        con.execute("UPDATE users SET last_seen=? WHERE id=?", (now, user["id"]))
+        # A heartbeat every ten seconds preserves the 40-second presence window
+        # while avoiding a SQLite WAL write on every 1.5-second poll.
+        if user["last_seen"] <= now - PRESENCE_HEARTBEAT_SECONDS:
+            con.execute("UPDATE users SET last_seen=? WHERE id=? AND last_seen<=?",
+                        (now, user["id"], now - PRESENCE_HEARTBEAT_SECONDS))
         people = [dict(row) for row in con.execute(
             "SELECT name,x,y FROM users WHERE last_seen>? ORDER BY name LIMIT 100", (now - 40,))]
         messages = [dict(row) for row in con.execute(
