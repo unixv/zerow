@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#171f29">
+<title>Zero W — The Lobby</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,sans-serif;background:#101720;color:#e9f0f7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}
+.shell{display:grid;grid-template-columns:175px minmax(0,1fr) 200px;grid-template-rows:64px minmax(0,1fr) 228px;min-height:100vh;max-height:100vh;gap:1px;background:#2c3944}
+header{grid-column:1/-1;background:#18232d;display:flex;justify-content:space-between;align-items:center;padding:0 22px}
+.brand{font-size:19px;font-weight:850;letter-spacing:-.6px}.brand span{color:#91f0bb}
+.sub{font-size:11px;color:#90a5b4;margin-top:3px}.pill{font-size:12px;color:#cde6d6;border:1px solid #35564a;border-radius:99px;padding:7px 12px}
+aside,.game,.chat{background:#18232d;min-width:0}
+aside{padding:20px 14px}h2{font-size:10px;letter-spacing:1.5px;color:#8299a9;margin:0 0 16px;text-transform:uppercase}
+.room{width:100%;text-align:left;background:#263944;border:1px solid #36525a;border-radius:7px;color:#e5f6eb;font-size:13px;padding:12px;cursor:default}
+.room small{display:block;margin-top:5px;color:#97b2b9}
+.hint{font-size:12px;line-height:1.6;color:#899fab;margin-top:20px}
+.game{position:relative;display:flex;flex-direction:column;overflow:hidden}
+.titlebar{display:flex;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #2b3945;align-items:center}
+.titlebar strong{font-size:14px}.titlebar small{color:#8fa3af}
+.stage{flex:1;min-height:0;display:grid;place-items:center;padding:15px;background:radial-gradient(ellipse at center,#2b3f42,#18232d 74%)}
+canvas{display:block;max-width:100%;max-height:100%;aspect-ratio:16/11;image-rendering:auto;cursor:crosshair}
+.member{padding:9px 5px;border-bottom:1px solid #273742;display:flex;align-items:center;gap:9px;font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.dot{width:9px;height:9px;border-radius:100%;background:#8ef1b3;flex-shrink:0}
+.chat{grid-column:2;display:flex;flex-direction:column;border-top:1px solid #2b3945;min-height:0}
+.chathead{padding:12px 16px;color:#a7bdc8;font-size:12px;border-bottom:1px solid #2b3945}
+.lines{flex:1;min-height:0;overflow:auto;padding:8px 16px;font-size:13px;line-height:1.6}
+.line{margin:3px 0;overflow-wrap:anywhere}.line b{color:#a9edc0}.time{font-size:10px;color:#728895;padding-left:8px}
+.compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #283b46}
+input,button{font:inherit}input{width:100%;min-width:0;outline:none;border:1px solid #38505c;border-radius:6px;padding:10px 12px;background:#111e27;color:#fff;font-size:13px}
+input:focus{border-color:#8ef1b3}button{background:#8ef1b3;color:#102c20;border:0;border-radius:6px;padding:10px 17px;font-weight:700;cursor:pointer}
+button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
+#notice{position:absolute;top:56px;left:50%;transform:translateX(-50%);background:#432c32;color:#ffe1e1;border:1px solid #80525d;border-radius:6px;padding:8px 12px;font-size:12px;max-width:85%;z-index:3;display:none}
+.modalbg{position:fixed;inset:0;background:#071013de;display:grid;place-items:center;z-index:10;padding:18px}
+.modalbg[hidden]{display:none}.modal{background:#202f39;border:1px solid #45606d;border-radius:12px;padding:28px;width:min(100%,400px);box-shadow:0 24px 70px #0008}
+.modal h1{margin:0 0 8px;font-size:28px}.modal p{color:#aebfca;line-height:1.5;font-size:14px;margin:0 0 22px}
+.modal form{display:flex;gap:8px}.modal .error{color:#ffacac;font-size:12px;min-height:24px;margin-top:10px}
+@media(max-width:800px){.shell{grid-template-columns:minmax(0,1fr) 160px;grid-template-rows:56px minmax(320px,1fr) 240px;max-height:none;min-height:100dvh}.left{display:none}.game{grid-column:1}.right{grid-column:2}.chat{grid-column:1/-1}}
+@media(max-width:520px){.shell{display:flex;flex-direction:column;min-height:100dvh;max-height:none}header{min-height:58px}.game{height:min(75vw,420px);min-height:280px}.right{padding:12px 16px;min-height:60px}.right h2{margin-bottom:7px}.members{display:flex;gap:12px;flex-wrap:wrap}.member{border:0;padding:4px}.chat{height:270px;flex:1}.titlebar{padding:10px 14px}.stage{padding:5px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header><div><div class="brand">ZERO<span>W</span> / THE LOBBY</div><div class="sub">A tiny multiplayer world running on a Raspberry Pi</div></div><div class="pill" id="connection">Connecting…</div></header>
+<aside class="left"><h2>Spaces</h2><div class="room">◈ Lobby <small>Public room · everyone welcome</small></div><div class="hint">Click a tile to move.<br>Chat with people in the room.<br>No downloads needed.</div></aside>
+<section class="game">
+<div class="titlebar"><strong>◈ Lobby</strong><small id="population">0 people here</small></div>
+<div id="notice" role="alert"></div>
+<div class="stage"><canvas id="world" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
+</section>
+<aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
+<section class="chat">
+<div class="chathead">ROOM CHAT · Messages appear for everyone</div>
+<div class="lines" id="lines" aria-live="polite"></div>
+<form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
+</section>
+</div>
+<div class="modalbg" id="joinScreen"><div class="modal">
+<h1>Welcome to ZeroW</h1><p>Choose your unique name to enter the room, move around, and talk to other players.</p>
+<form id="joinForm"><input id="nickname" placeholder="Your nickname" maxlength="18" autocomplete="nickname" required autofocus><button>Join</button></form>
+<div class="error" id="joinError"></div>
+</div></div>
+<script>
+"use strict";
+const canvas=document.querySelector("#world"),ctx=canvas.getContext("2d");
+const lines=document.querySelector("#lines"),members=document.querySelector("#members");
+const joinScreen=document.querySelector("#joinScreen"),message=document.querySelector("#message");
+let me=null,people=[],history=[],busy=false,noticeTimeout=null;
+const W=16,H=11,C=60;
+function color(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return "hsl("+(h%360)+" 66% 68%)";}
+function shade(x,y){return (x+y)%2===0?"#344a52":"#3b5058";}
+function draw(){
+ ctx.clearRect(0,0,960,660);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+   ctx.fillStyle=shade(x,y);ctx.fillRect(x*C,y*C,C,C);
+   ctx.strokeStyle="#263a45";ctx.strokeRect(x*C+.5,y*C+.5,C-1,C-1);
+ }
+ ctx.fillStyle="#54756c";ctx.fillRect(0,0,960,8);ctx.fillRect(0,652,960,8);
+ for(const p of people){
+   const cx=p.x*C+C/2,cy=p.y*C+C/2;
+   ctx.fillStyle="#15262c90";ctx.beginPath();ctx.ellipse(cx,cy+15,19,7,0,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle=color(p.name);ctx.beginPath();ctx.arc(cx,cy-4,15,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle="#122732";ctx.fillRect(cx-6,cy-7,3,4);ctx.fillRect(cx+3,cy-7,3,4);
+   if(p.name===me){ctx.strokeStyle="#e1ffe4";ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy-4,19,0,Math.PI*2);ctx.stroke();}
+   const label=p.name.length>13?p.name.slice(0,12)+"…":p.name;
+   ctx.font="bold 13px system-ui";const tw=ctx.measureText(label).width;
+   ctx.fillStyle="#11252ce6";ctx.fillRect(cx-tw/2-6,cy+22,tw+12,21);
+   ctx.fillStyle="#eef8ef";ctx.textAlign="center";ctx.fillText(label,cx,cy+37);ctx.textAlign="start";
+   const recent=[...history].reverse().find(m=>m.name===p.name && Date.now()/1000-m.created<6500/1000);
+   if(recent){
+     const text=recent.body.slice(0,38)+(recent.body.length>38?"…":"");
+     ctx.font="13px system-ui";const w=Math.min(330,ctx.measureText(text).width+22);
+     const bx=Math.max(5,Math.min(955-w,cx-w/2)),by=Math.max(8,cy-62);
+     ctx.fillStyle="#f1f7f2";ctx.beginPath();ctx.roundRect(bx,by,w,31,6);ctx.fill();
+     ctx.fillStyle="#19332b";ctx.textAlign="center";ctx.fillText(text,bx+w/2,by+21);ctx.textAlign="start";
+   }
+ }
+}
+function notify(text){const el=document.querySelector("#notice");el.textContent=text;el.style.display="block";clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>el.style.display="none",3500);}
+async function api(path,method="GET",data){
+ const opt={method,credentials:"same-origin",headers:{"Content-Type":"application/json"}};
+ if(data)opt.body=JSON.stringify(data);
+ const resp=await fetch(path,opt);
+ const body=await resp.json().catch(()=>({error:"Server error"}));
+ if(!resp.ok)throw Error(body.error||"Request failed");
+ return body;
+}
+function renderMembers(){
+ members.replaceChildren();
+ for(const p of people){
+  const row=document.createElement("div");row.className="member";
+  const dot=document.createElement("span");dot.className="dot";dot.style.background=color(p.name);
+  const name=document.createElement("span");name.textContent=p.name+(p.name===me?" (you)":"");
+  row.append(dot,name);members.append(row);
+ }
+ document.querySelector("#population").textContent=people.length+" "+(people.length===1?"person":"people")+" here";
+}
+function renderMessages(){
+ const oldId=lines.dataset.lastId||"";
+ const last=history.length?String(history[history.length-1].id):"";
+ if(last===oldId)return;
+ const stay=lines.scrollHeight-lines.scrollTop-lines.clientHeight<55;
+ lines.replaceChildren();
+ for(const m of history){
+  const row=document.createElement("div");row.className="line";
+  const who=document.createElement("b");who.textContent=m.name+": ";
+  const body=document.createElement("span");body.textContent=m.body;
+  const time=document.createElement("span");time.className="time";
+  time.textContent=new Date(m.created*1000).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  row.append(who,body,time);lines.append(row);
+ }
+ lines.dataset.lastId=last;if(stay)lines.scrollTop=lines.scrollHeight;
+}
+async function refresh(){
+ if(busy)return;busy=true;
+ try{
+  const result=await api("/api/state");
+  document.querySelector("#connection").textContent="● Connected";
+  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;}
+  else{
+    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;
+  }
+  people=result.players;history=result.messages;renderMembers();renderMessages();draw();
+ }catch(e){document.querySelector("#connection").textContent="○ Offline";}
+ finally{busy=false;}
+}
+document.querySelector("#joinForm").addEventListener("submit",async e=>{
+ e.preventDefault();const error=document.querySelector("#joinError");error.textContent="";
+ try{
+  const result=await api("/api/join","POST",{name:document.querySelector("#nickname").value});
+  me=result.name;await refresh();message.focus();
+ }catch(err){error.textContent=err.message;}
+});
+document.querySelector("#chatForm").addEventListener("submit",async e=>{
+ e.preventDefault();const text=message.value.trim();if(!me||!text)return;
+ try{await api("/api/chat","POST",{message:text});message.value="";await refresh();}
+ catch(err){notify(err.message);}
+});
+canvas.addEventListener("click",async e=>{
+ if(!me)return;
+ const rect=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)*W/rect.width),y=Math.floor((e.clientY-rect.top)*H/rect.height);
+ if(x<0||x>=W||y<0||y>=H)return;
+ try{await api("/api/move","POST",{x,y});await refresh();}catch(err){notify(err.message);}
+});
+refresh();setInterval(refresh,1500);
+</script>
+</body>
+</html>
