@@ -1,0 +1,16 @@
+[Unit]
+Description=Zero W Flask Game
+After=network.target
+
+[Service]
+Type=simple
+User=zerow
+WorkingDirectory=/opt/zerow
+ExecStart=/opt/zerow/.venv/bin/python /opt/zerow/app.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
