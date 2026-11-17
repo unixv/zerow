@@ -3,6 +3,7 @@ import re
 import secrets
 import sqlite3
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from flask import Flask, jsonify, make_response, request, send_from_directory
@@ -11,6 +12,7 @@ app = Flask(__name__, static_folder="static")
 DB = Path(os.environ.get("ZEROW_DB", "/opt/zerow/data/atrium.sqlite3"))
 WIDTH, HEIGHT = 16, 11
 
+@contextmanager
 def connect():
     DB.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB, timeout=10)
@@ -31,7 +33,11 @@ def connect():
         created REAL NOT NULL
     )""")
     con.commit()
-    return con
+    try:
+        with con:
+            yield con
+    finally:
+        con.close()
 
 def identity(con):
     token = request.cookies.get("zerow_player", "")
