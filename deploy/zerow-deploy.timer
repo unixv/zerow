@@ -1,0 +1,10 @@
+[Unit]
+Description=Automatically deploy Zero W from main
+
+[Timer]
+OnBootSec=30sec
+OnUnitInactiveSec=60sec
+Persistent=true
+
+[Install]
+WantedBy=timers.target
