@@ -10,9 +10,12 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, make_response, request, send_from_directory
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__, static_folder="static")
+# A small JSON cap protects the Pi Zero W from oversized request bodies.
+app.config["MAX_CONTENT_LENGTH"] = 4096
 DB = Path(os.environ.get("ZEROW_DB", "/opt/zerow/data/atrium.sqlite3"))
 WIDTH, HEIGHT = 16, 11
 SESSION_SECONDS = 30 * 24 * 3600
@@ -106,11 +109,22 @@ def error(message, status=400):
     return jsonify(error=message), status
 
 
+@app.errorhandler(RequestEntityTooLarge)
+def oversized_request(exc):
+    return error("Request body exceeds 4 KiB.", 413)
+
+
 @app.before_request
 def check_origin():
     # Prevent cross-site browser forms from mutating accounts / world state.
     if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
         return None
+    if request.path.startswith("/api/"):
+        if request.mimetype != "application/json":
+            return error("Expected JSON request body.", 415)
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return error("Expected a JSON object.", 400)
     origin = request.headers.get("Origin")
     if not origin:
         return error("Origin header required", 403)
@@ -146,7 +160,10 @@ def health():
 @app.post("/api/register")
 def register():
     data = request.get_json(silent=True) or {}
-    name = str(data.get("name", "")).strip()
+    name = data.get("name", "")
+    if not isinstance(name, str):
+        return error("Username must be a string.")
+    name = name.strip()
     password = data.get("password", "")
     if not USERNAME_PATTERN.fullmatch(name):
         return error("Username must be 3–18 letters, numbers, _ or -.")
@@ -172,7 +189,10 @@ def register():
 @app.post("/api/login")
 def login():
     data = request.get_json(silent=True) or {}
-    name = str(data.get("name", "")).strip()
+    name = data.get("name", "")
+    if not isinstance(name, str):
+        return error("Incorrect username or password.", 401)
+    name = name.strip()
     password = data.get("password", "")
     if not USERNAME_PATTERN.fullmatch(name) or not isinstance(password, str):
         return error("Incorrect username or password.", 401)
