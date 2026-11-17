@@ -51,6 +51,21 @@ header{background:linear-gradient(100deg,#102b35,#1d3540);border-bottom:1px soli
 button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 @media(max-width:800px){.shell{grid-template-columns:minmax(0,1fr) 160px}}
 @media(max-width:520px){.brand-mark{display:none}header{padding:0 12px}.sub{font-size:10px}.pill{padding:5px 7px}}
+
+/* Atrium exploration deck: intentionally dependency-free for Pi Zero W. */
+.explorebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 14px;background:#112b35;border-bottom:1px solid #35525b}
+.explorebar button,.quickchat button{background:#294b53;color:#e2f4ee;border:1px solid #50736e;padding:7px 10px;font-size:12px}
+.explorebar button[aria-pressed="true"]{background:#a7dfbd;color:#102b2c}
+.explorebar .explorehint{font-size:11px;color:#a5c5c4;margin-left:auto}
+.worldtip{position:absolute;left:18px;bottom:15px;z-index:2;max-width:min(370px,85%);padding:12px 15px;background:#102731ed;border:1px solid #60877e;border-radius:9px;box-shadow:0 8px 24px #0006;font-size:13px;line-height:1.5}
+.worldtip[hidden]{display:none}.worldtip strong{display:block;color:#bcebd2;margin-bottom:3px}
+.worldtip button{float:right;background:none;color:#e5f2ee;padding:0 0 0 12px}
+.quickchat{display:flex;gap:7px;padding:8px 12px;overflow-x:auto;background:#17313a}
+.quickchat button{white-space:nowrap;flex-shrink:0}
+.quickchat button:hover,.explorebar button:hover{border-color:#b5e3d0}
+.stage{position:relative}
+@media(max-width:520px){.explorebar{padding:7px;gap:5px}.explorebar .explorehint{display:none}.explorebar button{padding:7px}.worldtip{left:8px;bottom:8px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -60,13 +75,13 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="stage"><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
 <div class="chathead">ATRIUM CHAT · Talk to everyone in the plaza</div>
 <div class="lines" id="lines" aria-live="polite"></div>
-<form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
+<div class="quickchat" aria-label="Quick social greetings"><button type="button" data-quick="Hello everyone!">Wave hello</button><button type="button" data-quick="Welcome to Atrium!">Welcome</button><button type="button" data-quick="Meet me by the fountain!">Meet at fountain</button><button type="button" data-quick="Anyone want to explore?">Explore together</button></div><form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 </section>
 </div>
 <div class="modalbg" id="accountScreen" hidden><div class="modal">
@@ -91,25 +106,26 @@ const lines=document.querySelector("#lines"),members=document.querySelector("#me
 const joinScreen=document.querySelector("#joinScreen"),message=document.querySelector("#message");
 let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register",authEpoch=0;
 const W=16,H=11,C=60;
-let myPosition=null,movePending=false;
+let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
+const landmarks=[{x:7,y:2,title:"Moonwell Fountain",body:"The heart of Atrium. Meet other explorers here and watch the water dance."},{x:2,y:2,title:"North Grove",body:"A peaceful shaded corner of the plaza. A good spot to greet new arrivals."},{x:13,y:8,title:"South Grove",body:"A quiet garden at the edge of the promenade."},{x:4,y:5,title:"Lantern Walk",body:"Follow the glowing lamps across the central promenade."}];
 const scenery=[{x:2,y:2,t:"tree"},{x:13,y:2,t:"tree"},{x:2,y:8,t:"tree"},{x:13,y:8,t:"tree"},{x:7,y:2,t:"fountain"},{x:8,y:2,t:"fountain"},{x:4,y:5,t:"lamp"},{x:11,y:5,t:"lamp"}];
 function color(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return "hsl("+(h%360)+" 66% 68%)";}
 function shade(x,y){return (x+y)%2===0?"#243d48":"#294650";}
 function draw(){
  const t=Date.now()/1000;
  ctx.clearRect(0,0,960,660);
- const sky=ctx.createLinearGradient(0,0,0,660);sky.addColorStop(0,"#183642");sky.addColorStop(1,"#122731");
+ const sky=ctx.createLinearGradient(0,0,0,660);sky.addColorStop(0,evening?"#0b172d":"#183642");sky.addColorStop(1,evening?"#142239":"#122731");
  ctx.fillStyle=sky;ctx.fillRect(0,0,960,660);
  // Plaza tiles, a central promenade and subtle ground accents.
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    const px=x*C,py=y*C;
    const promenade=(x>=6&&x<=9)||(y>=4&&y<=6);
-   ctx.fillStyle=promenade?((x+y)%2?"#3b5960":"#405e63"):shade(x,y);
+   ctx.fillStyle=evening?(promenade?((x+y)%2?"#263a52":"#30415a"):((x+y)%2?"#172b40":"#1b3047")):(promenade?((x+y)%2?"#3b5960":"#405e63"):shade(x,y));
    ctx.fillRect(px,py,C,C);
    ctx.strokeStyle="#152f3a88";ctx.strokeRect(px+.5,py+.5,C-1,C-1);
    if((x*17+y*13)%7===0){ctx.fillStyle="#91b8a322";ctx.fillRect(px+13,py+17,6,3);}
  }
- // Ornamental plaza border.
+ // Discoverable landmarks shimmer gently, without extra animation loops.\n for(const l of landmarks){const x=l.x*C+30,y=l.y*C+30;ctx.strokeStyle=evening?"#a8c5e2aa":"#bde8c688";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,24+Math.sin(t*1.6)*2,0,Math.PI*2);ctx.stroke();}\n // Ornamental plaza border.
  ctx.strokeStyle="#789a8c";ctx.lineWidth=5;ctx.strokeRect(6,6,948,648);
  // Landscape objects are decorative only; all existing movement tiles remain available.
  for(const obj of scenery){
@@ -176,12 +192,12 @@ function renderMembers(){
  }
  document.querySelector("#population").textContent=people.length+" "+(people.length===1?"person":"people")+" here";
 }
-function showSignedOut(){
+function showSignedOut(){\n document.querySelector("#worldtip").hidden=true;
  authEpoch++;
  me=null;people=[];history=[];myPosition=null;
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
- message.disabled=true;document.querySelector("#send").disabled=true;
+ message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
  document.querySelector("#logout").style.display="none";
  document.querySelector("#accountSettings").style.display="none";
  renderMembers();draw();
@@ -216,7 +232,7 @@ async function refresh(){
     else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   }
   else{
-    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
+    me=result.me;joinScreen.hidden=true;message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
   people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
@@ -280,10 +296,10 @@ async function moveTo(x,y){
  movePending=true;
  try{await api("/api/move","POST",{x,y});await refresh();}catch(err){notify(err.message);}finally{movePending=false;}
 }
-canvas.addEventListener("click",async e=>{
+function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}\ndocument.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);\ndocument.querySelector("#exploreGuide").addEventListener("click",()=>showLandmark({title:"Welcome to the Atrium plaza",body:"Explore the fountain, groves and lantern walk. Click the map or use WASD / arrow keys to move. Send a quick greeting below to meet other players."}));\ndocument.querySelector("#sceneToggle").addEventListener("click",e=>{evening=!evening;e.currentTarget.setAttribute("aria-pressed",String(evening));e.currentTarget.textContent=evening?"Daylight mode":"Evening mode";draw();});\ndocument.querySelector("#chatFocus").addEventListener("click",()=>message.focus());\ndocument.querySelectorAll("[data-quick]").forEach(button=>button.addEventListener("click",()=>{if(!me){notify("Log in to greet the plaza.");return;}message.value=button.dataset.quick;message.focus();}));\ncanvas.addEventListener("click",async e=>{
  if(!me)return;
  const rect=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)*W/rect.width),y=Math.floor((e.clientY-rect.top)*H/rect.height);
- await moveTo(x,y);
+ const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);if(landmark)showLandmark(landmark);\n await moveTo(x,y);
 });
 document.addEventListener("keydown",e=>{
  if(!me||!joinScreen.hidden||!document.querySelector("#accountScreen").hidden)return;
