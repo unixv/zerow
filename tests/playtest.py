@@ -109,6 +109,20 @@ def main():
               return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
             }""", timeout=10000)
 
+            print("Chat typing and arrow-key editing must not move the avatar")
+            chat_input = alice.locator("#message")
+            chat_input.focus()
+            alice.keyboard.type("wasd")
+            alice.keyboard.press("ArrowLeft")
+            alice.keyboard.press("ArrowRight")
+            expect(chat_input).to_have_value("wasd")
+            alice.wait_for_timeout(500)
+            alice.wait_for_function("""async () => {
+              const state=await fetch('/api/state').then(r=>r.json());
+              return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
+            }""", timeout=10000)
+            chat_input.fill("")
+
             print("Mobile touch moves player B and persists across reload")
             mobile_canvas = bob.locator("#world")
             mobile_bounds = mobile_canvas.bounding_box()
