@@ -9,6 +9,8 @@ from pathlib import Path
 
 
 def backup(db, keep=7):
+    if not isinstance(keep, int) or isinstance(keep, bool) or keep < 1:
+        raise ValueError("Backup retention must be a positive integer")
     db = Path(db)
     if not db.is_file():
         raise FileNotFoundError(f"Database does not exist: {db}")
@@ -24,6 +26,12 @@ def backup(db, keep=7):
         with sqlite3.connect(db.as_uri() + "?mode=ro", uri=True, timeout=20) as source:
             with sqlite3.connect(tmp) as target:
                 source.backup(target, pages=128, sleep=0.1)
+                # A valid but empty SQLite file is not a useful player-data backup.
+                tables = {row[0] for row in target.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )}
+                if not tables:
+                    raise RuntimeError("Refusing to publish an empty SQLite database backup")
                 result = target.execute("PRAGMA integrity_check").fetchone()
                 if not result or result[0] != "ok":
                     raise RuntimeError(f"Backup integrity check failed: {result}")
