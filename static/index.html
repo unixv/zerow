@@ -43,7 +43,7 @@ button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
 </head>
 <body>
 <div class="shell">
-<header><div><div class="brand">ZERO<span>W</span> / THE LOBBY</div><div class="sub">A tiny multiplayer world running on a Raspberry Pi</div></div><div style="display:flex;align-items:center;gap:10px"><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
+<header><div><div class="brand">ZERO<span>W</span> / THE LOBBY</div><div class="sub">A tiny multiplayer world running on a Raspberry Pi</div></div><div style="display:flex;align-items:center;gap:10px"><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
 <aside class="left"><h2>Spaces</h2><div class="room">◈ Lobby <small>Public room · everyone welcome</small></div><div class="hint">Click a tile to move.<br>Chat with people in the room.<br>No downloads needed.</div></aside>
 <section class="game">
 <div class="titlebar"><strong>◈ Lobby</strong><small id="population">0 people here</small></div>
@@ -57,6 +57,15 @@ button:disabled,input:disabled{opacity:.5;cursor:not-allowed}
 <form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 </section>
 </div>
+<div class="modalbg" id="accountScreen" hidden><div class="modal">
+<h1>Account security</h1><p>Change your password. All active sessions will be signed out.</p>
+<form id="passwordForm" style="display:grid;gap:10px">
+<input id="currentPassword" type="password" autocomplete="current-password" placeholder="Current password" required>
+<input id="newPassword" type="password" autocomplete="new-password" placeholder="New password (10+ characters)" minlength="10" maxlength="128" required>
+<button type="submit">Change password</button></form>
+<button type="button" id="closeAccount" style="margin-top:12px;background:#334b59;color:#fff">Cancel</button>
+<div class="error" id="accountError" role="alert"></div>
+</div></div>
 <div class="modalbg" id="joinScreen"><div class="modal">
 <h1>Welcome to ZeroW</h1><p id="authDescription">Create a permanent account to explore and chat. Your name belongs to you.</p>
 <form id="joinForm" style="display:grid;gap:10px"><input id="nickname" placeholder="Username (3–18 characters)" maxlength="18" autocomplete="username" required autofocus><input id="password" type="password" placeholder="Password (at least 10 characters)" autocomplete="new-password" minlength="10" maxlength="128" required><button id="authSubmit">Create account</button></form>
@@ -139,9 +148,9 @@ async function refresh(){
  try{
   const result=await api("/api/state");
   document.querySelector("#connection").textContent="● Connected";
-  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";}
+  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   else{
-    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";
+    me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
   people=result.players;history=result.messages;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
@@ -165,6 +174,30 @@ document.querySelector("#joinForm").addEventListener("submit",async e=>{
   });
   document.querySelector("#password").value="";
   await refresh();message.focus();
+ }catch(err){error.textContent=err.message;}
+});
+document.querySelector("#accountSettings").addEventListener("click",()=>{
+ document.querySelector("#accountError").textContent="";
+ document.querySelector("#accountScreen").hidden=false;
+ document.querySelector("#currentPassword").focus();
+});
+document.querySelector("#closeAccount").addEventListener("click",()=>{
+ document.querySelector("#accountScreen").hidden=true;
+ document.querySelector("#passwordForm").reset();
+});
+document.querySelector("#passwordForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const error=document.querySelector("#accountError");error.textContent="";
+ try{
+  await api("/api/change-password","POST",{
+   current_password:document.querySelector("#currentPassword").value,
+   new_password:document.querySelector("#newPassword").value
+  });
+  document.querySelector("#passwordForm").reset();
+  document.querySelector("#accountScreen").hidden=true;
+  me=null;people=[];history=[];lines.dataset.lastId="";
+  await refresh();
+  notify("Password changed. Log in with your new password.");
  }catch(err){error.textContent=err.message;}
 });
 document.querySelector("#logout").addEventListener("click",async()=>{
