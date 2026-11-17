@@ -80,6 +80,24 @@ def main():
               return state.players.some(p=>p.name==='playtest_alice' && p.x===6 && p.y===4);
             }""", timeout=10000)
 
+            print("Mobile touch moves player B and persists across reload")
+            mobile_canvas = bob.locator("#world")
+            mobile_bounds = mobile_canvas.bounding_box()
+            assert mobile_bounds, "Mobile game canvas is not visible"
+            # Tap tile (8, 5) using the actual touch-enabled mobile context.
+            mobile_canvas.tap(position={"x": mobile_bounds["width"] * 8.5 / 16,
+                                        "y": mobile_bounds["height"] * 5.5 / 11})
+            bob.wait_for_function("""async () => {
+              const state = await fetch('/api/state').then(r => r.json());
+              return state.players.some(p => p.name === 'playtest_bob' && p.x === 8 && p.y === 5);
+            }""", timeout=10000)
+            bob.reload()
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const state = await fetch('/api/state').then(r => r.json());
+              return state.players.some(p => p.name === 'playtest_bob' && p.x === 8 && p.y === 5);
+            }""", timeout=10000)
+
             print("Reloading preserves session")
             alice.reload()
             expect(alice.locator("#joinScreen")).to_be_hidden(timeout=10000)
