@@ -93,6 +93,7 @@ class AccountTests(unittest.TestCase):
         self.assertEqual(self.post("/api/register", {
             "name": "Alice", "password": "alice-password-123"
         }).status_code, 200)
+        self.assertEqual(self.client.get("/api/state").json["me"], "Alice")
         self.assertEqual(observer.post("/api/register", json={
             "name": "Bob", "password": "bob-password-123"
         }, headers={"Origin": "http://localhost"}).status_code, 200)
@@ -112,6 +113,7 @@ class AccountTests(unittest.TestCase):
         self.assertEqual(self.post("/api/register", {
             "name": "Alice", "password": "alice-password-123"
         }).status_code, 200)
+        self.assertEqual(self.client.get("/api/state").json["me"], "Alice")
         self.assertEqual(observer.post("/api/register", json={
             "name": "Bob", "password": "bob-password-123"
         }, headers={"Origin": "http://localhost"}).status_code, 200)
