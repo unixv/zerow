@@ -160,7 +160,12 @@ async function refresh(){
   const result=await api("/api/state");
   if(epoch!==authEpoch)return;
   document.querySelector("#connection").textContent="● Connected";
-  if(!result.me){me=null;joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
+  if(!result.me){
+    // A session can be revoked in another browser while this tab is open.
+    // Clear the previous account's room state rather than leaving stale chat visible.
+    if(me!==null)showSignedOut();
+    else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
+  }
   else{
     me=result.me;joinScreen.hidden=true;message.disabled=false;document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
