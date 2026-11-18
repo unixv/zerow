@@ -271,6 +271,67 @@ def main():
             login(isolated_page, NAME_B)
             expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
             isolated.close()
+            # Signing in as Bob in the isolated context intentionally replaces
+            # his prior session. Restore the original mobile browser session
+            # before testing cooperative Lantern Circle state.
+            login(bob, NAME_B)
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const response = await fetch("/api/state");
+              const state = await response.json();
+              return response.ok && state.me === "playtest_bob" && !!state.lanterns;
+            }""", timeout=10000)
+
+            print("Lantern Circle: two real browser players contribute and observe shared lights")
+            # Exercise the actual UI controls, not direct API calls. The mobile
+            # panel must be usable with touch while desktop stays independent.
+            bob.locator("#lanternToggle").tap()
+            expect(bob.locator("#lanternMobile")).to_be_visible()
+            expect(bob.locator("#lanternToggle")).to_have_attribute("aria-expanded", "true")
+            desktop_light = alice.locator("#lanternDeskList").get_by_role(
+                "button", name="Light Moonwell Fountain", exact=False)
+            desktop_light.click()
+            expect(alice.locator("#lanternDeskBanner")).to_contain_text(
+                "You lit Moonwell Fountain", timeout=10000)
+            alice.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              return s.lanterns.counts[0]===1 && s.lanterns.mine.includes(0);
+            }""", timeout=10000)
+            bob.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              return s.lanterns.counts[0]===1 && !s.lanterns.mine.includes(0);
+            }""", timeout=10000)
+            expect(bob.locator("#lanternMobileList").get_by_role(
+                "button", name="Light Moonwell Fountain", exact=False)
+            ).to_contain_text("1 lights", timeout=10000)
+            bob.locator("#lanternMobileList").get_by_role(
+                "button", name="Light Moonwell Fountain", exact=False).tap()
+            expect(bob.locator("#lanternMobileBanner")).to_contain_text(
+                "You lit Moonwell Fountain", timeout=10000)
+            alice.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              return s.lanterns.counts[0]===2 && s.lanterns.mine.includes(0);
+            }""", timeout=10000)
+            bob.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              return s.lanterns.counts[0]===2 && s.lanterns.mine.includes(0);
+            }""", timeout=10000)
+            # Revisiting cannot inflate the community tally.
+            alice.locator("#lanternDeskList").get_by_role(
+                "button", name="Revisit Moonwell Fountain", exact=False).click()
+            expect(alice.locator("#lanternDeskBanner")).to_contain_text(
+                "already shines here", timeout=10000)
+            alice.reload()
+            bob.reload()
+            bob.locator("#lanternToggle").tap()
+            for page in (alice, bob):
+                page.wait_for_function("""async () => {
+                  const s=await fetch('/api/state').then(r=>r.json());
+                  return s.lanterns.counts[0]===2 && s.lanterns.mine.includes(0);
+                }""", timeout=10000)
+            expect(bob.locator("#lanternMobileList").get_by_role(
+                "button", name="Revisit Moonwell Fountain", exact=False)
+            ).to_contain_text("2 lights")
 
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
