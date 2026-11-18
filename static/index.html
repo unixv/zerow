@@ -146,6 +146,12 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
  .explorebar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
  .explorebar button{white-space:nowrap;flex:0 0 auto;min-height:38px}
 }
+.emote-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:#17333d;border-bottom:1px solid #3d6263}
+.emote-bar strong{font-size:11px;color:#a9cdbf;letter-spacing:.5px;text-transform:uppercase;margin-right:5px}
+.emote-bar button{background:#294c53;border:1px solid #648b82;color:#e6f8ec;padding:8px 12px;font-size:12px;border-radius:8px;min-height:36px}
+.emote-bar button:focus-visible{outline:2px solid #b7f7d2;outline-offset:2px}
+.emote-bar button:disabled{opacity:.5}
+@media(max-width:520px){.emote-bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:7px}.emote-bar strong{flex-shrink:0}.emote-bar button{flex-shrink:0;min-height:42px}}
 </style>
 </head>
 <body>
@@ -155,7 +161,7 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -188,6 +194,17 @@ let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="registe
 const W=16,H=11,C=60;
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
 let ambienceEnabled=true;
+const emoteLabels={wave:"Wave!",cheer:"Hooray!",heart:"Love this!",dance:"Dancing!",hello:"Hello!"};
+let emotePending=false;
+async function sendEmote(action){
+ if(!me||emotePending)return;
+ emotePending=true;
+ document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=true);
+ try{await api("/api/emote","POST",{emote:action});await refresh();}
+ catch(err){notify(err.message);}
+ finally{emotePending=false;document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=!me);}
+}
+document.querySelectorAll("[data-emote]").forEach(b=>b.addEventListener("click",()=>sendEmote(b.dataset.emote)));
 let lanterns={counts:[0,0,0,0],mine:[]},lighting=false;
 function renderLanterns(){
  for(const [rootId,bannerId] of [["lanternDeskList","lanternDeskBanner"],["lanternMobileList","lanternMobileBanner"]]){
@@ -390,6 +407,14 @@ function draw(){
    ctx.fillStyle="#233744";ctx.fillRect(cx-6,cy-14,3,4);ctx.fillRect(cx+4,cy-14,3,4);
    ctx.strokeStyle="#a76e62";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy-10,4,0,Math.PI);ctx.stroke();
    if(p.name===me){ctx.strokeStyle="#e6e6ad";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(cx,cy+20,23,9,0,0,Math.PI*2);ctx.stroke();}
+   if(emoteLabels[p.emote]){
+     const text=emoteLabels[p.emote],bob=Math.sin(t*6)*3;
+     ctx.font="bold 14px system-ui";const width=Math.max(66,ctx.measureText(text).width+22);
+     ctx.fillStyle="#f1fff0";ctx.beginPath();ctx.roundRect(cx-width/2,cy-76+bob,width,28,11);ctx.fill();
+     ctx.fillStyle="#143b36";ctx.textAlign="center";ctx.fillText(text,cx,cy-57+bob);
+     if(p.emote==="wave"){ctx.strokeStyle="#f1c8a3";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx+15,cy);ctx.lineTo(cx+22+Math.sin(t*9)*5,cy-22);ctx.stroke();}
+     if(p.emote==="dance"){ctx.save();ctx.translate(cx,cy);ctx.rotate(Math.sin(t*9)*.09);ctx.strokeStyle="#f3e1a4";ctx.lineWidth=3;ctx.strokeRect(-18,-9,36,30);ctx.restore();}
+   }
    const label=p.name.length>13?p.name.slice(0,12)+"…":p.name;
    ctx.font="bold 13px system-ui";const tw=ctx.measureText(label).width;
    ctx.fillStyle="#0e2734ed";ctx.beginPath();ctx.roundRect(cx-tw/2-7,cy+26,tw+14,21,5);ctx.fill();
@@ -429,6 +454,7 @@ function showSignedOut(){
  me=null;discovered.clear();renderTrail();lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
+ document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=true);
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
  document.querySelector("#logout").style.display="none";
  document.querySelector("#accountSettings").style.display="none";
@@ -466,6 +492,7 @@ async function refresh(){
   else{
     if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
+  document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=!me||emotePending);
   lanterns=result.lanterns||{counts:[0,0,0,0],mine:[]};renderLanterns();people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
  finally{busy=false;}
