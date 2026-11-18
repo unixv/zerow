@@ -8,6 +8,10 @@ from playwright.sync_api import sync_playwright, expect
 from playtest import ARTIFACTS, register
 
 
+def total_text(count):
+    return f"{count} community {'light' if count == 1 else 'lights'} across Atrium"
+
+
 def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -52,13 +56,13 @@ def main():
             total = int(re.search(r"\d+", a.locator("#lanternDeskBanner").inner_text()).group())
             a.locator("#lanternDeskList").get_by_role("button", name=re.compile("^Light North Grove,")).click()
             expect(a.locator("#trailStatus")).to_contain_text("2 of 4")
-            expect(a.locator("#lanternDeskBanner")).to_have_text(f"{total + 1} community lights across Atrium")
+            expect(a.locator("#lanternDeskBanner")).to_have_text(total_text(total + 1))
             b.locator("#lanternToggle").click()
             b.locator("#lanternMobileList").get_by_role("button", name=re.compile("^Light North Grove,")).tap()
             expect(b.locator("#mobileTrailStatus")).to_contain_text("1 of 4")
             focused = a.locator("#lanternDeskList").get_by_role("button", name=re.compile("^Light South Grove,"))
             focused.focus()
-            expect(a.locator("#lanternDeskBanner")).to_have_text(f"{total + 2} community lights across Atrium", timeout=10000)
+            expect(a.locator("#lanternDeskBanner")).to_have_text(total_text(total + 2), timeout=10000)
             expect(focused).to_be_focused()
             b.locator("#lanternMobile").get_by_role("button", name="Close Lantern Circle").tap()
 
