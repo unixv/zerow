@@ -170,6 +170,45 @@ def main():
             expect(alice.locator("#lines")).to_contain_text(
                 "Reply from mobile player", timeout=10000)
 
+            print("Exploration guide and atmosphere work on desktop and mobile")
+            for page in (alice, bob):
+                page.locator("#exploreGuide").click()
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Welcome to the Atrium plaza")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+                toggle = page.locator("#sceneToggle")
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "true")
+                expect(toggle).to_have_text("Daylight mode")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                expect(toggle).to_have_text("Evening mode")
+
+            print("Landmark discovery works through actual canvas clicks on both viewports")
+            for page in (alice, bob):
+                world = page.locator("#world")
+                bounds = world.bounding_box()
+                assert bounds, "Atrium canvas is not visible"
+                # Moonwell Fountain is centered at tile (7, 2) in the 16x11 world.
+                world.click(position={"x": bounds["width"] * 7.5 / 16,
+                                      "y": bounds["height"] * 2.5 / 11})
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Moonwell Fountain")
+                expect(page.locator("#tipBody")).to_contain_text("heart of Atrium")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+
+            print("Quick greetings prefill chat without sending automatically")
+            previous = alice.locator("#lines").inner_text()
+            alice.locator('[data-quick="Meet me by the fountain!"]').click()
+            expect(alice.locator("#message")).to_have_value("Meet me by the fountain!")
+            assert alice.locator("#lines").inner_text() == previous, "Quick greeting sent chat without confirmation"
+            alice.locator("#message").fill("")
+            alice.locator("#chatFocus").click()
+            expect(alice.locator("#message")).to_be_focused()
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
