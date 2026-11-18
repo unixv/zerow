@@ -75,16 +75,30 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 .wardrobe-options button{background:#294b54;color:#eaf4ee;border:2px solid #52756d;padding:10px 5px}
 .wardrobe-options button[aria-pressed="true"]{border-color:#b2f5c9;background:#3d6b61}
 .wardrobe-actions{display:flex;justify-content:flex-end;gap:8px}
+
+/* Atrium Discovery Trail: a guided first-session exploration experience. */
+.trail{padding:15px 12px;border-top:1px solid #45636a;margin-top:18px;background:#19343c;border-radius:9px}
+.trail h2{margin:0 0 8px;color:#b9ead3;font-size:12px;letter-spacing:.7px}
+.trail p{font-size:12px;color:#b5cecb;line-height:1.5;margin:0 0 10px}
+.trail-progress{height:6px;background:#0d252c;border-radius:99px;overflow:hidden;margin:8px 0 12px}
+.trail-progress span{display:block;height:100%;background:#a7dfbd;transition:width .2s}
+.trail-stops{display:grid;gap:7px}
+.trail-stops button{display:flex;align-items:center;justify-content:space-between;text-align:left;background:#244750;color:#e7f4ed;border:1px solid #53766f;padding:9px;font-size:12px}
+.trail-stops button[aria-pressed="true"]{background:#315e54;border-color:#a7dfbd}
+.trail-stops button:focus-visible{outline:2px solid #d5f3d9}
+.trail-badge{font-size:11px;color:#b4e9cb}
+@media(max-width:800px){.trail{margin-top:10px;padding:10px}.trail-stops{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.trail{margin:0;border-radius:0}.trail-stops{grid-template-columns:repeat(2,minmax(0,1fr))}.trail-stops button{min-height:42px}}
 </style>
 </head>
 <body>
 <div class="shell">
 <header><div><div class="brand">ATRI<span>UM</span> <small class="brand-mark">SOCIAL WORLD</small></div><div class="sub">Your corner of a living world · Explore, meet, stay awhile</div></div><div style="display:flex;align-items:center;gap:10px"><button id="avatarSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Customize</button><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
-<aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div></aside>
+<aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div><div id="discoveryTrail" class="trail" aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="trailStatus">Visit four landmarks to complete your first plaza tour.</p><div class="trail-progress" aria-hidden="true"><span id="trailProgress" style="width:0%"></span></div><div class="trail-stops" id="trailStops"></div></div></aside>
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -139,6 +153,53 @@ document.querySelector("#wardrobeSave").addEventListener("click",async()=>{
 });
 const landmarks=[{x:7,y:2,title:"Moonwell Fountain",body:"The heart of Atrium. Meet other explorers here and watch the water dance."},{x:2,y:2,title:"North Grove",body:"A peaceful shaded corner of the plaza. A good spot to greet new arrivals."},{x:13,y:8,title:"South Grove",body:"A quiet garden at the edge of the promenade."},{x:4,y:5,title:"Lantern Walk",body:"Follow the glowing lamps across the central promenade."}];
 const scenery=[{x:2,y:2,t:"tree"},{x:13,y:2,t:"tree"},{x:2,y:8,t:"tree"},{x:13,y:8,t:"tree"},{x:7,y:2,t:"fountain"},{x:8,y:2,t:"fountain"},{x:4,y:5,t:"lamp"},{x:11,y:5,t:"lamp"}];
+
+const trailStoragePrefix="atrium-trail-v1:";
+let discovered=new Set();
+function trailKey(){return trailStoragePrefix+me.toLowerCase();}
+function loadTrail(){
+ discovered=new Set();
+ if(!me)return;
+ try{
+  const saved=JSON.parse(localStorage.getItem(trailKey())||"[]");
+  if(Array.isArray(saved))for(const id of saved)if(Number.isInteger(id)&&id>=0&&id<landmarks.length)discovered.add(id);
+ }catch(_){}
+ renderTrail();
+}
+function renderTrail(){
+ const count=discovered.size;
+ for(const prefix of ["","mobile"]){
+  const status=document.querySelector(prefix?"#mobileTrailStatus":"#trailStatus");
+  const progress=document.querySelector(prefix?"#mobileTrailProgress":"#trailProgress");
+  const stops=document.querySelector(prefix?"#mobileTrailStops":"#trailStops");
+  status.textContent=count===landmarks.length?"Trail complete! You know your way around Atrium.":count+" of "+landmarks.length+" landmarks discovered. Select a destination to explore.";
+  progress.style.width=(count/landmarks.length*100)+"%";
+  stops.replaceChildren();
+  landmarks.forEach((l,i)=>{
+   const button=document.createElement("button");button.type="button";
+   button.setAttribute("aria-pressed",String(discovered.has(i)));
+   button.textContent=(discovered.has(i)?"✓ ":"◇ ")+l.title;
+   button.title="Travel to "+l.title;
+   button.disabled=!me;
+   button.addEventListener("click",async()=>{if(await moveTo(l.x,l.y)){showLandmark(l);discoverLandmark(l);}});
+   stops.append(button);
+  });
+ }
+}
+function discoverLandmark(l){
+ if(!me)return;
+ const id=landmarks.indexOf(l);
+ if(id<0||discovered.has(id))return;
+ discovered.add(id);
+ try{localStorage.setItem(trailKey(),JSON.stringify([...discovered]));}catch(_){}
+ renderTrail();
+ notify(discovered.size===landmarks.length?"Atrium discovery trail complete!":"Discovered "+l.title+" · "+discovered.size+"/4");
+}
+document.querySelector("#trailToggle").addEventListener("click",()=>{
+ const panel=document.querySelector("#mobileTrail");
+ panel.hidden=!panel.hidden;
+ document.querySelector("#trailToggle").setAttribute("aria-expanded",String(!panel.hidden));
+});
 function color(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return "hsl("+(h%360)+" 66% 68%)";}
 function shade(x,y){return (x+y)%2===0?"#243d48":"#294650";}
 function draw(){
@@ -229,7 +290,7 @@ function renderMembers(){
 function showSignedOut(){
  document.querySelector("#worldtip").hidden=true;
  authEpoch++;
- me=null;people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
+ me=null;discovered.clear();renderTrail();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
@@ -267,7 +328,7 @@ async function refresh(){
     else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   }
   else{
-    me=result.me;avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
+    if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
   people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
@@ -329,7 +390,7 @@ document.querySelector("#chatForm").addEventListener("submit",async e=>{
 async function moveTo(x,y){
  if(!me||movePending||x<0||x>=W||y<0||y>=H)return;
  movePending=true;
- try{await api("/api/move","POST",{x,y});await refresh();}catch(err){notify(err.message);}finally{movePending=false;}
+ try{await api("/api/move","POST",{x,y});await refresh();return true;}catch(err){notify(err.message);return false;}finally{movePending=false;}
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
@@ -340,8 +401,8 @@ document.querySelectorAll("[data-quick]").forEach(button=>button.addEventListene
 canvas.addEventListener("click",async e=>{
  if(!me)return;
  const rect=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)*W/rect.width),y=Math.floor((e.clientY-rect.top)*H/rect.height);
- const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);if(landmark)showLandmark(landmark);
- await moveTo(x,y);
+ const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+ if(await moveTo(x,y)&&landmark){showLandmark(landmark);discoverLandmark(landmark);}
 });
 document.addEventListener("keydown",e=>{
  if(!me||!joinScreen.hidden||!document.querySelector("#accountScreen").hidden||!document.querySelector("#wardrobe").hidden)return;
@@ -350,7 +411,7 @@ document.addEventListener("keydown",e=>{
  const delta=directions[e.key];if(!delta||!myPosition)return;
  e.preventDefault();moveTo(myPosition.x+delta[0],myPosition.y+delta[1]);
 });
-refresh();setInterval(refresh,1500);
+renderTrail();refresh();setInterval(refresh,1500);
 </script>
 </body>
 </html>
