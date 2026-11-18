@@ -63,3 +63,22 @@ Scheduled development should fix reproducible blockers first, then ship a
 noticeable complete milestone. Scheduled QA should maintain this evidence and
 coverage matrix, retest fixes, and close resolved backlog items with commit and
 CI evidence. Never equate a green unit check with live Pi verification.
+
+## Released fix verification
+
+PR #40 merged as 51ec74366ed36563c6bf85a283b12f8b8d4e52df.
+- Verify ZeroW passed (42 tests); Player Playtest run 44406118952 passed both
+  the original playthrough and the new journey regression.
+- After the Pi's automatic update, the public cloud-browser session showed
+  the new labels, singular light counts, visible desktop panel close button,
+  and full bounded canvas. Opening Lantern Circle preserved the actual canvas
+  dimensions (644.36 by 443 pixels), rather than shrinking or displacing it.
+- Account and wardrobe Escape dismissal and focus restoration were verified live.
+- The dedicated account remained signed in with its saved avatar and progress.
+- Fresh-discovery, mobile Send, delayed-chat and session-revocation regressions
+  passed on isolated Chromium. Do not label those post-fix checks live mobile
+  or fresh-account production verification.
+
+The fix-bundle acceptance items above are implemented and covered. Keep the
+next-milestone backlog active; this does not mean all possible game flaws are
+resolved. Screenshots were inspected from CI and the live public browser.
