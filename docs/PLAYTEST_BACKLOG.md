@@ -100,3 +100,10 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 | Password changes, reconnect, avatar synchronization, chat scrollback, 320px/tablet/short desktop | Not established by these run results; retain as untested until explicit scenario evidence | Untested live |
 
 **Merge gate:** The older passing PR checks are not evidence that combined changes pass on current main. Reconcile existing QA PRs without duplicating scenarios already in `tests/journey_playtest.py`; rerun both workflows on integration heads, inspect screenshots, then merge only verified compatible changes. Do not reset or sign out the dedicated production `oai` account.
+
+## QA follow-up — November 18, 2026 (17:18 CST)
+
+- Main `c449a42`: [Verify ZeroW 44412367661](https://github.com/unixv/zerow/actions/runs/44412367661) and [Player Playtest 44412367379](https://github.com/unixv/zerow/actions/runs/44412367379) passed on isolated GitHub runners. PR #42 changed world sizing; public Pi not rechecked here.
+- [PR #41 Player Playtest 44411143112](https://github.com/unixv/zerow/actions/runs/44411143112) failed at `tests/playtest.py:252`: expected 2/4 discoveries, observed 1/4 after a destination click. A failing branch test, not evidence of a production regression; keep #41 blocked pending diagnosis.
+- PR #38's cross-player expression test ran after a separate Bob login invalidated the original mobile session. Updated QA branch restores Bob's session before browser assertions and includes current-main playtest coverage. Both checks on new head required before merge. Live cross-player reception remains untested.
+- Matrix: main registration/login, chat, movement, touch, session lifecycle, world expand = **passed isolated**; cross-player expression reception = **pending isolated #38**; password change, public mobile, network loss/reconnect, live cross-player expressions = **untested live**.
