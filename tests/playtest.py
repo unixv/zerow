@@ -186,6 +186,20 @@ def main():
                 expect(toggle).to_have_attribute("aria-pressed", "false")
                 expect(toggle).to_have_text("Evening mode")
 
+            print("Landmark discovery works through actual canvas clicks on both viewports")
+            for page in (alice, bob):
+                world = page.locator("#world")
+                bounds = world.bounding_box()
+                assert bounds, "Atrium canvas is not visible"
+                # Moonwell Fountain is centered at tile (7, 2) in the 16x11 world.
+                world.click(position={"x": bounds["width"] * 7.5 / 16,
+                                      "y": bounds["height"] * 2.5 / 11})
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Moonwell Fountain")
+                expect(page.locator("#tipBody")).to_contain_text("heart of Atrium")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+
             print("Quick greetings prefill chat without sending automatically")
             previous = alice.locator("#lines").inner_text()
             alice.locator('[data-quick="Meet me by the fountain!"]').click()
