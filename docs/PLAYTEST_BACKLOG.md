@@ -100,3 +100,9 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 | Password changes, reconnect, avatar synchronization, chat scrollback, 320px/tablet/short desktop | Not established by these run results; retain as untested until explicit scenario evidence | Untested live |
 
 **Merge gate:** The older passing PR checks are not evidence that combined changes pass on current main. Reconcile existing QA PRs without duplicating scenarios already in `tests/journey_playtest.py`; rerun both workflows on integration heads, inspect screenshots, then merge only verified compatible changes. Do not reset or sign out the dedicated production `oai` account.
+
+## Development integration — November 18, 2026
+
+- Existing development PR #39 could not merge cleanly after the released #40 mobile fixes. PR #41 reapplies its **Meet explorers** directory to current main without overwriting the fixed chat/expedition layout.
+- PR #41 adds proximity labels and Meet/Wave/Chat actions, preserving explicit Send and existing authenticated endpoints; source regression tests were added. This is **proposed, not released**.
+- Both required workflows and desktop/mobile screenshot inspection remain mandatory before merge. No live production browser observation of meetups yet. Do not close #39 until the integrated replacement is verified.
