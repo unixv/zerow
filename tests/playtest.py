@@ -271,6 +271,16 @@ def main():
             login(isolated_page, NAME_B)
             expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
             isolated.close()
+            # Signing in as Bob in the isolated context intentionally replaces
+            # his prior session. Restore the original mobile browser session
+            # before testing cooperative Lantern Circle state.
+            login(bob, NAME_B)
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const response = await fetch("/api/state");
+              const state = await response.json();
+              return response.ok && state.me === "playtest_bob" && !!state.lanterns;
+            }""", timeout=10000)
 
             print("Lantern Circle: two real browser players contribute and observe shared lights")
             # Exercise the actual UI controls, not direct API calls. The mobile
