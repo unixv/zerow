@@ -109,6 +109,14 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 @media(max-width:800px){.lantern-deck{display:none}.game .lantern-deck{display:block;position:absolute;top:104px;right:8px;left:8px;z-index:7;max-height:calc(100% - 112px);overflow:auto;box-shadow:0 12px 30px #000b}}
 @media(max-width:520px){.game .lantern-deck{top:88px;max-height:calc(100% - 96px)}}
 .lantern-deck[hidden]{display:none!important}
+
+/* Atrium plaza ambience: an unobtrusive HUD with accessible scene controls. */
+.plaza-hud{position:absolute;right:14px;bottom:14px;z-index:2;display:flex;gap:7px;align-items:center;background:#102b35e8;border:1px solid #688c84;border-radius:10px;padding:7px 9px;box-shadow:0 8px 22px #0007}
+.plaza-hud span{font-size:11px;color:#c7e2d6;letter-spacing:.3px}
+.plaza-hud button{background:#31575b;color:#f0f8ee;border:1px solid #789a8d;font-size:11px;padding:7px 9px}
+.plaza-hud button[aria-pressed="true"]{background:#b7dcb7;color:#19352f}
+.stage:focus-within .plaza-hud{border-color:#b7dcb7}
+@media(max-width:520px){.plaza-hud{right:7px;bottom:7px;padding:5px}.plaza-hud span{display:none}.plaza-hud button{padding:7px}}
 </style>
 </head>
 <body>
@@ -118,7 +126,7 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -150,6 +158,7 @@ const joinScreen=document.querySelector("#joinScreen"),message=document.querySel
 let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register",authEpoch=0;
 const W=16,H=11,C=60;
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
+let ambienceEnabled=true;
 let lanterns={counts:[0,0,0,0],mine:[]},lighting=false;
 function renderLanterns(){
  for(const [rootId,bannerId] of [["lanternDeskList","lanternDeskBanner"],["lanternMobileList","lanternMobileBanner"]]){
@@ -285,6 +294,37 @@ function draw(){
   glow.addColorStop(0,"#ffe2a0"+(evening?"99":"66"));glow.addColorStop(1,"#ffe2a000");
   ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,32+Math.min(count,12)*3,0,Math.PI*2);ctx.fill();
  });
+
+ // Depth cues: raised promenade edging and inset stone patterns.
+ ctx.strokeStyle=evening?"#71849a66":"#b2d1b466";ctx.lineWidth=2;
+ for(let x=0;x<W;x++){ctx.beginPath();ctx.moveTo(x*C+7,4*C+5);ctx.lineTo(x*C+53,4*C+5);ctx.stroke();}
+ for(let y=0;y<H;y++){ctx.beginPath();ctx.moveTo(6*C+5,y*C+7);ctx.lineTo(6*C+5,y*C+53);ctx.stroke();}
+ // Garden beds, benches and flowering planters add readable gathering places.
+ for(const [gx,gy] of [[1,5],[14,5],[5,9],[10,1]]){
+  const px=gx*C+7,py=gy*C+13;
+  ctx.fillStyle="#142d30";ctx.beginPath();ctx.roundRect(px,py+9,46,29,7);ctx.fill();
+  ctx.fillStyle="#536f62";ctx.beginPath();ctx.roundRect(px+2,py,42,30,6);ctx.fill();
+  ctx.fillStyle="#2d6855";ctx.beginPath();ctx.roundRect(px+6,py+4,34,21,5);ctx.fill();
+  for(let k=0;k<5;k++){const fx=px+10+(k*17)%30,fy=py+8+(k*11)%14;
+   ctx.fillStyle=k%2?"#e9b6ca":"#f4d58d";ctx.beginPath();ctx.arc(fx,fy,3,0,Math.PI*2);ctx.fill();}
+ }
+ for(const [bx,by] of [[5,3],[10,7],[4,8],[11,2]]){
+  const px=bx*C+8,py=by*C+17;
+  ctx.fillStyle="#142b32aa";ctx.fillRect(px+3,py+18,43,7);
+  ctx.fillStyle="#9e795d";ctx.fillRect(px+4,py,41,9);ctx.fillRect(px+4,py+12,41,7);
+  ctx.fillStyle="#604a40";ctx.fillRect(px+9,py+19,5,11);ctx.fillRect(px+36,py+19,5,11);
+ }
+ // Low-cost deterministic drifting motes. No canvas timers or image assets.
+ if(ambienceEnabled){
+  for(let i=0;i<18;i++){
+   const x=(i*149+Math.sin(t*.28+i*2.1)*17+960)%960;
+   const y=(i*107+Math.cos(t*.22+i)*14+660)%660;
+   ctx.globalAlpha=.24+.25*(1+Math.sin(t*.8+i))/2;
+   ctx.fillStyle=evening?"#ffe3a1":"#d2f6d7";
+   ctx.beginPath();ctx.arc(x,y,evening?2.6:1.8,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+ }
  // Ornamental plaza border.
  ctx.strokeStyle="#789a8c";ctx.lineWidth=5;ctx.strokeRect(6,6,948,648);
  // Landscape objects are decorative only; all existing movement tiles remain available.
@@ -462,7 +502,7 @@ async function moveTo(x,y){
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
 document.querySelector("#exploreGuide").addEventListener("click",()=>showLandmark({title:"Welcome to the Atrium plaza",body:"Explore the fountain, groves and lantern walk. Click the map or use WASD / arrow keys to move. Send a quick greeting below to meet other players."}));
-document.querySelector("#sceneToggle").addEventListener("click",e=>{evening=!evening;e.currentTarget.setAttribute("aria-pressed",String(evening));e.currentTarget.textContent=evening?"Daylight mode":"Evening mode";draw();});
+document.querySelector("#sceneToggle").addEventListener("click",e=>{evening=!evening;e.currentTarget.setAttribute("aria-pressed",String(evening));e.currentTarget.textContent=evening?"Daylight mode":"Evening mode";document.querySelector("#sceneMood").textContent=evening?"Lantern evening":"Sunny plaza";draw();});
 document.querySelector("#chatFocus").addEventListener("click",()=>message.focus());
 document.querySelectorAll("[data-quick]").forEach(button=>button.addEventListener("click",()=>{if(!me){notify("Log in to greet the plaza.");return;}message.value=button.dataset.quick;message.focus();}));
 canvas.addEventListener("click",async e=>{
@@ -478,6 +518,17 @@ document.addEventListener("keydown",e=>{
  const delta=directions[e.key];if(!delta||!myPosition)return;
  e.preventDefault();moveTo(myPosition.x+delta[0],myPosition.y+delta[1]);
 });
+
+document.querySelector("#ambientToggle").addEventListener("click",e=>{
+ ambienceEnabled=!ambienceEnabled;
+ e.currentTarget.setAttribute("aria-pressed",String(ambienceEnabled));
+ e.currentTarget.textContent=ambienceEnabled?"Atmosphere on":"Atmosphere off";
+ draw();
+});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)draw();});
+// Cap ambient animation at 8 FPS and suspend it in background tabs.
+// Existing state polling and authoritative multiplayer behavior are unchanged.
+setInterval(()=>{if(ambienceEnabled&&!document.hidden&&joinScreen.hidden)draw();},125);
 renderTrail();refresh();setInterval(refresh,1500);
 </script>
 </body>
