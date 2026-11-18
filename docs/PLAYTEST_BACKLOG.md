@@ -107,3 +107,9 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 - [PR #41 Player Playtest 44411143112](https://github.com/unixv/zerow/actions/runs/44411143112) failed at `tests/playtest.py:252`: expected 2/4 discoveries, observed 1/4 after a destination click. A failing branch test, not evidence of a production regression; keep #41 blocked pending diagnosis.
 - PR #38's cross-player expression test ran after a separate Bob login invalidated the original mobile session. Updated QA branch restores Bob's session before browser assertions and includes current-main playtest coverage. Both checks on new head required before merge. Live cross-player reception remains untested.
 - Matrix: main registration/login, chat, movement, touch, session lifecycle, world expand = **passed isolated**; cross-player expression reception = **pending isolated #38**; password change, public mobile, network loss/reconnect, live cross-player expressions = **untested live**.
+
+## Development integration — November 18, 2026 (17:24 CST)
+
+- Reimplemented PR #41's Meet explorers directory against current main, preserving #40 mobile fixes and #42 world-first layout. The existing PR #41 had a failed isolated discovery test; its head is not approved for merge.
+- New integrated branch includes real two-player Chromium assertions for Meet, Wave, and Chat draft behavior. **Not released until both workflows pass.**
+- Live public Pi meetups, independent cross-player expression reception, and production mobile behavior remain untested. No production account was modified.
