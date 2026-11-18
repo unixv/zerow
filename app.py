@@ -47,6 +47,10 @@ def connect():
         con.execute("ALTER TABLE users ADD COLUMN avatar_color TEXT NOT NULL DEFAULT 'moss'")
     if "avatar_style" not in user_cols:
         con.execute("ALTER TABLE users ADD COLUMN avatar_style TEXT NOT NULL DEFAULT 'classic'")
+    if "emote" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN emote TEXT NOT NULL DEFAULT ''")
+    if "emote_at" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN emote_at REAL NOT NULL DEFAULT 0")
     con.execute("""CREATE TABLE IF NOT EXISTS sessions (
         token_hash TEXT PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -297,7 +301,7 @@ def state():
             con.execute("UPDATE users SET last_seen=? WHERE id=? AND last_seen<=?",
                         (now, user["id"], now - PRESENCE_HEARTBEAT_SECONDS))
         people = [dict(row) for row in con.execute(
-            "SELECT u.name,u.x,u.y,u.avatar_color,u.avatar_style FROM users u WHERE u.last_seen>? AND EXISTS (SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?) ORDER BY u.name LIMIT 100", (now - 40, now))]
+            "SELECT u.name,u.x,u.y,u.avatar_color,u.avatar_style,CASE WHEN u.emote_at>? THEN u.emote ELSE '' END AS emote FROM users u WHERE u.last_seen>? AND EXISTS (SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?) ORDER BY u.name LIMIT 100", (now - 7, now - 40, now))]
         messages = [dict(row) for row in con.execute(
             """SELECT id, CASE WHEN user_id IS NULL THEN 'Guest · ' || name ELSE name END AS name,
                       body,created FROM (SELECT * FROM messages ORDER BY id DESC LIMIT 60)
@@ -328,6 +332,28 @@ def update_avatar():
             return error("Log in first.", 401)
         con.execute("UPDATE users SET avatar_color=?,avatar_style=? WHERE id=?", (color,style,user["id"]))
     return jsonify(ok=True)
+
+
+EMOTES = {"wave", "cheer", "heart", "dance", "hello"}
+
+
+@app.post("/api/emote")
+def emote():
+    """Broadcast a short-lived expression to other plaza visitors."""
+    data = request.get_json(silent=True) or {}
+    action = data.get("emote")
+    if not isinstance(action, str) or action not in EMOTES:
+        return error("Unknown expression.")
+    with connect() as con:
+        user = require_user(con)
+        if user is None:
+            return error("Log in first.", 401)
+        now = time.time()
+        if now - user["emote_at"] < 3:
+            return error("Wait a moment before expressing again.", 429)
+        con.execute("UPDATE users SET emote=?,emote_at=?,last_seen=? WHERE id=?",
+                    (action, now, now, user["id"]))
+    return jsonify(ok=True, emote=action)
 
 
 @app.post("/api/move")
