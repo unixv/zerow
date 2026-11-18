@@ -357,7 +357,7 @@ function renderMembers(){
 function showSignedOut(){
  document.querySelector("#worldtip").hidden=true;
  authEpoch++;
- me=null;lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();discovered.clear();renderTrail();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
+ me=null;discovered.clear();renderTrail();lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
