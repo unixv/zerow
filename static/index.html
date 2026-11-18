@@ -117,6 +117,35 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 .plaza-hud button[aria-pressed="true"]{background:#b7dcb7;color:#19352f}
 .stage:focus-within .plaza-hud{border-color:#b7dcb7}
 @media(max-width:520px){.plaza-hud{right:7px;bottom:7px;padding:5px}.plaza-hud span{display:none}.plaza-hud button{padding:7px}}
+
+/* World-first mobile expedition drawers: keep the plaza playable while browsing. */
+.expedition-close{display:none}
+@media(max-width:800px){
+ .game{isolation:isolate}
+ .game > #mobileTrail:not([hidden]),.game > #lanternMobile:not([hidden]){
+  position:absolute;top:auto;bottom:8px;left:8px;right:8px;z-index:7;
+  max-height:min(46%,280px);margin:0;overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid #8baea0;border-radius:12px;
+  box-shadow:0 12px 28px #000b;
+ }
+ .expedition-close{display:inline-flex;float:right;align-items:center;justify-content:center;
+  min-width:36px;min-height:36px;padding:5px 9px;background:#35565b;color:#f3f9ef;
+  border:1px solid #779a90}
+ .game > #mobileTrail .trail-stops,.game > #lanternMobile .lantern-list{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;
+ }
+ .game > #mobileTrail .trail-stops button,.game > #lanternMobile .lantern-list button{
+  min-height:44px;touch-action:manipulation
+ }
+}
+@media(max-width:520px){
+ .game{height:min(94vw,480px);min-height:340px}
+ .game > #mobileTrail:not([hidden]),.game > #lanternMobile:not([hidden]){
+  top:auto;bottom:6px;max-height:44%;left:6px;right:6px;
+ }
+ .explorebar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+ .explorebar button{white-space:nowrap;flex:0 0 auto;min-height:38px}
+}
 </style>
 </head>
 <body>
@@ -126,7 +155,7 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -529,6 +558,17 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)draw();});
 // Cap ambient animation at 8 FPS and suspend it in background tabs.
 // Existing state polling and authoritative multiplayer behavior are unchanged.
 setInterval(()=>{if(ambienceEnabled&&!document.hidden&&joinScreen.hidden)draw();},125);
+
+function closeExpeditionPanels(){
+ for(const [panelId,toggleId] of [["mobileTrail","trailToggle"],["lanternMobile","lanternToggle"]]){
+  document.getElementById(panelId).hidden=true;
+  document.getElementById(toggleId).setAttribute("aria-expanded","false");
+ }
+}
+document.querySelectorAll("[data-close-expedition]").forEach(button=>{
+ button.addEventListener("click",()=>{closeExpeditionPanels();document.getElementById(button.dataset.closeExpedition==="mobileTrail"?"trailToggle":"lanternToggle").focus();});
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeExpeditionPanels();});
 renderTrail();refresh();setInterval(refresh,1500);
 </script>
 </body>
