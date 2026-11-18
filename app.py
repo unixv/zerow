@@ -42,6 +42,11 @@ def connect():
         last_login REAL NOT NULL,
         last_seen REAL NOT NULL DEFAULT 0
     )""")
+    user_cols = {r["name"] for r in con.execute("PRAGMA table_info(users)")}
+    if "avatar_color" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN avatar_color TEXT NOT NULL DEFAULT 'moss'")
+    if "avatar_style" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN avatar_style TEXT NOT NULL DEFAULT 'classic'")
     con.execute("""CREATE TABLE IF NOT EXISTS sessions (
         token_hash TEXT PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -285,13 +290,29 @@ def state():
             con.execute("UPDATE users SET last_seen=? WHERE id=? AND last_seen<=?",
                         (now, user["id"], now - PRESENCE_HEARTBEAT_SECONDS))
         people = [dict(row) for row in con.execute(
-            "SELECT u.name,u.x,u.y FROM users u WHERE u.last_seen>? AND EXISTS (SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?) ORDER BY u.name LIMIT 100", (now - 40, now))]
+            "SELECT u.name,u.x,u.y,u.avatar_color,u.avatar_style FROM users u WHERE u.last_seen>? AND EXISTS (SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?) ORDER BY u.name LIMIT 100", (now - 40, now))]
         messages = [dict(row) for row in con.execute(
             """SELECT id, CASE WHEN user_id IS NULL THEN 'Guest · ' || name ELSE name END AS name,
                       body,created FROM (SELECT * FROM messages ORDER BY id DESC LIMIT 60)
                ORDER BY id""")]
-        return jsonify(me=user["name"], players=people, messages=messages, room="Lobby",
+        return jsonify(me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
                        width=WIDTH, height=HEIGHT, joined=user["created"])
+
+@app.post("/api/avatar")
+def update_avatar():
+    """Save the authenticated player's validated appearance."""
+    data = request.get_json(silent=True) or {}
+    color, style = data.get("color"), data.get("style")
+    if not isinstance(color, str) or color not in {"moss","ocean","sunset","violet","gold","rose"}:
+        return error("Invalid avatar color.")
+    if not isinstance(style, str) or style not in {"classic","hoodie","crown"}:
+        return error("Invalid avatar outfit.")
+    with connect() as con:
+        user = require_user(con)
+        if user is None:
+            return error("Log in first.", 401)
+        con.execute("UPDATE users SET avatar_color=?,avatar_style=? WHERE id=?", (color,style,user["id"]))
+    return jsonify(ok=True)
 
 
 @app.post("/api/move")
