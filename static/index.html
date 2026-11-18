@@ -89,6 +89,17 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 .trail-badge{font-size:11px;color:#b4e9cb}
 @media(max-width:800px){.trail{margin-top:10px;padding:10px}.trail-stops{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.trail{margin:0;border-radius:0}.trail-stops{grid-template-columns:repeat(2,minmax(0,1fr))}.trail-stops button{min-height:42px}}
+/* Keep the trail in its own scrollable layer: expanding it must never shrink
+   the canvas or place travel buttons underneath the header/world tooltip. */
+.game > #mobileTrail:not([hidden]){
+ position:absolute;top:104px;left:8px;right:8px;z-index:6;
+ margin:0;max-height:calc(100% - 112px);overflow-y:auto;overscroll-behavior:contain;
+ background:#19343c;box-shadow:0 12px 28px #0009;border:1px solid #658b81;
+}
+@media(max-width:520px){
+ .game > #mobileTrail:not([hidden]){top:88px;max-height:calc(100% - 96px)}
+ .game > #mobileTrail .trail-stops button{min-height:44px;touch-action:manipulation}
+}
 </style>
 </head>
 <body>
