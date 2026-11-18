@@ -164,6 +164,38 @@ canvas{min-height:0}
 .emote-bar button:focus-visible{outline:2px solid #b7f7d2;outline-offset:2px}
 .emote-bar button:disabled{opacity:.5}
 @media(max-width:520px){.emote-bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:7px}.emote-bar strong{flex-shrink:0}.emote-bar button{flex-shrink:0;min-height:42px}}
+
+/* World-first layout: the canvas, not the chrome, is the main content.
+   Preserve the existing 16:11 world aspect ratio and pointer accuracy. */
+@media(min-width:801px){
+ .shell{grid-template-columns:160px minmax(0,1fr) 160px;grid-template-rows:54px minmax(0,1fr) 148px}
+ .shell header{padding:0 16px}
+ .shell .titlebar{padding:8px 14px;min-height:36px}
+ .shell .explorebar{padding:5px 10px;gap:6px;min-height:38px}
+ .shell .emote-bar{padding:5px 10px;min-height:42px}
+ .shell .stage{padding:5px}
+ .shell .chathead{padding:6px 12px}
+ .shell .quickchat{padding:5px 10px}
+ .shell .compose{padding:6px 10px}
+ .shell .compose input,.shell .compose button{padding:7px 10px}
+ .shell aside{padding:14px 10px}
+}
+.world-heading-actions{display:flex;align-items:center;gap:12px}
+#worldFocusToggle{font-size:12px;padding:7px 11px;background:#31565c;color:#e1fae9;border:1px solid #608d82}
+#worldFocusToggle[aria-pressed="true"]{background:#b8e7c7;color:#16382c}
+@media(min-width:801px){
+ .shell.world-focus{grid-template-columns:minmax(0,1fr);grid-template-rows:54px minmax(0,1fr)}
+ .shell.world-focus header{grid-column:1;grid-row:1}
+ .shell.world-focus .left,.shell.world-focus .right{display:none}
+ .shell.world-focus .game{grid-column:1;grid-row:2}
+ .shell.world-focus .chat{position:fixed;bottom:14px;right:14px;width:min(350px,32vw);height:210px;z-index:8;border:1px solid #597b76;border-radius:10px;box-shadow:0 12px 40px #0009;overflow:hidden}
+ .shell.world-focus .stage{padding:8px}
+}
+@media(max-width:800px){
+ .world-heading-actions{gap:6px}
+ #worldFocusToggle{font-size:11px;padding:6px}
+ .shell .stage{min-height:245px}
+}
 </style>
 </head>
 <body>
@@ -171,7 +203,7 @@ canvas{min-height:0}
 <header><div><div class="brand">ATRI<span>UM</span> <small class="brand-mark">SOCIAL WORLD</small></div><div class="sub">Your corner of a living world · Explore, meet, stay awhile</div></div><div style="display:flex;align-items:center;gap:10px"><button id="avatarSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Customize</button><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
 <aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div><div id="discoveryTrail" class="trail" aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="trailStatus">Visit four landmarks to complete your first plaza tour.</p><div class="trail-progress" aria-hidden="true"><span id="trailProgress" style="width:0%"></span></div><div class="trail-stops" id="trailStops"></div><div class="lantern-deck" id="lanternDesk"><h2>Lantern Circle · Together</h2><p>Travel to each landmark and add your light. Every explorer makes the plaza brighter.</p><div id="lanternDeskList" class="lantern-list"></div><div id="lanternDeskBanner" class="lantern-banner" role="status"></div></div></aside>
 <section class="game">
-<div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
+<div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><div class="world-heading-actions"><small id="population">0 people here</small><button type="button" id="worldFocusToggle" aria-pressed="false" title="Expand the game world">Expand world</button></div></div>
 <div id="notice" role="alert"></div>
 <div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
@@ -231,6 +263,13 @@ document.addEventListener("keydown",e=>{
  const first=controls[0],last=controls[controls.length-1];
  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
+document.querySelector("#worldFocusToggle").addEventListener("click",()=>{
+ const expanded=shell.classList.toggle("world-focus");
+ document.querySelector("#worldFocusToggle").setAttribute("aria-pressed",String(expanded));
+ document.querySelector("#worldFocusToggle").textContent=expanded?"Restore layout":"Expand world";
+ document.querySelector("#worldFocusToggle").title=expanded?"Restore the full Atrium interface":"Expand the game world";
+ canvas.focus({preventScroll:true});
 });
 const W=16,H=11,C=60;
 // Fit the real canvas box, so pointer coordinates and touch targets stay exact.
