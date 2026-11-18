@@ -82,3 +82,21 @@ PR #40 merged as 51ec74366ed36563c6bf85a283b12f8b8d4e52df.
 The fix-bundle acceptance items above are implemented and covered. Keep the
 next-milestone backlog active; this does not mean all possible game flaws are
 resolved. Screenshots were inspected from CI and the live public browser.
+
+## QA CI triage — November 18, 2026 (16:21 CST run)
+
+This section records **isolated GitHub runner** evidence, not a fresh public-Pi browser session. The existing live observations above remain the production baseline.
+
+| Coverage / PR | Current isolated evidence | Live production status |
+| --- | --- | --- |
+| Original browser playthrough and journey regression on released #40 | Player Playtest [44406118952](https://github.com/unixv/zerow/actions/runs/44406118952) passed both scenarios | Earlier post-release cloud-browser visual checks passed; not rerun in this triage |
+| Lantern Circle two-player touch/click, idempotence, reload (#35) | Verify [44379528671](https://github.com/unixv/zerow/actions/runs/44379528671) and Playtest [44379528820](https://github.com/unixv/zerow/actions/runs/44379528820) passed on #35 head; still needs integration against latest main | Independent live two-player contribution untested |
+| Stored chat HTML safety (#31) | Verify [44293524103](https://github.com/unixv/zerow/actions/runs/44293524103) and Playtest [44293524093](https://github.com/unixv/zerow/actions/runs/44293524093) passed on older PR head | Live injection not attempted |
+| Mobile trail real taps (#33) | Verify [44303411633](https://github.com/unixv/zerow/actions/runs/44303411633) and Playtest [44303411681](https://github.com/unixv/zerow/actions/runs/44303411681) passed on older PR head | Live mobile untested |
+| Session replacement (#9) | Verify [44054511400](https://github.com/unixv/zerow/actions/runs/44054511400) and Playtest [44054511426](https://github.com/unixv/zerow/actions/runs/44054511426) passed on older PR head; merge conflicts require rebase | Live second-browser replacement untested |
+| Session expiry/logout unit coverage (#5) | Verify [44030146330](https://github.com/unixv/zerow/actions/runs/44030146330) failed on old head; requires diagnosis/rebase | Untested live |
+| Two-player expression browser coverage (#38) | Verify [44400544672](https://github.com/unixv/zerow/actions/runs/44400544672) passed; Playtest [44400544524](https://github.com/unixv/zerow/actions/runs/44400544524) failed: #joinScreen stayed visible in a login/session assertion. Must diagnose/rebase, not infer a production expression defect | Cross-player expression reception untested live |
+| Contextual player meetups (#39) | Verify [44401151106](https://github.com/unixv/zerow/actions/runs/44401151106) passed; Playtest [44401150832](https://github.com/unixv/zerow/actions/runs/44401150832) failed because mobile quick-greeting button intercepted Send. #40 subsequently fixed this class of UI issue on main, but #39 must be retested after integration | Meetup feature unverified live |
+| Password changes, reconnect, avatar synchronization, chat scrollback, 320px/tablet/short desktop | Not established by these run results; retain as untested until explicit scenario evidence | Untested live |
+
+**Merge gate:** The older passing PR checks are not evidence that combined changes pass on current main. Reconcile existing QA PRs without duplicating scenarios already in `tests/journey_playtest.py`; rerun both workflows on integration heads, inspect screenshots, then merge only verified compatible changes. Do not reset or sign out the dedicated production `oai` account.
