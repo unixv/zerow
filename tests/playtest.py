@@ -272,6 +272,37 @@ def main():
             expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
             isolated.close()
 
+            print("Live two-player expression toolbar: desktop click and mobile touch")
+            # Exercise actual browser controls rather than posting directly to the API.
+            alice.locator('[data-emote="wave"]').click()
+            expect(alice.locator('[data-emote="wave"]')).to_be_enabled(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const response = await fetch('/api/state');
+              if (!response.ok) return false;
+              const state = await response.json();
+              return state.players.some(p => p.name === 'playtest_alice' && p.emote === 'wave');
+            }""", timeout=10000)
+            # A second registered player can react through a touch-enabled mobile browser.
+            bob.locator('[data-emote="heart"]').tap()
+            expect(bob.locator('[data-emote="heart"]')).to_be_enabled(timeout=10000)
+            alice.wait_for_function("""async () => {
+              const response = await fetch('/api/state');
+              if (!response.ok) return false;
+              const state = await response.json();
+              return state.players.some(p => p.name === 'playtest_bob' && p.emote === 'heart');
+            }""", timeout=10000)
+            # Reload must not break the expression controls or either session.
+            bob.reload()
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            expect(bob.locator('[data-emote="heart"]')).to_be_enabled(timeout=10000)
+            # Expiry is server-driven and must be visible to another browser.
+            alice.wait_for_function("""async () => {
+              const response = await fetch('/api/state');
+              if (!response.ok) return false;
+              const state = await response.json();
+              return state.players.some(p => p.name === 'playtest_bob' && !p.emote);
+            }""", timeout=15000)
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
