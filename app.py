@@ -70,6 +70,13 @@ def connect():
     # The per-user chat cooldown otherwise scans message history on each send.
     # Create after the legacy schema migration so existing databases upgrade safely.
     con.execute("CREATE INDEX IF NOT EXISTS messages_user_latest_idx ON messages(user_id, id DESC)")
+    # Additive shared-world activity: each account may illuminate each landmark once.
+    con.execute("""CREATE TABLE IF NOT EXISTS lantern_lights (
+        user_id INTEGER NOT NULL,
+        landmark INTEGER NOT NULL CHECK(landmark BETWEEN 0 AND 3),
+        created REAL NOT NULL,
+        PRIMARY KEY(user_id, landmark)
+    )""")
     con.commit()
     try:
         with con:
@@ -295,7 +302,15 @@ def state():
             """SELECT id, CASE WHEN user_id IS NULL THEN 'Guest · ' || name ELSE name END AS name,
                       body,created FROM (SELECT * FROM messages ORDER BY id DESC LIMIT 60)
                ORDER BY id""")]
-        return jsonify(me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
+        lights = [dict(row) for row in con.execute(
+            """SELECT landmark,COUNT(*) AS count FROM lantern_lights
+               GROUP BY landmark ORDER BY landmark"""
+        )]
+        my_lights = [row["landmark"] for row in con.execute(
+            "SELECT landmark FROM lantern_lights WHERE user_id=? ORDER BY landmark", (user["id"],)
+        )]
+        return jsonify(lanterns={"counts": [next((r["count"] for r in lights if r["landmark"]==i), 0) for i in range(4)], "mine":my_lights},
+                       me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
                        width=WIDTH, height=HEIGHT, joined=user["created"])
 
 @app.post("/api/avatar")
@@ -357,5 +372,33 @@ def chat():
     return jsonify(ok=True)
 
 
+# The four landmark coordinates match the client-side Atrium plaza.
+LANTERN_COORDS = ((7, 2), (2, 2), (13, 8), (4, 5))
+
+
+@app.post("/api/lanterns/light")
+def light_lantern():
+    """Cooperative, permanent landmark lighting without repeat farming."""
+    data = request.get_json(silent=True) or {}
+    landmark = data.get("landmark")
+    if type(landmark) is not int or not 0 <= landmark < len(LANTERN_COORDS):
+        return error("Unknown landmark.")
+    with connect() as con:
+        user = require_user(con)
+        if user is None:
+            return error("Log in first.", 401)
+        x, y = LANTERN_COORDS[landmark]
+        if abs(user["x"] - x) + abs(user["y"] - y) > 1:
+            return error("Move beside this landmark to light it.", 409)
+        cursor = con.execute(
+            "INSERT OR IGNORE INTO lantern_lights(user_id,landmark,created) VALUES(?,?,?)",
+            (user["id"], landmark, time.time())
+        )
+        count = con.execute(
+            "SELECT COUNT(*) FROM lantern_lights WHERE landmark=?", (landmark,)
+        ).fetchone()[0]
+    return jsonify(ok=True, new=cursor.rowcount == 1, count=count)
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, threaded=True)
+

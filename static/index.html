@@ -100,16 +100,25 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
  .game > #mobileTrail:not([hidden]){top:88px;max-height:calc(100% - 96px)}
  .game > #mobileTrail .trail-stops button{min-height:44px;touch-action:manipulation}
 }
+.lantern-deck{margin-top:12px;padding:12px;border:1px solid #668b7c;border-radius:9px;background:linear-gradient(135deg,#28443c,#142e38)}
+.lantern-deck h2{color:#f5dfaa;margin:0 0 8px}.lantern-deck p{font-size:12px;line-height:1.5;color:#d0dcd5}
+.lantern-list{display:grid;gap:7px}.lantern-list button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:#2c4945;color:#fff2cf;border:1px solid #7a8c69;font-size:12px;padding:10px;min-height:43px}
+.lantern-list button[data-lit="true"]{background:#3c5c4d;border-color:#d4bc76}
+.lantern-count{font-variant-numeric:tabular-nums;color:#f4d897;white-space:nowrap}
+.lantern-banner{font-size:12px;color:#ffdf9d;min-height:16px;margin-top:9px}
+@media(max-width:800px){.lantern-deck{display:none}.game .lantern-deck{display:block;position:absolute;top:104px;right:8px;left:8px;z-index:7;max-height:calc(100% - 112px);overflow:auto;box-shadow:0 12px 30px #000b}}
+@media(max-width:520px){.game .lantern-deck{top:88px;max-height:calc(100% - 96px)}}
+.lantern-deck[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="shell">
 <header><div><div class="brand">ATRI<span>UM</span> <small class="brand-mark">SOCIAL WORLD</small></div><div class="sub">Your corner of a living world · Explore, meet, stay awhile</div></div><div style="display:flex;align-items:center;gap:10px"><button id="avatarSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Customize</button><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
-<aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div><div id="discoveryTrail" class="trail" aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="trailStatus">Visit four landmarks to complete your first plaza tour.</p><div class="trail-progress" aria-hidden="true"><span id="trailProgress" style="width:0%"></span></div><div class="trail-stops" id="trailStops"></div></div></aside>
+<aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div><div id="discoveryTrail" class="trail" aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="trailStatus">Visit four landmarks to complete your first plaza tour.</p><div class="trail-progress" aria-hidden="true"><span id="trailProgress" style="width:0%"></span></div><div class="trail-stops" id="trailStops"></div><div class="lantern-deck" id="lanternDesk"><h2>Lantern Circle · Together</h2><p>Travel to each landmark and add your light. Every explorer makes the plaza brighter.</p><div id="lanternDeskList" class="lantern-list"></div><div id="lanternDeskBanner" class="lantern-banner" role="status"></div></div></aside>
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas></div>
 </section>
 <aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -141,6 +150,44 @@ const joinScreen=document.querySelector("#joinScreen"),message=document.querySel
 let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register",authEpoch=0;
 const W=16,H=11,C=60;
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
+let lanterns={counts:[0,0,0,0],mine:[]},lighting=false;
+function renderLanterns(){
+ for(const [rootId,bannerId] of [["lanternDeskList","lanternDeskBanner"],["lanternMobileList","lanternMobileBanner"]]){
+  const root=document.getElementById(rootId);root.replaceChildren();
+  landmarks.forEach((l,i)=>{
+   const lit=lanterns.mine.includes(i),count=lanterns.counts[i]||0;
+   const b=document.createElement("button");b.type="button";b.dataset.lit=String(lit);
+   b.disabled=!me||lighting;
+   const label=document.createElement("span");label.textContent=(lit?"✦ ":"◇ ")+l.title;
+   const tally=document.createElement("span");tally.className="lantern-count";tally.textContent=count+" lights";
+   b.append(label,tally);
+   b.setAttribute("aria-label",(lit?"Revisit ":"Light ")+l.title+", "+count+" community lights");
+   b.addEventListener("click",async()=>{
+    if(lighting||!me)return;lighting=true;renderLanterns();
+    try{
+     if(!await moveTo(l.x,l.y))return;
+     const result=await api("/api/lanterns/light","POST",{landmark:i});
+     if(result.new)lanterns.mine.push(i);
+     lanterns.counts[i]=result.count;
+     document.getElementById("lanternDeskBanner").textContent=result.new?"You lit "+l.title+"! Atrium shines brighter.":"Your light already shines here.";
+     document.getElementById("lanternMobileBanner").textContent=document.getElementById("lanternDeskBanner").textContent;
+     showLandmark(l);draw();
+    }catch(e){notify(e.message);}
+    finally{lighting=false;renderLanterns();}
+   });
+   root.append(b);
+  });
+  const total=lanterns.counts.reduce((a,b)=>a+b,0);
+  if(!document.getElementById(bannerId).textContent)document.getElementById(bannerId).textContent=total+" community lights across Atrium";
+ }
+}
+document.querySelector("#lanternToggle").addEventListener("click",()=>{
+ const panel=document.querySelector("#lanternMobile"),trail=document.querySelector("#mobileTrail");
+ panel.hidden=!panel.hidden;trail.hidden=true;
+ document.querySelector("#trailToggle").setAttribute("aria-expanded","false");
+ document.querySelector("#lanternToggle").setAttribute("aria-expanded",String(!panel.hidden));
+});
+
 const avatarColors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
 const avatarStyles=["classic","hoodie","crown"];
 let avatar={color:"moss",style:"classic"},avatarDraft={...avatar};
@@ -208,6 +255,7 @@ function discoverLandmark(l){
 }
 document.querySelector("#trailToggle").addEventListener("click",()=>{
  const panel=document.querySelector("#mobileTrail");
+ document.querySelector("#lanternMobile").hidden=true;document.querySelector("#lanternToggle").setAttribute("aria-expanded","false");
  panel.hidden=!panel.hidden;
  document.querySelector("#trailToggle").setAttribute("aria-expanded",String(!panel.hidden));
 });
@@ -229,6 +277,14 @@ function draw(){
  }
  // Discoverable landmarks shimmer gently, without extra animation loops.
  for(const l of landmarks){const x=l.x*C+30,y=l.y*C+30;ctx.strokeStyle=evening?"#a8c5e2aa":"#bde8c688";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,24+Math.sin(t*1.6)*2,0,Math.PI*2);ctx.stroke();}
+ // Shared community lights intensify as more explorers visit each landmark.
+ landmarks.forEach((l,i)=>{
+  const count=lanterns.counts[i]||0;if(!count)return;
+  const x=l.x*C+30,y=l.y*C+30;
+  const glow=ctx.createRadialGradient(x,y,4,x,y,32+Math.min(count,12)*3);
+  glow.addColorStop(0,"#ffe2a0"+(evening?"99":"66"));glow.addColorStop(1,"#ffe2a000");
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,32+Math.min(count,12)*3,0,Math.PI*2);ctx.fill();
+ });
  // Ornamental plaza border.
  ctx.strokeStyle="#789a8c";ctx.lineWidth=5;ctx.strokeRect(6,6,948,648);
  // Landscape objects are decorative only; all existing movement tiles remain available.
@@ -301,7 +357,7 @@ function renderMembers(){
 function showSignedOut(){
  document.querySelector("#worldtip").hidden=true;
  authEpoch++;
- me=null;discovered.clear();renderTrail();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
+ me=null;discovered.clear();renderTrail();lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
@@ -341,7 +397,7 @@ async function refresh(){
   else{
     if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
-  people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
+  lanterns=result.lanterns||{counts:[0,0,0,0],mine:[]};renderLanterns();people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
  finally{busy=false;}
 }
