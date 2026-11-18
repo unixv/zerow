@@ -170,6 +170,108 @@ def main():
             expect(alice.locator("#lines")).to_contain_text(
                 "Reply from mobile player", timeout=10000)
 
+            print("Exploration guide and atmosphere work on desktop and mobile")
+            for page in (alice, bob):
+                page.locator("#exploreGuide").click()
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Welcome to the Atrium plaza")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+                toggle = page.locator("#sceneToggle")
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "true")
+                expect(toggle).to_have_text("Daylight mode")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                expect(toggle).to_have_text("Evening mode")
+
+            print("Landmark discovery works through actual canvas clicks on both viewports")
+            for page in (alice, bob):
+                world = page.locator("#world")
+                bounds = world.bounding_box()
+                assert bounds, "Atrium canvas is not visible"
+                # Moonwell Fountain is centered at tile (7, 2) in the 16x11 world.
+                world.click(position={"x": bounds["width"] * 7.5 / 16,
+                                      "y": bounds["height"] * 2.5 / 11})
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Moonwell Fountain")
+                expect(page.locator("#tipBody")).to_contain_text("heart of Atrium")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+
+            print("Quick greetings prefill chat without sending automatically")
+            previous = alice.locator("#lines").inner_text()
+            alice.locator('[data-quick="Meet me by the fountain!"]').click()
+            expect(alice.locator("#message")).to_have_value("Meet me by the fountain!")
+            assert alice.locator("#lines").inner_text() == previous, "Quick greeting sent chat without confirmation"
+            alice.locator("#message").fill("")
+            alice.locator("#chatFocus").click()
+            expect(alice.locator("#message")).to_be_focused()
+
+            print("Wardrobe changes persist and are visible to the other player")
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#wardrobe")).to_be_visible()
+            alice.locator("#avatarColors").get_by_role("button", name="Ocean").click()
+            alice.locator("#avatarStyles").get_by_role("button", name="Crown").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeSave").click()
+            expect(alice.locator("#wardrobe")).to_be_hidden(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const state = await fetch('/api/state').then(r => r.json());
+              return state.players.some(p => p.name === 'playtest_alice'
+                && p.avatar_color === 'ocean' && p.avatar_style === 'crown');
+            }""", timeout=10000)
+            alice.reload()
+            expect(alice.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeClose").click()
+            alice.locator("#logout").click()
+            login(alice, NAME_A)
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeClose").click()
+            bob.locator("#avatarSettings").click()
+            expect(bob.locator("#avatarColors").get_by_role("button", name="Moss")).to_have_attribute("aria-pressed", "true")
+            expect(bob.locator("#avatarStyles").get_by_role("button", name="Classic")).to_have_attribute("aria-pressed", "true")
+            bob.locator("#wardrobeClose").click()
+
+            print("Atrium Discovery Trail: all four landmarks, persistence, and account isolation")
+            stops = ["Moonwell Fountain", "North Grove", "South Grove", "Lantern Walk"]
+            desktop_stops = alice.locator("#trailStops")
+            mobile_toggle = bob.locator("#trailToggle")
+            mobile_toggle.click()
+            expect(mobile_toggle).to_have_attribute("aria-expanded", "true")
+            expect(bob.locator("#mobileTrail")).to_be_visible()
+            for index, name in enumerate(stops, 1):
+                alice.locator("#trailStops").get_by_role("button", name=name).click()
+                expect(alice.locator("#trailStatus")).to_contain_text(f"{index} of 4")
+                expect(desktop_stops.get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
+                bob.locator("#mobileTrailStops").get_by_role("button", name=name).click()
+                expect(bob.locator("#mobileTrailStatus")).to_contain_text(f"{index} of 4")
+                expect(bob.locator("#mobileTrailStops").get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
+            expect(bob.locator("#mobileTrailStatus")).to_contain_text("Trail complete")
+            alice.reload()
+            bob.reload()
+            expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
+            bob.locator("#trailToggle").click()
+            expect(bob.locator("#mobileTrailStatus")).to_contain_text("Trail complete")
+            alice.locator("#logout").click()
+            expect(alice.locator("#trailStatus")).to_contain_text("0 of 4")
+            login(alice, NAME_A)
+            expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
+            # A fresh browser context for Bob must not inherit Alice's browser-local trail.
+            isolated = browser.new_context(viewport={"width": 1200, "height": 820})
+            isolated_page = isolated.new_page()
+            login(isolated_page, NAME_B)
+            expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
+            isolated.close()
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
