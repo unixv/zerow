@@ -57,6 +57,17 @@ def main():
             expect(alice.locator("#members")).to_contain_text(NAME_B, timeout=10000)
             expect(bob.locator("#members")).to_contain_text(NAME_A, timeout=10000)
 
+            print("World-first layout makes the game large and expandable on desktop")
+            alice.wait_for_function("""() => document.querySelector('#world').getBoundingClientRect().width >= 600""", timeout=10000)
+            original_width = alice.locator("#world").bounding_box()["width"]
+            alice.locator("#worldFocusToggle").click()
+            expect(alice.locator("#worldFocusToggle")).to_have_attribute("aria-pressed", "true")
+            alice.wait_for_function("""previous => document.querySelector('#world').getBoundingClientRect().width > previous + 100""", arg=original_width, timeout=10000)
+            expect(alice.locator("#message")).to_be_visible()
+            alice.locator("#worldFocusToggle").click()
+            expect(alice.locator("#worldFocusToggle")).to_have_attribute("aria-pressed", "false")
+            expect(alice.locator("#message")).to_be_visible()
+
             print("Player A sends chat; player B sees it")
             alice.locator("#message").fill("Hello from browser playtest")
             alice.locator("#send").click()
@@ -272,35 +283,32 @@ def main():
             expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
             isolated.close()
 
-            print("Live two-player expression toolbar: desktop click and mobile touch")
-            # Exercise actual browser controls rather than posting directly to the API.
+            print("Two-player expressions: browser controls, synchronization and expiry")
+            # The isolated Bob login above invalidates his original browser session.
+            login(bob, NAME_B)
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
             alice.locator('[data-emote="wave"]').click()
-            expect(alice.locator('[data-emote="wave"]')).to_be_enabled(timeout=10000)
             bob.wait_for_function("""async () => {
-              const response = await fetch('/api/state');
-              if (!response.ok) return false;
-              const state = await response.json();
-              return state.players.some(p => p.name === 'playtest_alice' && p.emote === 'wave');
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_alice' && p.emote==='wave');
             }""", timeout=10000)
-            # A second registered player can react through a touch-enabled mobile browser.
             bob.locator('[data-emote="heart"]').tap()
-            expect(bob.locator('[data-emote="heart"]')).to_be_enabled(timeout=10000)
             alice.wait_for_function("""async () => {
-              const response = await fetch('/api/state');
-              if (!response.ok) return false;
-              const state = await response.json();
-              return state.players.some(p => p.name === 'playtest_bob' && p.emote === 'heart');
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_bob' && p.emote==='heart');
             }""", timeout=10000)
-            # Reload must not break the expression controls or either session.
             bob.reload()
             expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
             expect(bob.locator('[data-emote="heart"]')).to_be_enabled(timeout=10000)
-            # Expiry is server-driven and must be visible to another browser.
             alice.wait_for_function("""async () => {
-              const response = await fetch('/api/state');
-              if (!response.ok) return false;
-              const state = await response.json();
-              return state.players.some(p => p.name === 'playtest_bob' && !p.emote);
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_bob' && !p.emote);
             }""", timeout=15000)
 
             print("Screenshots for UX review")
