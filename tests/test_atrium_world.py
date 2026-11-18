@@ -21,6 +21,29 @@ class AtriumWorldTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token, PAGE)
 
+    def test_exploration_deck_and_social_controls(self):
+        for token in ('id="exploreGuide"', 'id="sceneToggle"', 'id="chatFocus"',
+                      'id="worldtip"', 'id="tipClose"', 'const landmarks=',
+                      'function showLandmark(l)', 'aria-pressed', 'data-quick=',
+                      'Evening mode', 'Moonwell Fountain', 'North Grove',
+                      'South Grove', 'Lantern Walk', 'Message the Atrium plaza'):
+            with self.subTest(token=token):
+                self.assertIn(token, PAGE)
+
+    def test_quick_greetings_are_prefilled_not_sent_without_confirmation(self):
+        self.assertIn('message.value=button.dataset.quick', PAGE)
+        self.assertIn('if(!me){notify("Log in to greet the plaza.")', PAGE)
+        self.assertIn('document.querySelector("#chatForm").addEventListener("submit"', PAGE)
+        self.assertNotIn('api("/api/chat","POST",{message:button.dataset.quick})', PAGE)
+
+    def test_inline_script_has_no_literal_escaped_line_breaks(self):
+        # A prior release inserted raw backslash-n tokens between JS statements,
+        # preventing the entire game from initializing in Chromium.
+        script = PAGE.split("<script>", 1)[1].split("</script>", 1)[0]
+        self.assertNotIn(chr(92) + "n ", script)
+        self.assertNotIn(chr(92) + "ncanvas.", script)
+        self.assertNotIn(chr(92) + "ndocument.", script)
+
     def test_scenery_and_character_rendering(self):
         for token in ('const scenery=', 't:"tree"', 't:"fountain"', 't:"lamp"',
                       'ctx.roundRect', 'ctx.ellipse', 'function draw()'):
