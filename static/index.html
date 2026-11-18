@@ -181,7 +181,7 @@ function renderTrail(){
    button.textContent=(discovered.has(i)?"✓ ":"◇ ")+l.title;
    button.title="Travel to "+l.title;
    button.disabled=!me;
-   button.addEventListener("click",()=>{showLandmark(l);moveTo(l.x,l.y);});
+   button.addEventListener("click",async()=>{if(await moveTo(l.x,l.y)){showLandmark(l);discoverLandmark(l);}});
    stops.append(button);
   });
  }
@@ -390,7 +390,7 @@ document.querySelector("#chatForm").addEventListener("submit",async e=>{
 async function moveTo(x,y){
  if(!me||movePending||x<0||x>=W||y<0||y>=H)return;
  movePending=true;
- try{await api("/api/move","POST",{x,y});await refresh();}catch(err){notify(err.message);}finally{movePending=false;}
+ try{await api("/api/move","POST",{x,y});await refresh();return true;}catch(err){notify(err.message);return false;}finally{movePending=false;}
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
@@ -401,8 +401,8 @@ document.querySelectorAll("[data-quick]").forEach(button=>button.addEventListene
 canvas.addEventListener("click",async e=>{
  if(!me)return;
  const rect=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)*W/rect.width),y=Math.floor((e.clientY-rect.top)*H/rect.height);
- const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);if(landmark){showLandmark(landmark);discoverLandmark(landmark);}
- await moveTo(x,y);
+ const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+ if(await moveTo(x,y)&&landmark){showLandmark(landmark);discoverLandmark(landmark);}
 });
 document.addEventListener("keydown",e=>{
  if(!me||!joinScreen.hidden||!document.querySelector("#accountScreen").hidden||!document.querySelector("#wardrobe").hidden)return;
