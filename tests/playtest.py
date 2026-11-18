@@ -57,6 +57,17 @@ def main():
             expect(alice.locator("#members")).to_contain_text(NAME_B, timeout=10000)
             expect(bob.locator("#members")).to_contain_text(NAME_A, timeout=10000)
 
+            print("World-first layout makes the game large and expandable on desktop")
+            alice.wait_for_function("""() => document.querySelector('#world').getBoundingClientRect().width >= 600""", timeout=10000)
+            original_width = alice.locator("#world").bounding_box()["width"]
+            alice.locator("#worldFocusToggle").click()
+            expect(alice.locator("#worldFocusToggle")).to_have_attribute("aria-pressed", "true")
+            alice.wait_for_function("""previous => document.querySelector('#world').getBoundingClientRect().width > previous + 100""", arg=original_width, timeout=10000)
+            expect(alice.locator("#message")).to_be_visible()
+            alice.locator("#worldFocusToggle").click()
+            expect(alice.locator("#worldFocusToggle")).to_have_attribute("aria-pressed", "false")
+            expect(alice.locator("#message")).to_be_visible()
+
             print("Player A sends chat; player B sees it")
             alice.locator("#message").fill("Hello from browser playtest")
             alice.locator("#send").click()
