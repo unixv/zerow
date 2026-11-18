@@ -164,6 +164,18 @@ canvas{min-height:0}
 .emote-bar button:focus-visible{outline:2px solid #b7f7d2;outline-offset:2px}
 .emote-bar button:disabled{opacity:.5}
 @media(max-width:520px){.emote-bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:7px}.emote-bar strong{flex-shrink:0}.emote-bar button{flex-shrink:0;min-height:42px}}
+
+/* Atrium meetups: compact responsive explorer cards, no extra polling. */
+.right .member{display:grid;grid-template-columns:10px minmax(0,1fr);gap:7px 9px;padding:10px 4px}
+.member .player-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}
+.member .player-detail{grid-column:2;color:#9dbeb6;font-size:11px}
+.member .player-actions{grid-column:2;display:flex;flex-wrap:wrap;gap:5px}
+.member .player-actions button{font-size:11px;padding:7px 9px;min-height:38px;background:#2a5055;color:#e8f7ec;border:1px solid #688f86}
+.member .player-actions button:focus-visible{outline:2px solid #b9f6ce;outline-offset:2px}
+.meetup-guide{border:1px solid #628b83;border-radius:9px;background:#1d3e43;padding:10px;margin:0 0 12px}
+.meetup-guide strong{font-size:12px;color:#b8eed1}.meetup-guide p{font-size:11px;color:#b5d0c7;line-height:1.5;margin:5px 0 0}
+@media(max-width:800px){.right .player-actions button{min-height:40px}}
+@media(max-width:520px){.right .members{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:6px}.right .member{min-width:168px;background:#1b3a42;border:1px solid #426c69;border-radius:9px;padding:9px}.meetup-guide{margin-bottom:8px}}
 </style>
 </head>
 <body>
@@ -175,7 +187,7 @@ canvas{min-height:0}
 <div id="notice" role="alert"></div>
 <div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
-<aside class="right"><h2>In the room</h2><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
+<aside class="right"><h2>Meet explorers</h2><div class="meetup-guide"><strong>Find your people</strong><p>Visit another explorer, wave to them, or start a conversation. Everyone shares the same plaza.</p></div><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
 <div class="chathead">ATRIUM CHAT · Talk to everyone in the plaza</div>
 <div class="lines" id="lines" aria-live="polite"></div>
@@ -491,9 +503,38 @@ function renderMembers(){
  for(const p of people){
   const row=document.createElement("div");row.className="member";
   const dot=document.createElement("span");dot.className="dot";dot.style.background=avatarColors[p.avatar_color]||color(p.name);
-  const name=document.createElement("span");name.textContent=p.name+(p.name===me?" (you)":"");
-  row.append(dot,name);members.append(row);
+  const name=document.createElement("span");name.className="player-name";name.textContent=p.name+(p.name===me?" (you)":"");
+  row.append(dot,name);
+  const detail=document.createElement("span");detail.className="player-detail";
+  const distance=myPosition?Math.abs(myPosition.x-p.x)+Math.abs(myPosition.y-p.y):null;
+  detail.textContent=p.name===me?"Your spot in the plaza":distance===null?"Exploring Atrium":distance<=1?"Right beside you":distance+" tiles away";
+  row.append(detail);
+  if(p.name!==me&&me){
+   const actions=document.createElement("div");actions.className="player-actions";
+   const visit=document.createElement("button");visit.type="button";visit.textContent="Meet";
+   visit.setAttribute("aria-label","Meet "+p.name+" in the plaza");
+   visit.addEventListener("click",async()=>{
+    const latest=people.find(person=>person.name===p.name);
+    if(!latest){notify(p.name+" has left the plaza.");return;}
+    if(await moveTo(latest.x,latest.y))notify("You joined "+p.name+" in the plaza.");
+   });
+   const wave=document.createElement("button");wave.type="button";wave.textContent="Wave";
+   wave.setAttribute("aria-label","Wave to "+p.name);
+   wave.addEventListener("click",async()=>{
+    try{await api("/api/emote","POST",{emote:"wave"});notify("You waved to "+p.name+"!");await refresh();}
+    catch(err){notify(err.message);}
+   });
+   const talk=document.createElement("button");talk.type="button";talk.textContent="Chat";
+   talk.setAttribute("aria-label","Write a greeting to "+p.name);
+   talk.addEventListener("click",()=>{
+    message.value="Hi "+p.name+"! ";message.focus();
+    notify("Your greeting is ready. Press Send to share it with the plaza.");
+   });
+   actions.append(visit,wave,talk);row.append(actions);
+  }
+  members.append(row);
  }
+ if(!people.length){const empty=document.createElement("p");empty.className="hint";empty.textContent="The plaza is quiet. Invite someone to join Atrium.";members.append(empty);}
  document.querySelector("#population").textContent=people.length+" "+(people.length===1?"person":"people")+" here";
 }
 function showSignedOut(){
