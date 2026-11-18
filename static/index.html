@@ -66,11 +66,20 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 .stage{position:relative}
 @media(max-width:520px){.explorebar{padding:7px;gap:5px}.explorebar .explorehint{display:none}.explorebar button{padding:7px}.worldtip{left:8px;bottom:8px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+ 
+.wardrobe{position:fixed;inset:0;background:#07161be8;display:grid;place-items:center;z-index:9;padding:16px}
+.wardrobe[hidden]{display:none}.wardrobe-panel{width:min(440px,100%);background:#1c3b44;border:1px solid #6c938b;border-radius:12px;padding:24px;box-shadow:0 25px 80px #0009}
+.wardrobe-panel h2{font-size:21px;letter-spacing:0;color:#e4f5ed;text-transform:none;margin-bottom:8px}
+.wardrobe-panel p{font-size:13px;color:#b4cfca;line-height:1.5}
+.wardrobe-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 18px}
+.wardrobe-options button{background:#294b54;color:#eaf4ee;border:2px solid #52756d;padding:10px 5px}
+.wardrobe-options button[aria-pressed="true"]{border-color:#b2f5c9;background:#3d6b61}
+.wardrobe-actions{display:flex;justify-content:flex-end;gap:8px}
 </style>
 </head>
 <body>
 <div class="shell">
-<header><div><div class="brand">ATRI<span>UM</span> <small class="brand-mark">SOCIAL WORLD</small></div><div class="sub">Your corner of a living world · Explore, meet, stay awhile</div></div><div style="display:flex;align-items:center;gap:10px"><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
+<header><div><div class="brand">ATRI<span>UM</span> <small class="brand-mark">SOCIAL WORLD</small></div><div class="sub">Your corner of a living world · Explore, meet, stay awhile</div></div><div style="display:flex;align-items:center;gap:10px"><button id="avatarSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Customize</button><button id="accountSettings" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Account</button><button id="logout" style="display:none;background:#334b59;color:#eaf4f1;padding:7px 10px;font-size:12px">Log out</button><div class="pill" id="connection">Connecting…</div></div></header>
 <aside class="left"><h2>Spaces</h2><div class="room">◈ The Atrium <small>Shared plaza · everyone welcome</small></div><div class="hint">Click a tile or use arrow keys / WASD to move.<br>Meet other explorers and talk in real time.<br>Your account and location are saved.</div></aside>
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><small id="population">0 people here</small></div>
@@ -84,7 +93,7 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <div class="quickchat" aria-label="Quick social greetings"><button type="button" data-quick="Hello everyone!">Wave hello</button><button type="button" data-quick="Welcome to Atrium!">Welcome</button><button type="button" data-quick="Meet me by the fountain!">Meet at fountain</button><button type="button" data-quick="Anyone want to explore?">Explore together</button></div><form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 </section>
 </div>
-<div class="modalbg" id="accountScreen" hidden><div class="modal">
+<div class="wardrobe" id="wardrobe" hidden role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle"><div class="wardrobe-panel"><h2 id="wardrobeTitle">Your Atrium look</h2><p>Pick a color and outfit. Your look is saved to your account and visible to everyone in the plaza.</p><strong>Color</strong><div class="wardrobe-options" id="avatarColors"></div><strong>Outfit</strong><div class="wardrobe-options" id="avatarStyles"></div><div class="wardrobe-actions"><button type="button" id="wardrobeClose">Cancel</button><button type="button" id="wardrobeSave">Save look</button></div><p id="wardrobeError" role="alert"></p></div></div><div class="modalbg" id="accountScreen" hidden><div class="modal">
 <h1>Account security</h1><p>Change your password. All active sessions will be signed out.</p>
 <form id="passwordForm" style="display:grid;gap:10px">
 <input id="currentPassword" type="password" autocomplete="current-password" placeholder="Current password" required>
@@ -107,6 +116,27 @@ const joinScreen=document.querySelector("#joinScreen"),message=document.querySel
 let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register",authEpoch=0;
 const W=16,H=11,C=60;
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
+const avatarColors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
+const avatarStyles=["classic","hoodie","crown"];
+let avatar={color:"moss",style:"classic"},avatarDraft={...avatar};
+function wardrobeButtons(){
+ for(const [selector,values,key] of [["#avatarColors",Object.keys(avatarColors),"color"],["#avatarStyles",avatarStyles,"style"]]){
+  const root=document.querySelector(selector);root.replaceChildren();
+  for(const value of values){
+   const b=document.createElement("button");b.type="button";b.textContent=value[0].toUpperCase()+value.slice(1);
+   b.setAttribute("aria-pressed",String(avatarDraft[key]===value));
+   if(key==="color")b.style.borderLeft="9px solid "+avatarColors[value];
+   b.addEventListener("click",()=>{avatarDraft[key]=value;wardrobeButtons();});root.append(b);
+  }
+ }
+}
+document.querySelector("#avatarSettings").addEventListener("click",()=>{avatarDraft={...avatar};wardrobeButtons();document.querySelector("#wardrobeError").textContent="";document.querySelector("#wardrobe").hidden=false;});
+document.querySelector("#wardrobeClose").addEventListener("click",()=>document.querySelector("#wardrobe").hidden=true);
+document.querySelector("#wardrobeSave").addEventListener("click",async()=>{
+ const button=document.querySelector("#wardrobeSave");button.disabled=true;
+ try{await api("/api/avatar","POST",avatarDraft);avatar={...avatarDraft};document.querySelector("#wardrobe").hidden=true;await refresh();}
+ catch(e){document.querySelector("#wardrobeError").textContent=e.message;}finally{button.disabled=false;}
+});
 const landmarks=[{x:7,y:2,title:"Moonwell Fountain",body:"The heart of Atrium. Meet other explorers here and watch the water dance."},{x:2,y:2,title:"North Grove",body:"A peaceful shaded corner of the plaza. A good spot to greet new arrivals."},{x:13,y:8,title:"South Grove",body:"A quiet garden at the edge of the promenade."},{x:4,y:5,title:"Lantern Walk",body:"Follow the glowing lamps across the central promenade."}];
 const scenery=[{x:2,y:2,t:"tree"},{x:13,y:2,t:"tree"},{x:2,y:8,t:"tree"},{x:13,y:8,t:"tree"},{x:7,y:2,t:"fountain"},{x:8,y:2,t:"fountain"},{x:4,y:5,t:"lamp"},{x:11,y:5,t:"lamp"}];
 function color(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return "hsl("+(h%360)+" 66% 68%)";}
@@ -152,11 +182,13 @@ function draw(){
  }
  for(const p of people){
    const cx=p.x*C+C/2,cy=p.y*C+C/2;
-   const hue=color(p.name);
+   const hue=avatarColors[p.avatar_color]||color(p.name);
    ctx.fillStyle="#0d222c99";ctx.beginPath();ctx.ellipse(cx,cy+19,20,7,0,0,Math.PI*2);ctx.fill();
    // Distinctive two-part characters with face, feet and tunic.
    ctx.fillStyle="#182b37";ctx.fillRect(cx-12,cy+9,9,12);ctx.fillRect(cx+3,cy+9,9,12);
    ctx.fillStyle=hue;ctx.beginPath();ctx.roundRect(cx-16,cy-5,32,23,8);ctx.fill();
+   if(p.avatar_style==="hoodie"){ctx.fillStyle="#203947";ctx.beginPath();ctx.arc(cx,cy-11,17,Math.PI,0);ctx.lineTo(cx+12,cy-3);ctx.lineTo(cx-12,cy-3);ctx.fill();}
+   if(p.avatar_style==="crown"){ctx.fillStyle="#f5d879";ctx.beginPath();ctx.moveTo(cx-13,cy-22);ctx.lineTo(cx-14,cy-36);ctx.lineTo(cx-5,cy-30);ctx.lineTo(cx,cy-39);ctx.lineTo(cx+6,cy-30);ctx.lineTo(cx+14,cy-36);ctx.lineTo(cx+13,cy-22);ctx.closePath();ctx.fill();}
    ctx.fillStyle="#f0c8a5";ctx.beginPath();ctx.arc(cx,cy-12,13,0,Math.PI*2);ctx.fill();
    ctx.fillStyle="#233744";ctx.fillRect(cx-6,cy-14,3,4);ctx.fillRect(cx+4,cy-14,3,4);
    ctx.strokeStyle="#a76e62";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy-10,4,0,Math.PI);ctx.stroke();
@@ -188,7 +220,7 @@ function renderMembers(){
  members.replaceChildren();
  for(const p of people){
   const row=document.createElement("div");row.className="member";
-  const dot=document.createElement("span");dot.className="dot";dot.style.background=color(p.name);
+  const dot=document.createElement("span");dot.className="dot";dot.style.background=avatarColors[p.avatar_color]||color(p.name);
   const name=document.createElement("span");name.textContent=p.name+(p.name===me?" (you)":"");
   row.append(dot,name);members.append(row);
  }
@@ -197,7 +229,7 @@ function renderMembers(){
 function showSignedOut(){
  document.querySelector("#worldtip").hidden=true;
  authEpoch++;
- me=null;people=[];history=[];myPosition=null;
+ me=null;people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
@@ -235,7 +267,7 @@ async function refresh(){
     else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   }
   else{
-    me=result.me;joinScreen.hidden=true;message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
+    me=result.me;avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
   people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
@@ -312,7 +344,7 @@ canvas.addEventListener("click",async e=>{
  await moveTo(x,y);
 });
 document.addEventListener("keydown",e=>{
- if(!me||!joinScreen.hidden||!document.querySelector("#accountScreen").hidden)return;
+ if(!me||!joinScreen.hidden||!document.querySelector("#accountScreen").hidden||!document.querySelector("#wardrobe").hidden)return;
  if(["INPUT","TEXTAREA","BUTTON"].includes(document.activeElement.tagName))return;
  const directions={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]};
  const delta=directions[e.key];if(!delta||!myPosition)return;
