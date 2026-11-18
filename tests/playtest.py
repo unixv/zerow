@@ -251,7 +251,7 @@ def main():
                 alice.locator("#trailStops").get_by_role("button", name=name).click()
                 expect(alice.locator("#trailStatus")).to_contain_text("Trail complete" if index == len(stops) else f"{index} of 4")
                 expect(desktop_stops.get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
-                bob.locator("#mobileTrailStops").get_by_role("button", name=name).click()
+                bob.locator("#mobileTrailStops").get_by_role("button", name=name).tap()
                 expect(bob.locator("#mobileTrailStatus")).to_contain_text("Trail complete" if index == len(stops) else f"{index} of 4")
                 expect(bob.locator("#mobileTrailStops").get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
             expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
