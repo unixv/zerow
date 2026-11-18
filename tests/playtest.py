@@ -170,6 +170,31 @@ def main():
             expect(alice.locator("#lines")).to_contain_text(
                 "Reply from mobile player", timeout=10000)
 
+            print("Exploration guide and atmosphere work on desktop and mobile")
+            for page in (alice, bob):
+                page.locator("#exploreGuide").click()
+                expect(page.locator("#worldtip")).to_be_visible()
+                expect(page.locator("#tipTitle")).to_have_text("Welcome to the Atrium plaza")
+                page.locator("#tipClose").click()
+                expect(page.locator("#worldtip")).to_be_hidden()
+                toggle = page.locator("#sceneToggle")
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "true")
+                expect(toggle).to_have_text("Daylight mode")
+                toggle.click()
+                expect(toggle).to_have_attribute("aria-pressed", "false")
+                expect(toggle).to_have_text("Evening mode")
+
+            print("Quick greetings prefill chat without sending automatically")
+            previous = alice.locator("#lines").inner_text()
+            alice.locator('[data-quick="Meet me by the fountain!"]').click()
+            expect(alice.locator("#message")).to_have_value("Meet me by the fountain!")
+            assert alice.locator("#lines").inner_text() == previous, "Quick greeting sent chat without confirmation"
+            alice.locator("#message").fill("")
+            alice.locator("#chatFocus").click()
+            expect(alice.locator("#message")).to_be_focused()
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
