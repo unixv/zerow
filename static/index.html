@@ -119,7 +119,19 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 @media(max-width:520px){.plaza-hud{right:7px;bottom:7px;padding:5px}.plaza-hud span{display:none}.plaza-hud button{padding:7px}}
 
 /* World-first mobile expedition drawers: keep the plaza playable while browsing. */
-.expedition-close{display:none}
+.expedition-close{display:inline-flex;float:right;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:5px 9px;background:#35565b;color:#f3f9ef;border:1px solid #779a90}
+/* Every viewport keeps the world inside the stage and panels above it. */
+.shell{height:100dvh;min-height:0;max-height:none}
+.shell>aside{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.stage{overflow:hidden}
+canvas{min-height:0}
+.game>.lantern-deck:not([hidden]){position:absolute;top:104px;left:8px;right:8px;z-index:7;max-height:calc(100% - 112px);overflow-y:auto;margin:0;box-shadow:0 12px 28px #0009}
+.modalbg,.wardrobe{overflow-y:auto}
+.modal,.wardrobe-panel{max-height:calc(100dvh - 36px);overflow-y:auto}
+.field-label{display:block;font-size:12px;color:#cbe0d9;margin:0 0 -4px}
+.chathead,.quickchat,.compose{flex-shrink:0}
+@media(max-width:800px){.shell{height:auto;min-height:100dvh}.shell>aside{overflow-y:visible}}
+@media(max-width:520px){header{flex-wrap:wrap;gap:10px;padding:12px}.chat{height:300px;min-height:300px;flex:none}}
 @media(max-width:800px){
  .game{isolation:isolate}
  .game > #mobileTrail:not([hidden]),.game > #lanternMobile:not([hidden]){
@@ -167,23 +179,23 @@ button{background:#a7dfbd}button:hover:not(:disabled){filter:brightness(1.1)}
 <section class="chat">
 <div class="chathead">ATRIUM CHAT · Talk to everyone in the plaza</div>
 <div class="lines" id="lines" aria-live="polite"></div>
-<div class="quickchat" aria-label="Quick social greetings"><button type="button" data-quick="Hello everyone!">Wave hello</button><button type="button" data-quick="Welcome to Atrium!">Welcome</button><button type="button" data-quick="Meet me by the fountain!">Meet at fountain</button><button type="button" data-quick="Anyone want to explore?">Explore together</button></div><form class="compose" id="chatForm"><input id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
+<div class="quickchat" aria-label="Quick social greetings"><button type="button" data-quick="Hello everyone!">Wave hello</button><button type="button" data-quick="Welcome to Atrium!">Welcome</button><button type="button" data-quick="Meet me by the fountain!">Meet at fountain</button><button type="button" data-quick="Anyone want to explore?">Explore together</button></div><form class="compose" id="chatForm"><input aria-label="Message the Atrium plaza" id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 </section>
 </div>
-<div class="wardrobe" id="wardrobe" hidden role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle"><div class="wardrobe-panel"><h2 id="wardrobeTitle">Your Atrium look</h2><p>Pick a color and outfit. Your look is saved to your account and visible to everyone in the plaza.</p><strong>Color</strong><div class="wardrobe-options" id="avatarColors"></div><strong>Outfit</strong><div class="wardrobe-options" id="avatarStyles"></div><div class="wardrobe-actions"><button type="button" id="wardrobeClose">Cancel</button><button type="button" id="wardrobeSave">Save look</button></div><p id="wardrobeError" role="alert"></p></div></div><div class="modalbg" id="accountScreen" hidden><div class="modal">
-<h1>Account security</h1><p>Change your password. All active sessions will be signed out.</p>
+<div class="wardrobe" id="wardrobe" hidden role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle"><div class="wardrobe-panel"><h2 id="wardrobeTitle">Your Atrium look</h2><p>Pick a color and outfit. Your look is saved to your account and visible to everyone in the plaza.</p><strong>Color</strong><div class="wardrobe-options" id="avatarColors"></div><strong>Outfit</strong><div class="wardrobe-options" id="avatarStyles"></div><div class="wardrobe-actions"><button type="button" id="wardrobeClose">Cancel</button><button type="button" id="wardrobeSave">Save look</button></div><p id="wardrobeError" role="alert"></p></div></div><div class="modalbg" id="accountScreen" hidden role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="modal">
+<h1 id="accountTitle">Account security</h1><p>Change your password. All active sessions will be signed out.</p>
 <form id="passwordForm" style="display:grid;gap:10px">
-<input id="currentPassword" type="password" autocomplete="current-password" placeholder="Current password" required>
-<input id="newPassword" type="password" autocomplete="new-password" placeholder="New password (10+ characters)" minlength="10" maxlength="128" required>
+<label class="field-label" for="currentPassword">Current password</label><input id="currentPassword" type="password" autocomplete="current-password" placeholder="Current password" required>
+<label class="field-label" for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="New password (10+ characters)" minlength="10" maxlength="128" required>
 <button type="submit">Change password</button></form>
 <button type="button" id="closeAccount" style="margin-top:12px;background:#334b59;color:#fff">Cancel</button>
 <div class="error" id="accountError" role="alert"></div>
 </div></div>
-<div class="modalbg" id="joinScreen"><div class="modal">
-<h1>Welcome to Atrium</h1><p id="authDescription">Create a permanent account to explore and chat. Your name belongs to you.</p>
-<form id="joinForm" style="display:grid;gap:10px"><input id="nickname" placeholder="Username (3–18 characters)" maxlength="18" autocomplete="username" required autofocus><input id="password" type="password" placeholder="Password (at least 10 characters)" autocomplete="new-password" minlength="10" maxlength="128" required><button id="authSubmit">Create account</button></form>
+<div class="modalbg" id="joinScreen" role="dialog" aria-modal="true" aria-labelledby="joinTitle"><div class="modal">
+<h1 id="joinTitle">Welcome to Atrium</h1><p id="authDescription">Create a permanent account to explore and chat. Your name belongs to you.</p>
+<form id="joinForm" style="display:grid;gap:10px"><label class="field-label" for="nickname">Username</label><input id="nickname" placeholder="Username (3–18 characters)" maxlength="18" autocomplete="username" required autofocus><label class="field-label" for="password">Password</label><input id="password" type="password" placeholder="Password (at least 10 characters)" autocomplete="new-password" minlength="10" maxlength="128" required><button id="authSubmit">Create account</button></form>
 <div style="margin-top:12px;font-size:13px;color:#b8d2dd"><span id="authPrompt">Already registered?</span> <button type="button" id="authToggle" style="background:none;color:#8ef1b3;padding:4px">Log in</button></div>
-<div class="error" id="joinError"></div>
+<div class="error" id="joinError" role="alert"></div>
 </div></div>
 <script>
 "use strict";
@@ -191,7 +203,44 @@ const canvas=document.querySelector("#world"),ctx=canvas.getContext("2d");
 const lines=document.querySelector("#lines"),members=document.querySelector("#members");
 const joinScreen=document.querySelector("#joinScreen"),message=document.querySelector("#message");
 let me=null,people=[],history=[],busy=false,noticeTimeout=null,authMode="register",authEpoch=0;
+let chatPending=false,authPending=false;
+const shell=document.querySelector(".shell");
+let modalReturnFocus=null,lastModal=null;
+function syncModal(){
+ const panels=[joinScreen,document.querySelector("#accountScreen"),document.querySelector("#wardrobe")];
+ const active=panels.find(p=>!p.hidden)||null;
+ shell.inert=!!active;
+ for(const p of panels)p.inert=!!active&&p!==active;
+ if(active!==lastModal){
+  lastModal=active;
+  if(active)active.querySelector("input,button")?.focus({preventScroll:true});
+  else if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});
+ }
+}
+function openModal(id){modalReturnFocus=document.activeElement;document.getElementById(id).hidden=false;syncModal();}
+function closeModal(id){document.getElementById(id).hidden=true;syncModal();}
+document.addEventListener("keydown",e=>{
+ if(!lastModal)return;
+ if(e.key==="Escape"&&lastModal!==joinScreen){
+  e.preventDefault();
+  if(lastModal.id==="accountScreen")document.querySelector("#passwordForm").reset();
+  closeModal(lastModal.id);return;
+ }
+ if(e.key!=="Tab")return;
+ const controls=[...lastModal.querySelectorAll("input,button")].filter(el=>!el.disabled);
+ const first=controls[0],last=controls[controls.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
 const W=16,H=11,C=60;
+// Fit the real canvas box, so pointer coordinates and touch targets stay exact.
+new ResizeObserver(()=>{
+ const stage=canvas.parentElement,style=getComputedStyle(stage);
+ const width=stage.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+ const height=stage.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+ const scale=Math.max(0,Math.min(width/960,height/660));
+ canvas.style.width=960*scale+"px";canvas.style.height=660*scale+"px";
+}).observe(canvas.parentElement);
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
 let ambienceEnabled=true;
 const emoteLabels={wave:"Wave!",cheer:"Hooray!",heart:"Love this!",dance:"Dancing!",hello:"Hello!"};
@@ -208,32 +257,31 @@ document.querySelectorAll("[data-emote]").forEach(b=>b.addEventListener("click",
 let lanterns={counts:[0,0,0,0],mine:[]},lighting=false;
 function renderLanterns(){
  for(const [rootId,bannerId] of [["lanternDeskList","lanternDeskBanner"],["lanternMobileList","lanternMobileBanner"]]){
-  const root=document.getElementById(rootId);root.replaceChildren();
+  const root=document.getElementById(rootId);
+  if(!root.children.length)landmarks.forEach(()=>{const b=document.createElement("button");b.type="button";b.append(document.createElement("span"),document.createElement("span"));root.append(b);});
   landmarks.forEach((l,i)=>{
    const lit=lanterns.mine.includes(i),count=lanterns.counts[i]||0;
-   const b=document.createElement("button");b.type="button";b.dataset.lit=String(lit);
+   const b=root.children[i];b.dataset.lit=String(lit);
    b.disabled=!me||lighting;
-   const label=document.createElement("span");label.textContent=(lit?"✦ ":"◇ ")+l.title;
-   const tally=document.createElement("span");tally.className="lantern-count";tally.textContent=count+" lights";
-   b.append(label,tally);
+   const [label,tally]=b.children;label.textContent=(lit?"✦ ":"◇ ")+l.title;
+   tally.className="lantern-count";tally.textContent=count+(count===1?" light":" lights");
    b.setAttribute("aria-label",(lit?"Revisit ":"Light ")+l.title+", "+count+" community lights");
-   b.addEventListener("click",async()=>{
+   b.onclick=async()=>{
     if(lighting||!me)return;lighting=true;renderLanterns();
     try{
      if(!await moveTo(l.x,l.y))return;
      const result=await api("/api/lanterns/light","POST",{landmark:i});
      if(result.new)lanterns.mine.push(i);
      lanterns.counts[i]=result.count;
-     document.getElementById("lanternDeskBanner").textContent=result.new?"You lit "+l.title+"! Atrium shines brighter.":"Your light already shines here.";
-     document.getElementById("lanternMobileBanner").textContent=document.getElementById("lanternDeskBanner").textContent;
+     notify(result.new?"You lit "+l.title+"! Atrium shines brighter.":"Your light already shines here.");
      showLandmark(l);draw();
     }catch(e){notify(e.message);}
     finally{lighting=false;renderLanterns();}
-   });
-   root.append(b);
+   };
   });
   const total=lanterns.counts.reduce((a,b)=>a+b,0);
-  if(!document.getElementById(bannerId).textContent)document.getElementById(bannerId).textContent=total+" community lights across Atrium";
+  const banner=document.getElementById(bannerId),summary=total+" community "+(total===1?"light":"lights")+" across Atrium";
+  if(banner.textContent!==summary)banner.textContent=summary;
  }
 }
 document.querySelector("#lanternToggle").addEventListener("click",()=>{
@@ -253,15 +301,15 @@ function wardrobeButtons(){
    const b=document.createElement("button");b.type="button";b.textContent=value[0].toUpperCase()+value.slice(1);
    b.setAttribute("aria-pressed",String(avatarDraft[key]===value));
    if(key==="color")b.style.borderLeft="9px solid "+avatarColors[value];
-   b.addEventListener("click",()=>{avatarDraft[key]=value;wardrobeButtons();});root.append(b);
+   b.addEventListener("click",()=>{avatarDraft[key]=value;wardrobeButtons();document.querySelector(selector).querySelectorAll("button")[values.indexOf(value)].focus();});root.append(b);
   }
  }
 }
-document.querySelector("#avatarSettings").addEventListener("click",()=>{avatarDraft={...avatar};wardrobeButtons();document.querySelector("#wardrobeError").textContent="";document.querySelector("#wardrobe").hidden=false;});
-document.querySelector("#wardrobeClose").addEventListener("click",()=>document.querySelector("#wardrobe").hidden=true);
+document.querySelector("#avatarSettings").addEventListener("click",()=>{avatarDraft={...avatar};wardrobeButtons();document.querySelector("#wardrobeError").textContent="";openModal("wardrobe");});
+document.querySelector("#wardrobeClose").addEventListener("click",()=>closeModal("wardrobe"));
 document.querySelector("#wardrobeSave").addEventListener("click",async()=>{
  const button=document.querySelector("#wardrobeSave");button.disabled=true;
- try{await api("/api/avatar","POST",avatarDraft);avatar={...avatarDraft};document.querySelector("#wardrobe").hidden=true;await refresh();}
+ try{await api("/api/avatar","POST",avatarDraft);avatar={...avatarDraft};closeModal("wardrobe");await refresh();}
  catch(e){document.querySelector("#wardrobeError").textContent=e.message;}finally{button.disabled=false;}
 });
 const landmarks=[{x:7,y:2,title:"Moonwell Fountain",body:"The heart of Atrium. Meet other explorers here and watch the water dance."},{x:2,y:2,title:"North Grove",body:"A peaceful shaded corner of the plaza. A good spot to greet new arrivals."},{x:13,y:8,title:"South Grove",body:"A quiet garden at the edge of the promenade."},{x:4,y:5,title:"Lantern Walk",body:"Follow the glowing lamps across the central promenade."}];
@@ -454,6 +502,8 @@ function showSignedOut(){
  me=null;discovered.clear();renderTrail();lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
+ document.querySelector("#accountScreen").hidden=true;document.querySelector("#passwordForm").reset();
+ closeExpeditionPanels();message.value="";document.querySelector("#password").value="";syncModal();
  document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=true);
  message.disabled=true;message.placeholder="Log in to chat…";document.querySelector("#send").disabled=true;
  document.querySelector("#logout").style.display="none";
@@ -490,8 +540,9 @@ async function refresh(){
     else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   }
   else{
-    if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=false;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
+    if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=chatPending;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
+  syncModal();
   document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=!me||emotePending);
   lanterns=result.lanterns||{counts:[0,0,0,0],mine:[]};renderLanterns();people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
  }catch(e){document.querySelector("#connection").textContent="○ Offline";}
@@ -502,12 +553,14 @@ document.querySelector("#authToggle").addEventListener("click",()=>{
  document.querySelector("#authSubmit").textContent=authMode==="register"?"Create account":"Log in";
  document.querySelector("#authToggle").textContent=authMode==="register"?"Log in":"Create an account";
  document.querySelector("#authPrompt").textContent=authMode==="register"?"Already registered?":"New here?";
- document.querySelector("#authDescription").textContent=authMode==="register"?"Create a permanent account to explore and chat. Your name belongs to you.":"Log in to your account and return to the Lobby.";
+ document.querySelector("#authDescription").textContent=authMode==="register"?"Create a permanent account to explore and chat. Your name belongs to you.":"Log in to your account and return to the Atrium plaza.";
  document.querySelector("#password").autocomplete=authMode==="register"?"new-password":"current-password";
  document.querySelector("#joinError").textContent="";
 });
 document.querySelector("#joinForm").addEventListener("submit",async e=>{
- e.preventDefault();const error=document.querySelector("#joinError");error.textContent="";
+ e.preventDefault();if(authPending)return;authPending=true;
+ const submit=document.querySelector("#authSubmit");submit.disabled=true;document.querySelector("#authToggle").disabled=true;
+ const error=document.querySelector("#joinError");error.textContent="";
  try{
   await api(authMode==="register"?"/api/register":"/api/login","POST",{
     name:document.querySelector("#nickname").value,
@@ -517,14 +570,14 @@ document.querySelector("#joinForm").addEventListener("submit",async e=>{
   authEpoch++;
   await refresh();message.focus();
  }catch(err){error.textContent=err.message;}
+ finally{authPending=false;submit.disabled=false;document.querySelector("#authToggle").disabled=false;}
 });
 document.querySelector("#accountSettings").addEventListener("click",()=>{
  document.querySelector("#accountError").textContent="";
- document.querySelector("#accountScreen").hidden=false;
- document.querySelector("#currentPassword").focus();
+ openModal("accountScreen");
 });
 document.querySelector("#closeAccount").addEventListener("click",()=>{
- document.querySelector("#accountScreen").hidden=true;
+ closeModal("accountScreen");
  document.querySelector("#passwordForm").reset();
 });
 document.querySelector("#passwordForm").addEventListener("submit",async e=>{
@@ -546,14 +599,23 @@ document.querySelector("#logout").addEventListener("click",async()=>{
  catch(err){notify(err.message);}
 });
 document.querySelector("#chatForm").addEventListener("submit",async e=>{
- e.preventDefault();const text=message.value.trim();if(!me||!text)return;
- try{await api("/api/chat","POST",{message:text});message.value="";await refresh();}
- catch(err){notify(err.message);}
+ e.preventDefault();const text=message.value.trim();if(!me||!text||chatPending)return;
+ const epoch=authEpoch,draft=message.value;chatPending=true;document.querySelector("#send").disabled=true;
+ try{await api("/api/chat","POST",{message:text});if(epoch!==authEpoch)return;if(message.value===draft)message.value="";await refresh();}
+ catch(err){if(epoch===authEpoch)notify(err.message);}
+ finally{chatPending=false;document.querySelector("#send").disabled=!me;}
 });
 async function moveTo(x,y){
  if(!me||movePending||x<0||x>=W||y<0||y>=H)return;
  movePending=true;
- try{await api("/api/move","POST",{x,y});await refresh();return true;}catch(err){notify(err.message);return false;}finally{movePending=false;}
+ const epoch=authEpoch;
+ try{
+  await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
+  if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
+  const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+  if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
+  await refresh();return true;
+ }catch(err){notify(err.message);return false;}finally{movePending=false;}
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
@@ -596,7 +658,7 @@ document.querySelectorAll("[data-close-expedition]").forEach(button=>{
  button.addEventListener("click",()=>{closeExpeditionPanels();document.getElementById(button.dataset.closeExpedition==="mobileTrail"?"trailToggle":"lanternToggle").focus();});
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeExpeditionPanels();});
-renderTrail();refresh();setInterval(refresh,1500);
+renderTrail();syncModal();refresh();setInterval(refresh,1500);
 </script>
 </body>
 </html>

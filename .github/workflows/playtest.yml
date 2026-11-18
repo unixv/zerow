@@ -44,7 +44,9 @@ jobs:
         env:
           ZEROW_BASE_URL: http://127.0.0.1:8000
           ZEROW_PLAYTEST_ARTIFACTS: playtest-artifacts
-        run: python tests/playtest.py
+        run: |
+          python tests/playtest.py
+          python tests/journey_playtest.py
       - name: Save screenshots and server log
         if: always()
         uses: actions/upload-artifact@v4
