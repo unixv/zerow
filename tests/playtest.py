@@ -209,6 +209,37 @@ def main():
             alice.locator("#chatFocus").click()
             expect(alice.locator("#message")).to_be_focused()
 
+            print("Wardrobe changes persist and are visible to the other player")
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#wardrobe")).to_be_visible()
+            alice.locator("#avatarColors").get_by_role("button", name="Ocean").click()
+            alice.locator("#avatarStyles").get_by_role("button", name="Crown").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeSave").click()
+            expect(alice.locator("#wardrobe")).to_be_hidden(timeout=10000)
+            bob.wait_for_function("""async () => {
+              const state = await fetch('/api/state').then(r => r.json());
+              return state.players.some(p => p.name === 'playtest_alice'
+                && p.avatar_color === 'ocean' && p.avatar_style === 'crown');
+            }""", timeout=10000)
+            alice.reload()
+            expect(alice.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeClose").click()
+            alice.locator("#logout").click()
+            login(alice, NAME_A)
+            alice.locator("#avatarSettings").click()
+            expect(alice.locator("#avatarColors").get_by_role("button", name="Ocean")).to_have_attribute("aria-pressed", "true")
+            expect(alice.locator("#avatarStyles").get_by_role("button", name="Crown")).to_have_attribute("aria-pressed", "true")
+            alice.locator("#wardrobeClose").click()
+            bob.locator("#avatarSettings").click()
+            expect(bob.locator("#avatarColors").get_by_role("button", name="Moss")).to_have_attribute("aria-pressed", "true")
+            expect(bob.locator("#avatarStyles").get_by_role("button", name="Classic")).to_have_attribute("aria-pressed", "true")
+            bob.locator("#wardrobeClose").click()
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
