@@ -46,17 +46,27 @@ def main():
             bob.locator("#homesRooms").get_by_role("button", name="The Fern Loft").tap()
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
+            bob.locator("#viewHome").tap()
+            assert bob.locator("#homeGrid").bounding_box()["y"] < 844, "390px room grid hidden below fold"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-mobile.png"), full_page=True)
 
             print("Narrow 320px Atrium Homes: visitor controls and viewport containment")
             bob.set_viewport_size({"width": 320, "height": 700})
             expect(bob.locator("#homesOverlay")).to_be_visible()
+            bob.locator("#viewHome").tap()
             expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
             assert bob.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "320px room causes horizontal page overflow"
             for selector in ("#closeHomes", "#homesRoomTitle"):
                 bounds = bob.locator(selector).bounding_box()
                 assert bounds and bounds["x"] >= -1 and bounds["x"] + bounds["width"] <= 321, f"{selector} outside 320px viewport"
+            title = bob.locator("#homesRoomTitle").bounding_box()
+            grid = bob.locator("#homeGrid").bounding_box()
+            assert title and grid and title["y"] >= 0 and grid["y"] < 700, "320px room must appear in initial viewport"
+            bob.locator("#shopHomes").tap()
+            expect(bob.locator("#homesShop").get_by_role("button", name="Reading chair")).to_be_visible()
+            bob.locator("#viewHome").tap()
+            assert bob.locator("#homeGrid").bounding_box()["y"] < 700, "return to room should restore visibility"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
 
             alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2").click()
