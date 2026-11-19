@@ -13,7 +13,8 @@ class TrailSyncTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.db_patch = patch.object(atrium, "DB", Path(self.tmp.name) / "atrium.sqlite3")
         self.db_patch.start()
-        self.client = atrium.app.test_client()\n        self.origin = {"Origin": "http://localhost"}
+        self.client = atrium.app.test_client()
+        self.origin = {"Origin": "http://localhost"}
         with atrium.connect() as con:
             con.execute("INSERT INTO users(name,password_hash,x,y,created,last_login) VALUES(?,?,?,?,?,?)",
                         ("trailtester", "unused", 7, 2, time.time(), time.time()))
