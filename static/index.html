@@ -708,21 +708,28 @@ document.querySelector("#chatForm").addEventListener("submit",async e=>{
  catch(err){if(epoch===authEpoch)notify(err.message);}
  finally{chatPending=false;document.querySelector("#send").disabled=!me;}
 });
+// Queue a small number of movements rather than silently losing rapid clicks.
+// This also handles repeat visits whose discovery counter is already complete.
+let moveSerial=Promise.resolve(),queuedMoves=0;
 async function moveTo(x,y){
- if(!me||movePending||x<0||x>=W||y<0||y>=H)return;
- movePending=true;
- const epoch=authEpoch;
- try{
-  await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
-  if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
-  const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
-  // Complete multiplayer state reconciliation before publishing a new
-  // discovery: the next destination click must never be silently dropped.
-  await refresh();
-  movePending=false;
-  if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
-  return true;
- }catch(err){notify(err.message);return false;}finally{movePending=false;}
+ if(!me||x<0||x>=W||y<0||y>=H||queuedMoves>=5)return false;
+ const epoch=authEpoch;queuedMoves++;
+ const operation=moveSerial.then(async()=>{
+  if(epoch!==authEpoch||!me)return false;
+  movePending=true;
+  try{
+   await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
+   if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
+   const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+   // Finish the authoritative state refresh before exposing completion.
+   await refresh();
+   movePending=false;
+   if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
+   return true;
+  }catch(err){notify(err.message);return false;}finally{movePending=false;}
+ });
+ moveSerial=operation.catch(()=>false);
+ return operation.finally(()=>{queuedMoves--;});
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
