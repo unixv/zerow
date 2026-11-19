@@ -47,6 +47,7 @@ jobs:
         run: |
           python tests/playtest.py
           python tests/journey_playtest.py
+          python tests/rooms_playtest.py
       - name: Save screenshots and server log
         if: always()
         uses: actions/upload-artifact@v4
