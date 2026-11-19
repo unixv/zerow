@@ -157,3 +157,12 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 - [QA PR #45](https://github.com/unixv/zerow/pull/45) remains **open, draft and nonmergeable**, based on head `e751acfa`; its earlier [Player Playtest 44451199944](https://github.com/unixv/zerow/actions/runs/44451199944) failed before the 320px Homes scenario. PR #46's merge fixes the shared discovery assertion on main but does not retroactively verify #45. Reconcile #45 against main, rerun both workflows and inspect the `atrium-furnished-room-320px.png` artifact before merging.
 - Reviewed `tests/rooms_playtest.py` on main: two accounts cover room creation, daily coins, purchase, placement, pickup, visitor read-only access and account persistence at 1280px/390px. The 320px assertion remains **unmerged/untested on current main**. Production Homes and live mobile remain **untested** in this QA run; no live account was modified.
 - No new reproducible application defect was established. No speculative issue or unverified merge was created. Latest workflow-run enumeration was unavailable through the available connector; the named runs above are the latest **directly inspected**, not asserted to be the latest repository-wide runs.
+
+
+## Development candidate — November 19, 2026: account-synced Discovery Trail
+
+- A new additive `trail_discoveries` SQLite table records each account's four landmark visits. No existing users, sessions, or browser-local progress are deleted.
+- `POST /api/trail/discover` validates authentication, landmark index and proximity to the account's server-recorded position; repeat visits are idempotent. `GET /api/state` includes account discovery progress for other signed-in devices.
+- The frontend merges server discoveries into the existing local trail cache and sends successful visits to the server. Existing browser-only discoveries remain visible locally but require a revisit to become verified server progress; do not claim historical browser-local visits were automatically migrated.
+- New isolated tests cover repeat visits, cross-session progress, invalid inputs, and rejection of remote landmark claims. **Pending both required workflows and browser visual review; not released or verified on the Pi.**
+- Next: a more substantial cooperative room activity and explicit multi-browser journey verification.
