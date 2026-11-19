@@ -298,12 +298,18 @@ def main():
             expect(alice.locator("#trailStatus")).to_contain_text("0 of 4")
             login(alice, NAME_A)
             expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
-            # A fresh browser context for Bob must not inherit Alice's browser-local trail.
+            # Bob's progress follows his account to a fresh browser.
             isolated = browser.new_context(viewport={"width": 1200, "height": 820})
             isolated_page = isolated.new_page()
             login(isolated_page, NAME_B)
-            expect(isolated_page.locator("#trailStatus")).to_contain_text("0 of 4")
+            expect(isolated_page.locator("#trailStatus")).to_contain_text("Trail complete")
             isolated.close()
+            # An unrelated new account cannot inherit Bob's discoveries.
+            newcomer = browser.new_context(viewport={"width": 1200, "height": 820})
+            newcomer_page = newcomer.new_page()
+            register(newcomer_page, "trail_newcomer")
+            expect(newcomer_page.locator("#trailStatus")).to_contain_text("0 of 4")
+            newcomer.close()
 
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
