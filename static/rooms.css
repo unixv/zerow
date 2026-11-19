@@ -37,6 +37,7 @@
 .homes-inventory button[data-placed=true]{opacity:.55}
 .homes-inventory{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
 .homes-main #homesStatus{min-height:22px;color:#f5d493;font-size:13px;font-weight:600}
+.homes-mobile-nav{display:none}
 .homes-tabs{font-size:12px;display:flex;gap:10px;color:#d6e6db}
 .homes-swatch{font-size:20px}
 @media(max-width:760px){
@@ -44,7 +45,14 @@
  .homes-panel{width:100%;height:100dvh;max-height:none;border-radius:0}
  .homes-header{padding:10px 12px}
  .homes-header h2{font-size:19px}
- .homes-content{grid-template-columns:1fr;overflow:auto}
+ .homes-content{display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scroll-padding-top:8px}
+ .homes-main{order:0;flex:0 0 auto}
+ .homes-sidebar{order:1;flex:0 0 auto}
+ .homes-mobile-nav{display:flex;gap:6px;flex-wrap:wrap}
+ .homes-mobile-nav button{background:#315b59;color:#eef8ee;border:1px solid #648f81;padding:8px 9px;font-size:12px;min-height:40px}
+ .homes-main-title{align-items:flex-start;flex-wrap:wrap}
+ .homes-roomcanvas{width:100%;max-width:520px}
+ .homes-header,.homes-wallet{flex-shrink:0}
  .homes-sidebar{overflow:visible;padding:10px;display:block;border:0;border-bottom:1px solid #3d5a5e}
  .homes-sidebar section{margin-bottom:12px}
  .homes-roomlist{display:flex;overflow-x:auto}
