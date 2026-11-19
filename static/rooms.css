@@ -56,3 +56,5 @@
  .homes-wallet{padding:8px 11px}
 }
 @media(max-width:350px){.homes-header p{display:none}.homes-wallet button{padding:7px}.homes-shop button{padding:6px}}
+
+.homes-roomcanvas.homes-empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;aspect-ratio:10/7}
