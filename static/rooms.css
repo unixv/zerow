@@ -1,0 +1,60 @@
+/* Atrium Homes — room builder and coin shop; all rendering stays client-side. */
+.homes-overlay{position:fixed;inset:0;z-index:12;background:#07151beF;color:#e9f4ee;display:flex;align-items:center;justify-content:center;padding:18px}
+.homes-overlay[hidden]{display:none}
+.homes-panel{display:flex;flex-direction:column;width:min(1280px,100%);height:min(880px,96dvh);background:#142b35;border:1px solid #658e83;border-radius:15px;box-shadow:0 30px 80px #000b;overflow:hidden}
+.homes-header{padding:13px 20px;background:#1b3943;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #496e69}
+.homes-header h2{margin:0;font-size:23px;color:#eaf7e9;text-transform:none;letter-spacing:-.7px}
+.homes-header p{font-size:12px;color:#adc9c3;margin:4px 0 0}
+.homes-header button{background:#35555b;color:#f3f8ee}
+.homes-wallet{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:9px 18px;background:#21433f;border-bottom:1px solid #51796d;font-size:13px;flex-wrap:wrap}
+.homes-wallet strong{color:#f7d58e;font-size:17px}
+.homes-wallet button{font-size:12px;padding:8px 11px}
+.homes-wallet button:disabled{opacity:.45}
+.homes-content{display:grid;grid-template-columns:minmax(240px,285px) minmax(0,1fr);min-height:0;flex:1}
+.homes-sidebar{overflow-y:auto;padding:15px;border-right:1px solid #3d5a5e;background:#172f39;display:grid;align-content:start;gap:16px;overscroll-behavior:contain}
+.homes-sidebar h3,.homes-main h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#badaca;margin:0 0 9px}
+.homes-sidebar p,.homes-main p{font-size:12px;line-height:1.5;color:#a9c5c6}
+.homes-create{display:flex;gap:6px}
+.homes-create input{flex:1}
+.homes-create button{font-size:12px;padding:8px}
+.homes-roomlist,.homes-shop,.homes-inventory{display:grid;gap:6px}
+.homes-roomlist button,.homes-shop button,.homes-inventory button{background:#22424b;border:1px solid #4c7370;border-radius:8px;color:#eaf7ee;font-size:12px;padding:9px 10px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px}
+.homes-roomlist button[aria-pressed=true],.homes-inventory button[aria-pressed=true]{outline:2px solid #c2e8c5;background:#2f5b53}
+.homes-roomlist button:hover,.homes-inventory button:hover,.homes-shop button:hover{filter:brightness(1.2)}
+.homes-shop button:disabled{opacity:.45}
+.homes-shop .price{color:#f6db92;white-space:nowrap}
+.homes-main{display:flex;flex-direction:column;padding:15px;min-height:0;overflow-y:auto;gap:9px;align-items:stretch}
+.homes-main-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.homes-main-title h3{font-size:18px;text-transform:none;letter-spacing:0;margin:0}
+.homes-roomcanvas{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));width:min(100%,720px);aspect-ratio:10/7;align-self:center;gap:2px;padding:8px;background:#102833;border:2px solid #466f6a;border-radius:12px}
+.homes-roomcanvas button{min-width:0;min-height:0;border:1px solid #456b66;border-radius:5px;padding:0;background:#31534f;color:#fff;font-size:clamp(11px,2.6vw,31px);font-weight:normal;display:grid;place-items:center;aspect-ratio:1;touch-action:manipulation}
+.homes-roomcanvas button:nth-child(20n+1),.homes-roomcanvas button:nth-child(20n+3){background:#3d6059}
+.homes-roomcanvas button:focus-visible{outline:3px solid #f1db9b;z-index:1}
+.homes-roomcanvas button[data-filled=true]{background:#68544d;border-color:#d3b68d}
+.homes-roomcanvas button:hover:not(:disabled){filter:brightness(1.3)}
+.homes-roomcanvas button:disabled{cursor:default;opacity:.8}
+.homes-empty{display:grid;place-content:center;min-height:280px;border:1px dashed #52766e;border-radius:10px;text-align:center}
+.homes-inventory button[data-placed=true]{opacity:.55}
+.homes-inventory{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.homes-main #homesStatus{min-height:22px;color:#f5d493;font-size:13px;font-weight:600}
+.homes-tabs{font-size:12px;display:flex;gap:10px;color:#d6e6db}
+.homes-swatch{font-size:20px}
+@media(max-width:760px){
+ .homes-overlay{padding:0}
+ .homes-panel{width:100%;height:100dvh;max-height:none;border-radius:0}
+ .homes-header{padding:10px 12px}
+ .homes-header h2{font-size:19px}
+ .homes-content{grid-template-columns:1fr;overflow:auto}
+ .homes-sidebar{overflow:visible;padding:10px;display:block;border:0;border-bottom:1px solid #3d5a5e}
+ .homes-sidebar section{margin-bottom:12px}
+ .homes-roomlist{display:flex;overflow-x:auto}
+ .homes-roomlist button{flex:0 0 auto}
+ .homes-shop{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .homes-main{overflow:visible;padding:11px}
+ .homes-roomcanvas{padding:4px;gap:1px}
+ .homes-roomcanvas button{border-radius:2px;font-size:clamp(12px,4vw,25px)}
+ .homes-wallet{padding:8px 11px}
+}
+@media(max-width:350px){.homes-header p{display:none}.homes-wallet button{padding:7px}.homes-shop button{padding:6px}}
+
+.homes-roomcanvas.homes-empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;aspect-ratio:10/7}

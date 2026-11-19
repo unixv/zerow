@@ -61,3 +61,39 @@ Visit `http://localhost:8000` and `/health`.
 ## Next milestones
 
 Email-based recovery, moderation and abuse controls, secure HTTPS-only production entry, off-device automated backups, and load/concurrency testing should precede opening registration to the wider internet.
+
+
+## Player-owned rooms and furniture (in-game coin economy)
+
+Atrium players can create public rooms, furnish a 10×7 tile floor, and visit rooms
+created by other players. The first room is free. Additional rooms cost 150
+**in-game coins** each, up to three rooms per account. All new and existing
+registered accounts receive 300 starter coins, and can claim another 100 coins
+once every 24 hours. This is a game economy: **there are no credit-card or
+real-money payments** in this first iteration.
+
+Furniture is purchased from the in-game shop and added to the permanent account
+inventory. Owners choose an item and click/tap an empty tile to place it; clicking
+placed furniture moves it back into inventory. Visitors may view but cannot edit
+other players' rooms. The database enforces room ownership, per-user coin
+deductions, occupied tile constraints, purchase quantities, and daily-claim timing.
+Room names are validated server-side.
+
+Open **Rooms & furniture** in the Atrium exploration toolbar to access the
+builder. Rooms and inventory use the existing SQLite database under
+`/opt/zerow/data/atrium.sqlite3` and are included in standard SQLite backups.
+
+### Test the room economy locally
+
+```bash
+python3 -m unittest discover -s tests -v
+# Browser suite: after installing playwright and starting app.py with an isolated DB
+python tests/playtest.py
+python tests/journey_playtest.py
+python tests/rooms_playtest.py
+```
+
+Current scope: public room browsing, persistent decorations, and game-earned coins.
+Avatars do not yet move or chat inside private room instances; plaza chat and
+multiplayer presence remain unchanged. Real-money purchases would require a
+separate payment, verification, dispute, and fraud-handling integration.

@@ -209,6 +209,7 @@ canvas{min-height:0}
 @media(max-width:800px){.right .player-actions button{min-height:40px}}
 @media(max-width:520px){.right .members{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:6px}.right .member{min-width:168px;background:#1b3a42;border:1px solid #426c69;border-radius:9px;padding:9px}.meetup-guide{margin-bottom:8px}}
 </style>
+<link rel="stylesheet" href="/static/rooms.css">
 </head>
 <body>
 <div class="shell">
@@ -217,7 +218,7 @@ canvas{min-height:0}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><div class="world-heading-actions"><small id="population">0 people here</small><button type="button" id="worldFocusToggle" aria-pressed="false" title="Expand the game world">Expand world</button></div></div>
 <div id="notice" role="alert"></div>
-<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
+<div class="explorebar" aria-label="Explore Atrium"><button type="button" id="openRooms">Rooms & furniture</button><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
 <aside class="right"><h2>Meet explorers</h2><div class="meetup-guide"><strong>Find your people</strong><p>Visit another explorer, wave to them, or start a conversation. Everyone shares the same plaza.</p></div><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
 <section class="chat">
@@ -225,6 +226,28 @@ canvas{min-height:0}
 <div class="lines" id="lines" aria-live="polite"></div>
 <div class="quickchat" aria-label="Quick social greetings"><button type="button" data-quick="Hello everyone!">Wave hello</button><button type="button" data-quick="Welcome to Atrium!">Welcome</button><button type="button" data-quick="Meet me by the fountain!">Meet at fountain</button><button type="button" data-quick="Anyone want to explore?">Explore together</button></div><form class="compose" id="chatForm"><input aria-label="Message the Atrium plaza" id="message" maxlength="280" placeholder="Choose a name to chat…" autocomplete="off" disabled><button id="send" disabled>Send</button></form>
 </section>
+</div>
+<div id="homesOverlay" class="homes-overlay" role="dialog" aria-modal="true" aria-label="Atrium homes and furniture shop" hidden>
+ <div class="homes-panel">
+  <div class="homes-header"><div><h2>Atrium Homes</h2><p>Make a room your own. Buy furniture with coins, decorate, and invite visitors.</p></div><button id="closeHomes" type="button">Back to plaza</button></div>
+  <div class="homes-wallet"><strong id="homesWallet">— coins</strong><span>Earn 100 coins every day · no real-money payments</span><button id="claimCoins" type="button">Claim daily coins</button></div>
+  <div class="homes-content">
+   <aside class="homes-sidebar">
+    <section><h3>Make a room</h3><p id="newRoomPrice">Your first room is free</p>
+     <form id="createHomeForm" class="homes-create"><input id="newHomeName" aria-label="New room name" placeholder="Room name" minlength="3" maxlength="28" required><button type="submit">Create</button></form>
+    </section>
+    <section><h3>Explore player rooms</h3><div id="homesRooms" class="homes-roomlist"></div></section>
+    <section><h3>Furniture shop</h3><p>Spend earned coins on decorations that belong to your account.</p><div id="homesShop" class="homes-shop"></div></section>
+   </aside>
+   <main class="homes-main">
+    <div class="homes-main-title"><h3 id="homesRoomTitle">Choose a room</h3><span id="homesRoomOwner"></span></div>
+    <p>Room floor (10 × 7). Choose an unplaced item below, then tap a tile to set it down. Tap placed furniture to pick it up.</p>
+    <div id="homeGrid" class="homes-roomcanvas" role="grid" aria-label="Room furniture placement grid"></div>
+    <h3>Your furniture inventory</h3><div id="homesInventory" class="homes-inventory"></div>
+    <div id="homesStatus" role="status" aria-live="polite"></div>
+   </main>
+  </div>
+ </div>
 </div>
 <div class="wardrobe" id="wardrobe" hidden role="dialog" aria-modal="true" aria-labelledby="wardrobeTitle"><div class="wardrobe-panel"><h2 id="wardrobeTitle">Your Atrium look</h2><p>Pick a color and outfit. Your look is saved to your account and visible to everyone in the plaza.</p><strong>Color</strong><div class="wardrobe-options" id="avatarColors"></div><strong>Outfit</strong><div class="wardrobe-options" id="avatarStyles"></div><div class="wardrobe-actions"><button type="button" id="wardrobeClose">Cancel</button><button type="button" id="wardrobeSave">Save look</button></div><p id="wardrobeError" role="alert"></p></div></div><div class="modalbg" id="accountScreen" hidden role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="modal">
 <h1 id="accountTitle">Account security</h1><p>Change your password. All active sessions will be signed out.</p>
@@ -685,17 +708,28 @@ document.querySelector("#chatForm").addEventListener("submit",async e=>{
  catch(err){if(epoch===authEpoch)notify(err.message);}
  finally{chatPending=false;document.querySelector("#send").disabled=!me;}
 });
+// Queue a small number of movements rather than silently losing rapid clicks.
+// This also handles repeat visits whose discovery counter is already complete.
+let moveSerial=Promise.resolve(),queuedMoves=0;
 async function moveTo(x,y){
- if(!me||movePending||x<0||x>=W||y<0||y>=H)return;
- movePending=true;
- const epoch=authEpoch;
- try{
-  await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
-  if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
-  const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
-  if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
-  await refresh();return true;
- }catch(err){notify(err.message);return false;}finally{movePending=false;}
+ if(!me||x<0||x>=W||y<0||y>=H||queuedMoves>=5)return false;
+ const epoch=authEpoch;queuedMoves++;
+ const operation=moveSerial.then(async()=>{
+  if(epoch!==authEpoch||!me)return false;
+  movePending=true;
+  try{
+   await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
+   if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
+   const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+   // Finish the authoritative state refresh before exposing completion.
+   await refresh();
+   movePending=false;
+   if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
+   return true;
+  }catch(err){notify(err.message);return false;}finally{movePending=false;}
+ });
+ moveSerial=operation.catch(()=>false);
+ return operation.finally(()=>{queuedMoves--;});
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
@@ -740,5 +774,6 @@ document.querySelectorAll("[data-close-expedition]").forEach(button=>{
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeExpeditionPanels();});
 renderTrail();syncModal();refresh();setInterval(refresh,1500);
 </script>
+<script src="/static/rooms.js"></script>
 </body>
 </html>
