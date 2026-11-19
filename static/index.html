@@ -422,14 +422,22 @@ function renderTrail(){
   });
  }
 }
-function discoverLandmark(l){
+async function discoverLandmark(l){
  if(!me)return;
  const id=landmarks.indexOf(l);
- if(id<0||discovered.has(id))return;
- discovered.add(id);
- try{localStorage.setItem(trailKey(),JSON.stringify([...discovered]));}catch(_){}
- renderTrail();
- notify(discovered.size===landmarks.length?"Atrium discovery trail complete!":"Discovered "+l.title+" · "+discovered.size+"/4");
+ if(id<0)return;
+ const wasKnown=discovered.has(id),epoch=authEpoch;
+ // Local cache retains earlier browser-only discoveries until revisited.
+ // The server independently validates the saved player position.
+ try{
+  const result=await api("/api/trail/discover","POST",{landmark:id});
+  if(epoch!==authEpoch)return;
+  for(const saved of result.discoveries||[])if(Number.isInteger(saved)&&saved>=0&&saved<landmarks.length)discovered.add(saved);
+  discovered.add(id);
+  try{localStorage.setItem(trailKey(),JSON.stringify([...discovered]));}catch(_){}
+  renderTrail();
+  if(!wasKnown)notify(discovered.size===landmarks.length?"Atrium discovery trail complete!":"Discovered "+l.title+" · "+discovered.size+"/4");
+ }catch(err){if(epoch===authEpoch)notify("Discovery not saved: "+err.message);}
 }
 document.querySelector("#trailToggle").addEventListener("click",()=>{
  const panel=document.querySelector("#mobileTrail");
@@ -646,6 +654,11 @@ async function refresh(){
   else{
     if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=chatPending;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
+  if(result.me&&Array.isArray(result.discoveries)){
+   let changed=false;
+   for(const id of result.discoveries)if(Number.isInteger(id)&&id>=0&&id<landmarks.length&&!discovered.has(id)){discovered.add(id);changed=true;}
+   if(changed){try{localStorage.setItem(trailKey(),JSON.stringify([...discovered]));}catch(_){}renderTrail();}
+  }
   syncModal();
   document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=!me||emotePending);
   lanterns=result.lanterns||{counts:[0,0,0,0],mine:[]};renderLanterns();people=result.players;history=result.messages;myPosition=people.find(p=>p.name===me)||null;renderMembers();renderMessages();draw();
@@ -725,7 +738,7 @@ async function moveTo(x,y){
    // Finish the authoritative state refresh before exposing completion.
    await refresh();
    movePending=false;
-   if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
+   if(landmark){showLandmark(landmark);discoverLandmark(landmark);}
    return true;
   }catch(err){notify(err.message);return false;}finally{movePending=false;}
  });
