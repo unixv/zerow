@@ -86,8 +86,8 @@
       const title=(icons[item.sku]||"✦")+" "+(cat?.name||item.sku);
       const placed=item.room_id!==null;
       const b=makeButton(title+(placed?" · Placed":""),()=>{
-        chosenItem=(chosenItem===item.id?null:item.id);
-        renderInventory();status(chosenItem?"Now select an empty tile in your own room.":"Selection cleared.");
+        chosenItem=item.id;
+        renderInventory();status("Furniture selected. Choose an empty tile in your own room.");
       },chosenItem===item.id);
       b.dataset.placed=String(placed);b.disabled=placed||!room?.room.editable;
       inventory.append(b);
