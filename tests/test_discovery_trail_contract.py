@@ -9,7 +9,7 @@ class DiscoveryTrailContractTests(unittest.TestCase):
     def test_progress_is_account_scoped_and_reset_on_logout(self):
         self.assertIn('trailStoragePrefix+me.toLowerCase()', HTML)
         self.assertIn('me=null;discovered.clear();renderTrail()', HTML)
-        self.assertIn('if(me!==result.me){me=result.me;loadTrail();}', HTML)
+        self.assertIn('if(me!==result.me){me=result.me;sceneLoadedFor=null;sceneDirty=false;loadTrail();}', HTML)
 
     def test_both_landmark_interactions_require_successful_travel(self):
         self.assertIn('if(await moveTo(x,y)&&landmark)', HTML)
