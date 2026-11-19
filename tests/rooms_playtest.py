@@ -48,6 +48,17 @@ def main():
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-mobile.png"), full_page=True)
 
+            print("Narrow 320px Atrium Homes: visitor controls and viewport containment")
+            bob.set_viewport_size({"width": 320, "height": 700})
+            expect(bob.locator("#homesOverlay")).to_be_visible()
+            expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
+            expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
+            assert bob.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "320px room causes horizontal page overflow"
+            for selector in ("#closeHomes", "#homesRoomTitle"):
+                bounds = bob.locator(selector).bounding_box()
+                assert bounds and bounds["x"] >= -1 and bounds["x"] + bounds["width"] <= 321, f"{selector} outside 320px viewport"
+            bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
+
             alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2").click()
             expect(alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2")).to_be_visible()
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
