@@ -175,3 +175,17 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 - New isolated tests cover defaults, two-browser persistence, account isolation, invalid values, authentication and CSRF. Both workflows and Chromium screenshots must pass on the exact PR head before merging.
 - **Not production-verified:** Real Pi performance, mobile interaction and production persistence remain untested until explicitly observed.
 - Next substantial priority remains shared room presence, avatar movement and cooperative room activity. Older independent QA PRs are not superseded by this change.
+
+
+## Sky Studio PR #52 CI triage — November 19, 2026
+
+Initial head 5e22d21 failed both isolated workflows: Verify ZeroW run
+[44629434216](https://github.com/unixv/zerow/actions/runs/44629434216)
+failed an outdated source-string assertion after account-switch scene loading was
+introduced; Player Playtest run [44629434233](https://github.com/unixv/zerow/actions/runs/44629434233)
+failed the 1200×820 desktop world-width acceptance (600px minimum) because a
+new studio toolbar consumed canvas height. Updated the assertion to retain
+account-isolation coverage and moved the desktop studio into a floating dock
+without taking another layout row. Both fixes require fresh CI and screenshot
+review on the new PR head; do not merge on the previous failures. Live Pi
+verification remains untested. On mobile the studio remains in normal flow.
