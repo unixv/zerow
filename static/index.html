@@ -716,8 +716,12 @@ async function moveTo(x,y){
   await api("/api/move","POST",{x,y});if(epoch!==authEpoch)return false;
   if(myPosition){myPosition.x=x;myPosition.y=y;draw();}
   const landmark=landmarks.find(l=>Math.abs(l.x-x)<=1&&Math.abs(l.y-y)<=1);
+  // Complete multiplayer state reconciliation before publishing a new
+  // discovery: the next destination click must never be silently dropped.
+  await refresh();
+  movePending=false;
   if(landmark&&!discovered.has(landmarks.indexOf(landmark))){showLandmark(landmark);discoverLandmark(landmark);}
-  await refresh();return true;
+  return true;
  }catch(err){notify(err.message);return false;}finally{movePending=false;}
 }
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
