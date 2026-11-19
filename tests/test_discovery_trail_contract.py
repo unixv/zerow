@@ -14,7 +14,12 @@ class DiscoveryTrailContractTests(unittest.TestCase):
     def test_both_landmark_interactions_require_successful_travel(self):
         self.assertIn('if(await moveTo(x,y)&&landmark)', HTML)
         self.assertIn('if(await moveTo(l.x,l.y)){showLandmark(l);discoverLandmark(l);}', HTML)
-        self.assertIn('await refresh();return true;', HTML)
+        movement = HTML.split('async function moveTo(x,y){', 1)[1].split('function showLandmark', 1)[0]
+        self.assertIn('await refresh();', movement)
+        self.assertIn('movePending=false;', movement)
+        self.assertLess(movement.index('await refresh();'), movement.index('movePending=false;'))
+        self.assertLess(movement.index('movePending=false;'), movement.index('discoverLandmark(landmark);'))
+        self.assertIn('return true;', movement)
         self.assertIn('catch(err){notify(err.message);return false;}', HTML)
 
     def test_discovery_progress_has_mobile_and_desktop_controls(self):
