@@ -120,3 +120,13 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 - Existing [QA PR #38](https://github.com/unixv/zerow/pull/38), head `f1d03f0a`, is mergeable but still draft. [Verify 44419643298](https://github.com/unixv/zerow/actions/runs/44419643298) and [Player Playtest 44419643696](https://github.com/unixv/zerow/actions/runs/44419643696) both passed on this exact head. Browser test asserts desktop Wave visible to Bob, mobile Heart visible to Alice, Bob's reauthenticated session, and expiry after reload. Artifact [14480463633](https://github.com/unixv/zerow/actions/runs/44419643696/artifacts/14480463633) exists; screenshots still need visual inspection before a QA-authorized merge.
 - Current QA matrix: cross-player Wave/Heart synchronization and expiration = **passed isolated (#38)**, **untested live**; original desktop/mobile playthrough, movement, chat, session lifecycle = **passed isolated** on #43; 320px/tablet and short-desktop visual layout = **not independently reviewed**; password changes and network loss/reconnect = **untested in this run**. Preserve prior live observations separately.
 - No new reproducible gameplay failure identified from the green runs. Older QA PRs #5, #9, #31, #33, #35 remain open and require integration/overlap review; PR #41 remains an older failed branch and must not be merged based on #43's success alone.
+
+## Planned economy milestone — November 18, 2026
+
+- **PR in progress:** player-owned rooms and coin-based furniture shop, developed separately from existing QA PRs.
+- **Player scope:** publicly browsable rooms; first room free, up to three total; furniture purchased with game-earned coins and placed onto a persistent 10×7 floor; owner-only edits and item pickup; visitor read-only.
+- **Earn/spend model:** one-time 300 starter coins for registered users, 100 claimable once per 24 hours, additional rooms 150 coins; no real-money processor or financial credentials.
+- **Safety:** additive SQLite columns/tables; server-side authorized purchase, coin deduction, placement and double-claim protection; no deliberate change to existing accounts, plaza chat, movement, lanterns, or deployment.
+- **Isolated verification:** unit tests in `tests/test_rooms.py` and two-browser journey in `tests/rooms_playtest.py` added. Both workflows are **pending** on feature head until CI evidence confirms results.
+- **Live coverage:** public Pi room-builder interactions **not tested**. Do not label this feature released or verified on production before merge/deployment and live exercise.
+- **Next:** evaluate real-money purchases separately, and add multiplayer occupancy inside rooms after room browsing/editing is proven reliable.
