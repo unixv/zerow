@@ -258,13 +258,35 @@ def main():
             mobile_toggle.click()
             expect(mobile_toggle).to_have_attribute("aria-expanded", "true")
             expect(bob.locator("#mobileTrail")).to_be_visible()
-            for index, name in enumerate(stops, 1):
-                alice.locator("#trailStops").get_by_role("button", name=name).click()
-                expect(alice.locator("#trailStatus")).to_contain_text("Trail complete" if index == len(stops) else f"{index} of 4")
-                expect(desktop_stops.get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
-                bob.locator("#mobileTrailStops").get_by_role("button", name=name).click()
-                expect(bob.locator("#mobileTrailStatus")).to_contain_text("Trail complete" if index == len(stops) else f"{index} of 4")
-                expect(bob.locator("#mobileTrailStops").get_by_role("button", name=name)).to_have_attribute("aria-pressed", "true")
+            # Earlier canvas movement may already discover Moonwell (or another stop).
+            # Measure the actual pre-click state rather than assuming zero discoveries.
+            # Each new stop must increment exactly once; revisits must not increment.
+            import re
+
+            def discovered_count(status):
+                text = status.inner_text()
+                if "Trail complete" in text:
+                    return 4
+                match = re.search(r"(\\d+) of 4", text)
+                assert match, f"Missing trail count: {text!r}"
+                return int(match.group(1))
+
+            for name in stops:
+                for page, buttons, status in (
+                    (alice, desktop_stops, alice.locator("#trailStatus")),
+                    (bob, bob.locator("#mobileTrailStops"), bob.locator("#mobileTrailStatus")),
+                ):
+                    stop = buttons.get_by_role("button", name=name)
+                    previously_discovered = stop.get_attribute("aria-pressed") == "true"
+                    before = discovered_count(status)
+                    stop.click()
+                    expect(stop).to_have_attribute("aria-pressed", "true")
+                    expected = before if previously_discovered else before + 1
+                    assert expected <= 4, f"Unexpected trail count before {name}: {before}"
+                    expect(status).to_contain_text("Trail complete" if expected == 4 else f"{expected} of 4")
+                    # Revisit the same landmark: progress must remain unchanged.
+                    stop.click()
+                    expect(status).to_contain_text("Trail complete" if expected == 4 else f"{expected} of 4")
             expect(alice.locator("#trailStatus")).to_contain_text("Trail complete")
             expect(bob.locator("#mobileTrailStatus")).to_contain_text("Trail complete")
             alice.reload()
