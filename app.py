@@ -82,6 +82,13 @@ def connect():
         created REAL NOT NULL,
         PRIMARY KEY(user_id, landmark)
     )""")
+    # Account-backed discovery survives device changes; existing data is untouched.
+    con.execute("""CREATE TABLE IF NOT EXISTS trail_discoveries (
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        landmark INTEGER NOT NULL CHECK(landmark BETWEEN 0 AND 3),
+        created REAL NOT NULL,
+        PRIMARY KEY(user_id, landmark)
+    )""")
     rooms.ensure_schema(con)
     con.commit()
     try:
@@ -315,9 +322,36 @@ def state():
         my_lights = [row["landmark"] for row in con.execute(
             "SELECT landmark FROM lantern_lights WHERE user_id=? ORDER BY landmark", (user["id"],)
         )]
+        my_discoveries = [row["landmark"] for row in con.execute(
+            "SELECT landmark FROM trail_discoveries WHERE user_id=? ORDER BY landmark", (user["id"],)
+        )]
         return jsonify(lanterns={"counts": [next((r["count"] for r in lights if r["landmark"]==i), 0) for i in range(4)], "mine":my_lights},
-                       me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
+                       discoveries=my_discoveries, me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
                        width=WIDTH, height=HEIGHT, joined=user["created"])
+
+@app.post("/api/trail/discover")
+def discover_trail():
+    """Idempotent account-bound landmark discovery after authenticated travel."""
+    data = request.get_json(silent=True) or {}
+    landmark = data.get("landmark")
+    if type(landmark) is not int or not 0 <= landmark <= 3:
+        return error("Invalid landmark.")
+    with connect() as con:
+        user = require_user(con)
+        if user is None:
+            return error("Log in first.", 401)
+        # Server position must be near the landmark; client-supplied progress
+        # alone must never award a discovery.
+        positions = ((7, 2), (2, 2), (13, 8), (4, 5))
+        x, y = positions[landmark]
+        if abs(user["x"] - x) > 1 or abs(user["y"] - y) > 1:
+            return error("Travel to this landmark first.", 409)
+        con.execute("INSERT OR IGNORE INTO trail_discoveries(user_id,landmark,created) VALUES(?,?,?)",
+                    (user["id"], landmark, time.time()))
+        found = [r["landmark"] for r in con.execute(
+            "SELECT landmark FROM trail_discoveries WHERE user_id=? ORDER BY landmark", (user["id"],))]
+        return jsonify(ok=True, discoveries=found)
+
 
 @app.post("/api/avatar")
 def update_avatar():
