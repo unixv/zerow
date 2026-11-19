@@ -267,7 +267,7 @@ def main():
                 text = status.inner_text()
                 if "Trail complete" in text:
                     return 4
-                match = re.search(r"(\\d+) of 4", text)
+                match = re.search(r"(\d+) of 4", text)
                 assert match, f"Missing trail count: {text!r}"
                 return int(match.group(1))
 
