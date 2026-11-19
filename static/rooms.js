@@ -36,8 +36,8 @@
        !model.mine.some(r=>r.id===selectedRoomId))selectedRoomId=null;
     if(!selectedRoomId && model.mine.length)selectedRoomId=model.mine[0].id;
     if(!selectedRoomId && model.rooms.length)selectedRoomId=model.rooms[0].id;
-    renderCatalog();renderRooms();renderInventory();
-    await reloadRoom();
+    renderCatalog();renderRooms();
+    await reloadRoom();renderInventory();
   }
   function renderCatalog(){
     text("homesWallet",coinLabel());
@@ -65,7 +65,9 @@
   function renderRooms(){
     const list=byId("homesRooms");clear(list);
     if(!model.rooms.length){const p=document.createElement("p");p.textContent="No rooms yet. Create the first one.";list.append(p);}
-    for(const entry of model.rooms){
+    const shown=[...model.rooms];
+    for(const mine of model.mine)if(!shown.some(room=>room.id===mine.id))shown.unshift({...mine,owner:me,furniture_count:0});
+    for(const entry of shown){
       const b=makeButton(entry.name+" · "+entry.owner,async()=>{
         selectedRoomId=entry.id;chosenItem=null;
         try{await reloadRoom();renderRooms();renderInventory();status("");}
