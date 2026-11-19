@@ -62,6 +62,12 @@
       shop.append(b);
     }
   }
+  function jumpTo(selector){
+    const target=document.querySelector(selector);
+    if(target && window.matchMedia("(max-width:760px)").matches){
+      target.scrollIntoView({block:"start",behavior:"instant"});
+    }
+  }
   function renderRooms(){
     const list=byId("homesRooms");clear(list);
     if(!model.rooms.length){const p=document.createElement("p");p.textContent="No rooms yet. Create the first one.";list.append(p);}
@@ -70,7 +76,7 @@
     for(const entry of shown){
       const b=makeButton(entry.name+" · "+entry.owner,async()=>{
         selectedRoomId=entry.id;chosenItem=null;
-        try{await reloadRoom();renderRooms();renderInventory();status("");}
+        try{await reloadRoom();renderRooms();renderInventory();status("");jumpTo(".homes-main");}
         catch(e){status(e.message);}
       },selectedRoomId===entry.id);
       b.title=entry.furniture_count+" decorations";
@@ -141,6 +147,9 @@
     catch(e){status(e.message);}
   }
   function close(){root.hidden=true;byId("openRooms").focus();}
+  byId("browseHomes").addEventListener("click",()=>jumpTo("#homesRooms"));
+  byId("shopHomes").addEventListener("click",()=>jumpTo("#homesShop"));
+  byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
   byId("openRooms").addEventListener("click",open);
   byId("closeHomes").addEventListener("click",close);
   byId("createHomeForm").addEventListener("submit",async e=>{
