@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from flask import Flask, jsonify, make_response, request, send_from_directory
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
+import rooms
 
 app = Flask(__name__, static_folder="static")
 # A small JSON cap protects the Pi Zero W from oversized request bodies.
@@ -81,6 +82,7 @@ def connect():
         created REAL NOT NULL,
         PRIMARY KEY(user_id, landmark)
     )""")
+    rooms.ensure_schema(con)
     con.commit()
     try:
         with con:
@@ -424,6 +426,9 @@ def light_lantern():
             "SELECT COUNT(*) FROM lantern_lights WHERE landmark=?", (landmark,)
         ).fetchone()[0]
     return jsonify(ok=True, new=cursor.rowcount == 1, count=count)
+
+rooms.register(app, connect, identity, error)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, threaded=True)
