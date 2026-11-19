@@ -25,6 +25,29 @@ def main():
         try:
             register(a, "journey_alice")
             register(b, "journey_bob")
+            print("Contextual Meet explorers: desktop and mobile, explicit chat send")
+            expect(a.get_by_role("heading", name="Meet explorers")).to_be_visible()
+            expect(a.get_by_role("button", name="Meet journey_bob in the plaza")).to_be_visible(timeout=10000)
+            expect(b.get_by_role("button", name="Write a greeting to journey_alice")).to_be_visible(timeout=10000)
+            a.get_by_role("button", name="Write a greeting to journey_bob").click()
+            expect(a.locator("#message")).to_have_value("Hi journey_bob! ")
+            assert "Hi journey_bob!" not in a.locator("#lines").inner_text(), "Greeting sent without Send"
+            a.locator("#message").fill("")
+            a.get_by_role("button", name="Meet journey_bob in the plaza").click()
+            a.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              const alice=s.players.find(p=>p.name==='journey_alice');
+              const bob=s.players.find(p=>p.name==='journey_bob');
+              return alice&&bob&&alice.x===bob.x&&alice.y===bob.y;
+            }""", timeout=10000)
+            b.get_by_role("button", name="Write a greeting to journey_alice").tap()
+            expect(b.locator("#message")).to_have_value("Hi journey_alice! ")
+            b.locator("#message").fill("")
+            a.get_by_role("button", name="Wave to journey_bob").click()
+            a.wait_for_function("""async () => {
+              const s=await fetch('/api/state').then(r=>r.json());
+              return s.players.some(p=>p.name==='journey_alice'&&p.emote==='wave');
+            }""", timeout=10000)
             print("Desktop world and compose controls fit the viewport")
             assert a.evaluate("document.documentElement.scrollHeight <= innerHeight + 1")
             canvas = a.locator("#world")
