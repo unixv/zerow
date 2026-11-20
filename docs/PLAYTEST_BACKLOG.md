@@ -230,3 +230,12 @@ verification remains untested. On mobile the studio remains in normal flow.
 - This integration is a new candidate, not an approved release. Verify ZeroW, ZeroW Player Playtest and desktop/mobile screenshot acceptance must pass on this exact head before merge.
 - The earlier PR #55 head passed isolated checks before #54 merged, but those checks do not establish integration correctness. Production Raspberry Pi deployment and live room walkability remain unverified.
 - Next gameplay milestone: synchronized avatars moving inside room floors, direct furniture placement and interaction, and room-local cooperative activity.
+
+## Walkable shared rooms candidate — November 20, 2026
+
+- New candidate milestone: 10×7 room floor now supports owner and guest tap/click walking. The browser computes a shortest unobstructed tile route; the server validates each adjacent step, room membership, room boundaries, and furniture collision. No new heavyweight runtime dependencies.
+- Active visitors are rendered as moving, wardrobe-colored avatars with initials, positions and names, updated through the existing 3.5-second social poll. Room-specific chat and furniture ownership rules remain intact.
+- New isolated regressions: `tests/test_room_social.py` covers two-player coordinates, blocked movement, invalid inputs, leave/rejoin; `tests/rooms_playtest.py` covers desktop click and mobile touch movement plus screenshots and cross-player reception.
+- **Release gate:** This branch is not production. Run Verify ZeroW and ZeroW Player Playtest on the exact integration head; inspect walking screenshots at desktop, mobile and 320px. Confirm old room purchase, placement, pickup, visitor restrictions and chat tests still pass. Do not merge on failed checks.
+- **Live evidence:** No public Pi walking verification yet. Prior live evidence is unchanged.
+- **Remaining larger-game milestone:** replace initials with more expressive sprite avatars and add furniture interactions and cooperative activities. Do not claim those features exist yet.

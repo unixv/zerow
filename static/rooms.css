@@ -82,3 +82,14 @@
 .homes-chat button{min-width:66px;background:#427b6c;color:#fff;border-radius:7px}
 #homesChatNotice{margin:0;min-height:14px;color:#f4d38c}
 @media(max-width:350px){.homes-social{padding:8px}.homes-chat button{min-width:58px}}
+
+/* Atrium shared room: lightweight avatars float over the existing 10x7 floor. */
+.homes-roomcanvas{position:relative;isolation:isolate}
+.homes-avatar-layer{position:absolute;inset:8px;pointer-events:none;z-index:3}
+.homes-walker{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;
+  width:clamp(18px,3vw,31px);height:clamp(18px,3vw,31px);border-radius:45% 45% 40% 40%;
+  background:var(--walker-color,#8fc9bc);border:2px solid #f1f5d7;color:#132c32;
+  box-shadow:0 4px 0 #0a1b2080,0 0 0 2px #123139;font-size:10px;font-weight:800;
+  transition:left .16s linear,top .16s linear}
+.homes-walker-self{box-shadow:0 4px 0 #0a1b2080,0 0 0 3px #f3d38b}
+@media(max-width:760px){.homes-avatar-layer{inset:4px}.homes-walker{width:20px;height:20px;font-size:8px}}
