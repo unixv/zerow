@@ -47,6 +47,34 @@ class RoomSocialTests(unittest.TestCase):
         self.assertEqual(self.alice.get(social).json["visitors"], [])
         self.assertEqual(len(self.alice.get(social).json["messages"]), 1)
 
+    def test_shared_walk_coordinates_and_authoritative_boundaries(self):
+        visit = f"/api/homes/{self.room}/visit"
+        move = f"/api/homes/{self.room}/move"
+        social = f"/api/homes/{self.room}/social"
+        self.assertEqual(self.post(self.anon, move, {"x": 1, "y": 0}).status_code, 401)
+        self.assertEqual(self.post(self.bob, move, {"x": 1, "y": 0}).status_code, 403)
+        self.post(self.alice, visit, {})
+        self.post(self.bob, visit, {})
+        for coordinates in ({"x": -1, "y": 0}, {"x": 10, "y": 0},
+                            {"x": True, "y": 0}, {"x": 1.5, "y": 0}):
+            self.assertEqual(self.post(self.bob, move, coordinates).status_code, 400)
+        self.assertEqual(self.post(self.bob, move, {"x": 2, "y": 0}).status_code, 400)
+        self.assertEqual(self.post(self.bob, move, {"x": 1, "y": 0}).status_code, 200)
+        self.assertEqual(self.post(self.bob, move, {"x": 1, "y": 1}).status_code, 200)
+        bob = next(p for p in self.alice.get(social).json["visitors"] if p["name"] == "SocialBob")
+        self.assertEqual((bob["x"], bob["y"], bob["self"]), (1, 1, 0))
+        self.assertEqual(sum(p["self"] for p in self.alice.get(social).json["visitors"]), 1)
+        self.assertEqual(sum(p["self"] for p in self.bob.get(social).json["visitors"]), 1)
+        item = self.post(self.alice, "/api/homes/buy", {"sku": "chair"}).json["item_id"]
+        self.assertEqual(self.post(self.alice, "/api/homes/place",
+                                   {"room_id": self.room, "item_id": item, "x": 2, "y": 1}).status_code, 200)
+        self.assertEqual(self.post(self.bob, move, {"x": 2, "y": 1}).status_code, 409)
+        self.post(self.bob, "/api/homes/leave", {})
+        self.assertEqual(self.post(self.bob, move, {"x": 1, "y": 2}).status_code, 403)
+        self.post(self.bob, visit, {})
+        bob = next(p for p in self.alice.get(social).json["visitors"] if p["name"] == "SocialBob")
+        self.assertEqual((bob["x"], bob["y"]), (0, 0))
+
     def test_security_validation_and_expiry(self):
         visit = f"/api/homes/{self.room}/visit"
         chat = f"/api/homes/{self.room}/chat"
