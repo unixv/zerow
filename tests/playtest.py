@@ -192,7 +192,7 @@ def main():
                 expect(toggle).to_have_attribute("aria-pressed", "false")
                 toggle.click()
                 expect(toggle).to_have_attribute("aria-pressed", "true")
-                expect(toggle).to_have_text("Daylight mode")
+                expect(toggle).to_have_text("Return to daylight")
                 toggle.click()
                 expect(toggle).to_have_attribute("aria-pressed", "false")
                 expect(toggle).to_have_text("Evening mode")

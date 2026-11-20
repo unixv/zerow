@@ -166,3 +166,26 @@ This section records **isolated GitHub runner** evidence, not a fresh public-Pi 
 - The frontend merges server discoveries into the existing local trail cache and sends successful visits to the server. Existing browser-only discoveries remain visible locally but require a revisit to become verified server progress; do not claim historical browser-local visits were automatically migrated.
 - New isolated tests cover repeat visits, cross-session progress, invalid inputs, and rejection of remote landmark claims. **Pending both required workflows and browser visual review; not released or verified on the Pi.**
 - Next: a more substantial cooperative room activity and explicit multi-browser journey verification.
+
+## Development candidate — November 19, 2026: Atrium Sky Studio
+
+- Three selectable personal sky moods: Sunlit, Golden hour, and Starlight, with distinct plaza tile palettes, gradients and low-cost night stars. Existing lantern glow and world controls remain functional.
+- The atmosphere animation switch and sky mode persist in additive account columns and synchronize when the same account signs in from another browser. The scene is a personal visual preference, not a shared global weather change.
+- Authenticated POST /api/scene validates the strict mood enum and boolean setting; the existing JSON same-origin protection remains active. No existing accounts or furniture records are deleted.
+- New isolated tests cover defaults, two-browser persistence, account isolation, invalid values, authentication and CSRF. Both workflows and Chromium screenshots must pass on the exact PR head before merging.
+- **Not production-verified:** Real Pi performance, mobile interaction and production persistence remain untested until explicitly observed.
+- Next substantial priority remains shared room presence, avatar movement and cooperative room activity. Older independent QA PRs are not superseded by this change.
+
+
+## Sky Studio PR #52 CI triage — November 19, 2026
+
+Initial head 5e22d21 failed both isolated workflows: Verify ZeroW run
+[44629434216](https://github.com/unixv/zerow/actions/runs/44629434216)
+failed an outdated source-string assertion after account-switch scene loading was
+introduced; Player Playtest run [44629434233](https://github.com/unixv/zerow/actions/runs/44629434233)
+failed the 1200×820 desktop world-width acceptance (600px minimum) because a
+new studio toolbar consumed canvas height. Updated the assertion to retain
+account-isolation coverage and moved the desktop studio into a floating dock
+without taking another layout row. Both fixes require fresh CI and screenshot
+review on the new PR head; do not merge on the previous failures. Live Pi
+verification remains untested. On mobile the studio remains in normal flow.

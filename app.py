@@ -48,6 +48,10 @@ def connect():
         con.execute("ALTER TABLE users ADD COLUMN avatar_color TEXT NOT NULL DEFAULT 'moss'")
     if "avatar_style" not in user_cols:
         con.execute("ALTER TABLE users ADD COLUMN avatar_style TEXT NOT NULL DEFAULT 'classic'")
+    if "scene_mode" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN scene_mode TEXT NOT NULL DEFAULT 'day'")
+    if "scene_ambience" not in user_cols:
+        con.execute("ALTER TABLE users ADD COLUMN scene_ambience INTEGER NOT NULL DEFAULT 1")
     if "emote" not in user_cols:
         con.execute("ALTER TABLE users ADD COLUMN emote TEXT NOT NULL DEFAULT ''")
     if "emote_at" not in user_cols:
@@ -326,8 +330,24 @@ def state():
             "SELECT landmark FROM trail_discoveries WHERE user_id=? ORDER BY landmark", (user["id"],)
         )]
         return jsonify(lanterns={"counts": [next((r["count"] for r in lights if r["landmark"]==i), 0) for i in range(4)], "mine":my_lights},
-                       discoveries=my_discoveries, me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
+                       discoveries=my_discoveries, scene={"mode":user["scene_mode"], "ambience":bool(user["scene_ambience"])}, me=user["name"], avatar={"color":user["avatar_color"],"style":user["avatar_style"]}, players=people, messages=messages, room="Lobby",
                        width=WIDTH, height=HEIGHT, joined=user["created"])
+
+@app.post("/api/scene")
+def save_scene():
+    """Persist each explorer's lightweight, personal Atrium atmosphere."""
+    data = request.get_json(silent=True) or {}
+    mode, ambience = data.get("mode"), data.get("ambience")
+    if mode not in ("day", "dusk", "night") or type(ambience) is not bool:
+        return error("Choose a valid scene and atmosphere setting.")
+    with connect() as con:
+        user = require_user(con)
+        if user is None:
+            return error("Log in to save your scene.", 401)
+        con.execute("UPDATE users SET scene_mode=?,scene_ambience=? WHERE id=?",
+                    (mode, int(ambience), user["id"]))
+        return jsonify(scene={"mode":mode, "ambience":ambience})
+
 
 @app.post("/api/trail/discover")
 def discover_trail():

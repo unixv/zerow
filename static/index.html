@@ -208,6 +208,18 @@ canvas{min-height:0}
 .meetup-guide strong{font-size:12px;color:#b8eed1}.meetup-guide p{font-size:11px;color:#b5d0c7;line-height:1.5;margin:5px 0 0}
 @media(max-width:800px){.right .player-actions button{min-height:40px}}
 @media(max-width:520px){.right .members{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:6px}.right .member{min-width:168px;background:#1b3a42;border:1px solid #426c69;border-radius:9px;padding:9px}.meetup-guide{margin-bottom:8px}}
+.scene-studio{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 12px;background:#172a34;border-bottom:1px solid #35535a}
+.scene-studio strong{font-size:11px;letter-spacing:.5px;color:#d6e6dc;margin-right:4px}
+.scene-studio button{min-height:34px;padding:6px 11px;border:1px solid #53736d;border-radius:7px;background:#29454b;color:#e7f4ee;font-size:12px}
+.scene-studio button[aria-pressed="true"]{background:#d2b989;color:#172c33;border-color:#f0dcae;font-weight:750}
+.scene-studio small{color:#a4c2b7;font-size:11px;margin-left:auto}
+/* Keep the full world canvas usable at 1200x820: the studio floats above the
+   plaza rather than consuming another permanent toolbar row. */
+@media(min-width:801px){
+ .scene-studio{position:absolute;right:12px;bottom:12px;z-index:4;max-width:calc(100% - 24px);border:1px solid #53736d;border-radius:9px;box-shadow:0 8px 24px #0008}
+ .scene-studio small{display:none}
+}
+@media(max-width:520px){.scene-studio{gap:5px;padding:5px 8px}.scene-studio button{min-height:38px;flex:1}.scene-studio small{display:none}}
 </style>
 <link rel="stylesheet" href="/static/rooms.css">
 </head>
@@ -218,6 +230,7 @@ canvas{min-height:0}
 <section class="game">
 <div class="titlebar"><strong>◈ The Atrium · Central Plaza</strong><div class="world-heading-actions"><small id="population">0 people here</small><button type="button" id="worldFocusToggle" aria-pressed="false" title="Expand the game world">Expand world</button></div></div>
 <div id="notice" role="alert"></div>
+<div class="scene-studio" aria-label="Atrium scene studio"><strong>YOUR ATRIUM SKY</strong><button type="button" data-scene="day" aria-pressed="true">Sunlit</button><button type="button" data-scene="dusk" aria-pressed="false">Golden hour</button><button type="button" data-scene="night" aria-pressed="false">Starlight</button><small id="sceneSaveStatus" role="status">Your atmosphere follows your account</small></div>
 <div class="explorebar" aria-label="Explore Atrium"><button type="button" id="openRooms">Rooms & furniture</button><button type="button" id="trailToggle" aria-expanded="false" aria-controls="mobileTrail">Discovery trail</button><button type="button" id="exploreGuide">Explore plaza</button><button type="button" id="lanternToggle" aria-expanded="false" aria-controls="lanternMobile">Lantern Circle</button><button type="button" id="sceneToggle" aria-pressed="false">Evening mode</button><button type="button" id="chatFocus">Chat</button><span class="explorehint">Click landmarks to discover the plaza · WASD to roam</span></div><div class="emote-bar" aria-label="Atrium player expressions"><strong>Express yourself</strong><button type="button" data-emote="wave">Wave</button><button type="button" data-emote="cheer">Cheer</button><button type="button" data-emote="heart">Heart</button><button type="button" data-emote="dance">Dance</button><button type="button" data-emote="hello">Say hello</button></div><div id="mobileTrail" class="trail" hidden aria-label="Atrium discovery trail"><button type="button" class="expedition-close" data-close-expedition="mobileTrail" aria-label="Close Discovery Trail">×</button><h2>Discover Atrium</h2><p id="mobileTrailStatus">Visit four landmarks to complete your tour.</p><div class="trail-progress"><span id="mobileTrailProgress" style="width:0%"></span></div><div class="trail-stops" id="mobileTrailStops"></div></div><div class="lantern-deck" id="lanternMobile" hidden><button type="button" class="expedition-close" data-close-expedition="lanternMobile" aria-label="Close Lantern Circle">×</button><h2>Lantern Circle · Together</h2><p>Travel to a landmark and add your light. Each explorer can light every landmark once.</p><div id="lanternMobileList" class="lantern-list"></div><div id="lanternMobileBanner" class="lantern-banner" role="status"></div></div><div class="stage"><div id="worldtip" class="worldtip" role="status" hidden><button type="button" id="tipClose" aria-label="Close landmark description">×</button><strong id="tipTitle"></strong><span id="tipBody"></span></div><canvas id="world" tabindex="0" width="960" height="660" aria-label="Room; click a tile to move your avatar"></canvas><div class="plaza-hud" aria-label="Atrium world ambience"><span id="sceneMood">Sunny plaza</span><button type="button" id="ambientToggle" aria-pressed="true" title="Toggle animated atmosphere">Atmosphere on</button></div></div>
 </section>
 <aside class="right"><h2>Meet explorers</h2><div class="meetup-guide"><strong>Find your people</strong><p>Visit another explorer, wave to them, or start a conversation. Everyone shares the same plaza.</p></div><div class="members" id="members"><div class="hint">Join to see everyone.</div></div></aside>
@@ -317,6 +330,7 @@ new ResizeObserver(()=>{
  canvas.style.width=960*scale+"px";canvas.style.height=660*scale+"px";
 }).observe(canvas.parentElement);
 let myPosition=null,movePending=false,evening=false,landmarkPulse=null;
+let sceneMode="day",sceneSaving=false,sceneDirty=false,sceneLoadedFor=null;
 let ambienceEnabled=true;
 const emoteLabels={wave:"Wave!",cheer:"Hooray!",heart:"Love this!",dance:"Dancing!",hello:"Hello!"};
 let emotePending=false;
@@ -450,13 +464,13 @@ function shade(x,y){return (x+y)%2===0?"#243d48":"#294650";}
 function draw(){
  const t=Date.now()/1000;
  ctx.clearRect(0,0,960,660);
- const sky=ctx.createLinearGradient(0,0,0,660);sky.addColorStop(0,evening?"#0b172d":"#183642");sky.addColorStop(1,evening?"#142239":"#122731");
+ const sky=ctx.createLinearGradient(0,0,0,660);sky.addColorStop(0,sceneMode==="night"?"#091329":sceneMode==="dusk"?"#7c4755":"#183642");sky.addColorStop(1,sceneMode==="night"?"#142239":sceneMode==="dusk"?"#35465b":"#122731");
  ctx.fillStyle=sky;ctx.fillRect(0,0,960,660);
  // Plaza tiles, a central promenade and subtle ground accents.
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    const px=x*C,py=y*C;
    const promenade=(x>=6&&x<=9)||(y>=4&&y<=6);
-   ctx.fillStyle=evening?(promenade?((x+y)%2?"#263a52":"#30415a"):((x+y)%2?"#172b40":"#1b3047")):(promenade?((x+y)%2?"#3b5960":"#405e63"):shade(x,y));
+   ctx.fillStyle=sceneMode==="night"?(promenade?((x+y)%2?"#263a52":"#30415a"):((x+y)%2?"#172b40":"#1b3047")):sceneMode==="dusk"?(promenade?((x+y)%2?"#68505d":"#715663"):((x+y)%2?"#4a4055":"#51485d")):(promenade?((x+y)%2?"#3b5960":"#405e63"):shade(x,y));
    ctx.fillRect(px,py,C,C);
    ctx.strokeStyle="#152f3a88";ctx.strokeRect(px+.5,py+.5,C-1,C-1);
    if((x*17+y*13)%7===0){ctx.fillStyle="#91b8a322";ctx.fillRect(px+13,py+17,6,3);}
@@ -500,6 +514,11 @@ function draw(){
    ctx.fillStyle=evening?"#ffe3a1":"#d2f6d7";
    ctx.beginPath();ctx.arc(x,y,evening?2.6:1.8,0,Math.PI*2);ctx.fill();
   }
+  ctx.globalAlpha=1;
+ }
+ // The night sky gains a stable starfield; dusk has warm drifting fireflies.
+ if(sceneMode==="night"){
+  for(let i=0;i<38;i++){const x=(i*137+53)%948+6,y=(i*71+19)%350+6;ctx.globalAlpha=.45+.35*Math.sin(t*.4+i)**2;ctx.fillStyle="#e7edff";ctx.fillRect(x,y,i%5===0?2:1,i%5===0?2:1);}
   ctx.globalAlpha=1;
  }
  // Ornamental plaza border.
@@ -611,6 +630,7 @@ function renderMembers(){
 function showSignedOut(){
  document.querySelector("#worldtip").hidden=true;
  authEpoch++;
+ sceneLoadedFor=null;sceneDirty=false;sceneMode="day";evening=false;ambienceEnabled=true;updateSceneControls();
  me=null;discovered.clear();renderTrail();lanterns={counts:[0,0,0,0],mine:[]};renderLanterns();people=[];history=[];myPosition=null;document.querySelector("#wardrobe").hidden=true;document.querySelector("#avatarSettings").style.display="none";
  lines.dataset.lastId="";lines.replaceChildren();
  joinScreen.hidden=false;
@@ -652,12 +672,17 @@ async function refresh(){
     else{joinScreen.hidden=false;message.disabled=true;document.querySelector("#send").disabled=true;document.querySelector("#logout").style.display="none";document.querySelector("#accountSettings").style.display="none";}
   }
   else{
-    if(me!==result.me){me=result.me;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=chatPending;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
+    if(me!==result.me){me=result.me;sceneLoadedFor=null;sceneDirty=false;loadTrail();}avatar=result.avatar||avatar;joinScreen.hidden=true;document.querySelector("#avatarSettings").style.display="inline-block";message.disabled=false;message.placeholder="Message the Atrium plaza…";document.querySelector("#send").disabled=chatPending;document.querySelector("#logout").style.display="inline-block";document.querySelector("#accountSettings").style.display="inline-block";
   }
   if(result.me&&Array.isArray(result.discoveries)){
    let changed=false;
    for(const id of result.discoveries)if(Number.isInteger(id)&&id>=0&&id<landmarks.length&&!discovered.has(id)){discovered.add(id);changed=true;}
    if(changed){try{localStorage.setItem(trailKey(),JSON.stringify([...discovered]));}catch(_){}renderTrail();}
+  }
+  if(result.me&&result.scene&&sceneLoadedFor!==result.me&&!sceneDirty){
+   sceneLoadedFor=result.me;
+   sceneMode=["day","dusk","night"].includes(result.scene.mode)?result.scene.mode:"day";
+   evening=sceneMode!=="day";ambienceEnabled=result.scene.ambience!==false;updateSceneControls();
   }
   syncModal();
   document.querySelectorAll("[data-emote]").forEach(b=>b.disabled=!me||emotePending);
@@ -748,7 +773,35 @@ async function moveTo(x,y){
 function showLandmark(l){document.querySelector("#tipTitle").textContent=l.title;document.querySelector("#tipBody").textContent=l.body;document.querySelector("#worldtip").hidden=false;}
 document.querySelector("#tipClose").addEventListener("click",()=>document.querySelector("#worldtip").hidden=true);
 document.querySelector("#exploreGuide").addEventListener("click",()=>showLandmark({title:"Welcome to the Atrium plaza",body:"Explore the fountain, groves and lantern walk. Click the map or use WASD / arrow keys to move. Send a quick greeting below to meet other players."}));
-document.querySelector("#sceneToggle").addEventListener("click",e=>{evening=!evening;e.currentTarget.setAttribute("aria-pressed",String(evening));e.currentTarget.textContent=evening?"Daylight mode":"Evening mode";document.querySelector("#sceneMood").textContent=evening?"Lantern evening":"Sunny plaza";draw();});
+function updateSceneControls(){
+ evening=sceneMode!=="day";
+ document.querySelectorAll("[data-scene]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.scene===sceneMode)));
+ const toggle=document.querySelector("#sceneToggle");
+ toggle.setAttribute("aria-pressed",String(evening));toggle.textContent=evening?"Return to daylight":"Evening mode";
+ document.querySelector("#sceneMood").textContent=({day:"Sunny plaza",dusk:"Golden hour",night:"Starlit plaza"})[sceneMode];
+ const ambient=document.querySelector("#ambientToggle");
+ ambient.setAttribute("aria-pressed",String(ambienceEnabled));ambient.textContent=ambienceEnabled?"Atmosphere on":"Atmosphere off";
+ draw();
+}
+async function saveScene(){
+ if(!me)return;
+ sceneDirty=true;
+ if(sceneSaving)return;
+ sceneSaving=true;
+ const status=document.querySelector("#sceneSaveStatus");
+ try{
+  do{
+   sceneDirty=false;
+   const mode=sceneMode,ambience=ambienceEnabled;
+   status.textContent="Saving your sky…";
+   await api("/api/scene","POST",{mode,ambience});
+  }while(sceneDirty);
+  status.textContent="Saved to your Atrium account";
+ }catch(err){status.textContent="Could not save scene";notify(err.message);}
+ finally{sceneSaving=false;}
+}
+document.querySelectorAll("[data-scene]").forEach(b=>b.addEventListener("click",()=>{if(!me){notify("Log in to save your sky.");return;}sceneMode=b.dataset.scene;updateSceneControls();saveScene();}));
+document.querySelector("#sceneToggle").addEventListener("click",()=>{if(!me)return;sceneMode=sceneMode==="day"?"dusk":"day";updateSceneControls();saveScene();});
 document.querySelector("#chatFocus").addEventListener("click",()=>message.focus());
 document.querySelectorAll("[data-quick]").forEach(button=>button.addEventListener("click",()=>{if(!me){notify("Log in to greet the plaza.");return;}message.value=button.dataset.quick;message.focus();}));
 canvas.addEventListener("click",async e=>{
@@ -766,10 +819,8 @@ document.addEventListener("keydown",e=>{
 });
 
 document.querySelector("#ambientToggle").addEventListener("click",e=>{
- ambienceEnabled=!ambienceEnabled;
- e.currentTarget.setAttribute("aria-pressed",String(ambienceEnabled));
- e.currentTarget.textContent=ambienceEnabled?"Atmosphere on":"Atmosphere off";
- draw();
+ if(!me){notify("Log in to save your atmosphere.");return;}
+ ambienceEnabled=!ambienceEnabled;updateSceneControls();saveScene();
 });
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)draw();});
 // Cap ambient animation at 8 FPS and suspend it in background tabs.
