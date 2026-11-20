@@ -216,3 +216,9 @@ verification remains untested. On mobile the studio remains in normal flow.
 
 - PR #54 head `2ef5f51`: Verify ZeroW [44661182382](https://github.com/unixv/zerow/actions/runs/44661182382) passed; Player Playtest [44661180713](https://github.com/unixv/zerow/actions/runs/44661180713) failed in `tests/rooms_playtest.py` after daily claim: expected 365 coins after chair purchase but wallet remained 400. The buy click could be ignored while the preceding claim's asynchronous reload retained the shared `running` guard.
 - Follow-up `1e25129`: disable shop buttons during the pending transaction, then restore their correct affordability state after completion; clear room-chat message signature when changing rooms so coincident message IDs cannot hide a different conversation. Both workflows and screenshot review remain required on the new head; no production Pi verification.
+
+## Two-player room gathering browser acceptance — November 20, 2026
+
+- Added a real two-context Chromium scenario to `tests/rooms_playtest.py`: desktop owner and mobile visitor both see the same two-person roster; visitor sends an HTML-shaped message that must render as inert text on the owner's screen; owner replies and visitor receives it. Dedicated desktop/mobile gathering screenshots are captured for inspection.
+- This is **isolated browser coverage only**, not a production Pi or cloud-browser observation. The new scenario is **pending Verify ZeroW, ZeroW Player Playtest, and screenshot review on the new PR #54 head**. Existing API-level social tests passed on the preceding head, but do not substitute for this end-to-end check.
+- PR #55's enlarged chat remains a separate unmerged release; review compatibility against current main before merging either PR. Walkable room avatars and direct furniture interaction remain unimplemented.
