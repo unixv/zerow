@@ -23,7 +23,7 @@
       let avatar=avatarNodes.get(key);
       if(!avatar){
         avatar=document.createElement("span");
-        avatar.className="homes-character";
+        avatar.className="homes-character homes-walker"+(person.self?" homes-walker-self":"");
         const shadow=document.createElement("span");shadow.className="homes-character-shadow";
         const legs=document.createElement("span");legs.className="homes-character-legs";
         const body=document.createElement("span");body.className="homes-character-body";
