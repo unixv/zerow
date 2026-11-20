@@ -206,3 +206,10 @@ verification remains untested. On mobile the studio remains in normal flow.
 - The visible Sky Studio now supplies the atmosphere control tested in `tests/playtest.py`; the chat input replaces the redundant chat-focus shortcut. The Lantern Circle button remains available for the mobile lantern journey. The exploration guide shortcut stays hidden to reduce toolbar clutter; existing landmark canvas tests still exercise discovery.
 - Fresh Verify ZeroW and ZeroW Player Playtest results on commit 5012be6 are required before merge. Screenshots and production Pi remain unverified.
 - Separate unresolved design milestone: Homes must become genuinely walkable shared rooms with avatars, interactive furniture and room-local social activity. Room gatherings alone are not a playable room.
+
+
+### November 20 — PR #55 latest playtest triage
+
+- Player Playtest [44695747838](https://github.com/unixv/zerow/actions/runs/44695747838) failed because the browser script expected `#exploreGuide` to be hidden, although the product intentionally retained the visible Explore plaza control. Corrected the assertion to verify the actual visible shortcut. This is isolated runner evidence, not live Pi evidence.
+- Verify ZeroW [44695747851](https://github.com/unixv/zerow/actions/runs/44695747851) passed on the prior head. Both checks must pass on the corrected head before merge; inspect desktop/mobile screenshots.
+- PR #54 checks passed on head 88b8a62, but screenshot review and release remain pending. Walkable rooms, avatars and direct furniture placement are still unimplemented.
