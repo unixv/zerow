@@ -224,7 +224,13 @@ canvas{min-height:0}
 /* Atrium usability: readable conversation and a single primary action row. */
 @media(min-width:801px){
  .shell{grid-template-rows:54px minmax(0,1fr) 148px}
- .shell .chat{position:fixed;left:12px;right:auto;bottom:12px;width:min(420px,36vw);height:clamp(300px,46dvh,480px);z-index:8;border:1px solid #597b76;border-radius:10px;box-shadow:0 12px 35px #0009;overflow:hidden}
+ .shell{grid-template-columns:150px minmax(0,1fr) 270px;grid-template-rows:54px minmax(0,1fr) clamp(260px,34dvh,340px)}
+ .shell .chat{position:static;grid-column:3;grid-row:3;width:auto;height:auto;z-index:auto;border:0;border-top:1px solid #597b76;border-radius:0;box-shadow:none;overflow:hidden}
+ .shell .right{grid-column:3;grid-row:2}
+ .shell .game{grid-column:2;grid-row:2/4}
+ .shell.world-focus .chat{position:fixed;left:auto;right:14px;bottom:14px;width:min(350px,32vw);height:210px;z-index:8;border:1px solid #597b76;border-radius:10px;box-shadow:0 12px 40px #0009}
+ @media(max-width:1100px){.shell:not(.world-focus){grid-template-columns:125px minmax(0,1fr) 235px}}
+
  .shell .chathead{padding:10px 14px;font-size:13px;font-weight:700}
  .shell .lines{padding:12px 16px;font-size:14px;line-height:1.75}
  .shell .quickchat{padding:7px 12px}
