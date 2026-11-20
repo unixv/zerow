@@ -122,6 +122,21 @@ def main():
             expect(a.locator("#message")).to_have_value("Keep this newer draft")
             a.unroute("**/api/chat")
 
+            print("Desktop chat remains in its own sidebar, never covering the world or sky controls")
+            layout = a.evaluate("""() => {
+                const rect = selector => {
+                    const r = document.querySelector(selector).getBoundingClientRect();
+                    return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};
+                };
+                return {chat:rect('.chat'),world:rect('#world'),game:rect('.game'),
+                        members:rect('.right'),sky:rect('.scene-studio')};
+            }""")
+            assert layout["chat"]["left"] >= layout["game"]["right"] - 2, layout
+            assert layout["chat"]["top"] >= layout["members"]["bottom"] - 2, layout
+            assert layout["chat"]["height"] >= 240, layout
+            assert layout["world"]["width"] >= 600, layout
+            assert layout["chat"]["left"] >= layout["sky"]["right"] - 2 or layout["chat"]["top"] >= layout["sky"]["bottom"], layout
+
             a.screenshot(path=str(ARTIFACTS / "journey-desktop.png"), full_page=True)
             b.screenshot(path=str(ARTIFACTS / "journey-mobile.png"), full_page=True)
 

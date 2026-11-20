@@ -189,3 +189,47 @@ account-isolation coverage and moved the desktop studio into a floating dock
 without taking another layout row. Both fixes require fresh CI and screenshot
 review on the new PR head; do not merge on the previous failures. Live Pi
 verification remains untested. On mobile the studio remains in normal flow.
+
+
+## November 20, 2026 — Plaza chat and toolbar candidate (PR #55)
+
+- Screenshot-reported usability: plaza chat was only 148px tall on desktop, and multiple redundant shortcuts cluttered the world toolbar. These are owner-observed production UI concerns, not isolated test results.
+- Candidate uses a larger floating chat panel without reducing canvas height, enlarges message/composer typography, and hides redundant Lantern Circle, evening and Chat shortcuts while keeping the Explore plaza guide reachable.
+- Initial Chromium playtest failed when its Explore plaza control was hidden; restored that control and corrected a literal newline escape in the floating-panel CSS. Both required workflows and screenshot review must be repeated on the corrected head before merge.
+- Rooms still require a genuinely walkable shared world with visible visitors and direct furniture interaction. PR #54 adds room presence/chat but does not satisfy this acceptance criterion.
+- Production deployment and live Pi gameplay remain unverified for this candidate.
+
+
+### November 20 — PR #55 browser regression triage
+
+- Player Playtest run 44688136179 failed because the previous simplified toolbar hid `#sceneToggle`, while the browser script still clicked it. This is an isolated Chromium failure, not a production Pi observation.
+- The visible Sky Studio now supplies the atmosphere control tested in `tests/playtest.py`; the chat input replaces the redundant chat-focus shortcut. The Lantern Circle button remains available for the mobile lantern journey. The exploration guide shortcut stays hidden to reduce toolbar clutter; existing landmark canvas tests still exercise discovery.
+- Fresh Verify ZeroW and ZeroW Player Playtest results on commit 5012be6 are required before merge. Screenshots and production Pi remain unverified.
+- Separate unresolved design milestone: Homes must become genuinely walkable shared rooms with avatars, interactive furniture and room-local social activity. Room gatherings alone are not a playable room.
+
+
+### November 20 — PR #55 latest playtest triage
+
+- Player Playtest [44695747838](https://github.com/unixv/zerow/actions/runs/44695747838) failed because the browser script expected `#exploreGuide` to be hidden, although the product intentionally retained the visible Explore plaza control. Corrected the assertion to verify the actual visible shortcut. This is isolated runner evidence, not live Pi evidence.
+- Verify ZeroW [44695747851](https://github.com/unixv/zerow/actions/runs/44695747851) passed on the prior head. Both checks must pass on the corrected head before merge; inspect desktop/mobile screenshots.
+- PR #54 checks passed on head 88b8a62, but screenshot review and release remain pending. Walkable rooms, avatars and direct furniture placement are still unimplemented.
+
+
+## November 20, 2026 — PR #55 floating chat overlap triage
+
+- Isolated Chromium Player Playtest run [44702149101](https://github.com/unixv/zerow/actions/runs/44702149101) failed while clicking the visible Starlight Sky Studio button: the enlarged floating chat's message list intercepted pointer events. This is a real layout interaction regression, not a stale test expectation.
+- Repositioned the desktop floating chat to the lower-left, away from the lower-right Sky Studio dock, preserving the expanded conversation area and the world canvas. Mobile flow is unchanged.
+- **Pending:** Both workflows on corrected head, screenshot inspection at desktop/mobile widths, and production Pi verification. Do not merge until verified.
+
+## November 20, 2026 — PR #55 Lantern Circle regression
+
+- Isolated GitHub Actions Player Playtest run 44710198295 failed because the `#lanternToggle` control was hidden by the simplified toolbar. The journey still requires opening Lantern Circle; hiding the control removed functionality, not merely clutter.
+- Corrected the CSS to restore Lantern Circle while keeping redundant Evening mode and Chat shortcuts hidden. This correction is **not verified** until both workflows pass on commit a42508785ea5dfe7067fcbacddc1a18c8842112e and Chromium screenshots are reviewed.
+- Production Pi: untested. Real walkable multiplayer rooms remain outstanding; room social panel is not equivalent to playable rooms.
+
+
+## November 20 — Docked chat release gate
+
+- PR #55 commit 43a863c passed Verify ZeroW ([44735470398](https://github.com/unixv/zerow/actions/runs/44735470398)) and ZeroW Player Playtest ([44735470455](https://github.com/unixv/zerow/actions/runs/44735470455)). These are isolated CI results, **not live Pi verification**.
+- Added browser assertions that desktop chat occupies its own right sidebar, sits below the member panel, has at least 240px height, preserves a 600px world, and does not cover Sky Studio. This new test requires fresh runs on commit 86d10c3.
+- **Unverified:** visual screenshot review of the latest docked layout, live Pi deployment, and real two-player room gameplay. Do not merge until the new checks and visual review succeed.
