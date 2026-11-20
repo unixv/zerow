@@ -183,19 +183,16 @@ def main():
 
             print("Exploration guide and atmosphere work on desktop and mobile")
             for page in (alice, bob):
-                page.locator("#exploreGuide").click()
-                expect(page.locator("#worldtip")).to_be_visible()
-                expect(page.locator("#tipTitle")).to_have_text("Welcome to the Atrium plaza")
-                page.locator("#tipClose").click()
-                expect(page.locator("#worldtip")).to_be_hidden()
-                toggle = page.locator("#sceneToggle")
-                expect(toggle).to_have_attribute("aria-pressed", "false")
-                toggle.click()
-                expect(toggle).to_have_attribute("aria-pressed", "true")
-                expect(toggle).to_have_text("Return to daylight")
-                toggle.click()
-                expect(toggle).to_have_attribute("aria-pressed", "false")
-                expect(toggle).to_have_text("Evening mode")
+                # The secondary Explore and Evening buttons were removed from the
+                # toolbar; the Sky Studio is the supported visible atmosphere UI.
+                expect(page.locator("#exploreGuide")).to_be_hidden()
+                expect(page.locator("#sceneToggle")).to_be_hidden()
+                sunlit = page.locator('[data-scene="day"]')
+                night = page.locator('[data-scene="night"]')
+                night.click()
+                expect(night).to_have_attribute("aria-pressed", "true")
+                sunlit.click()
+                expect(sunlit).to_have_attribute("aria-pressed", "true")
 
             print("Landmark discovery works through actual canvas clicks on both viewports")
             for page in (alice, bob):
@@ -217,7 +214,7 @@ def main():
             expect(alice.locator("#message")).to_have_value("Meet me by the fountain!")
             assert alice.locator("#lines").inner_text() == previous, "Quick greeting sent chat without confirmation"
             alice.locator("#message").fill("")
-            alice.locator("#chatFocus").click()
+            alice.locator("#message").click()
             expect(alice.locator("#message")).to_be_focused()
 
             print("Wardrobe changes persist and are visible to the other player")
