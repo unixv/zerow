@@ -210,3 +210,9 @@ verification remains untested. On mobile the studio remains in normal flow.
   mobile live gameplay = **untested**; physical room avatar movement and
   interactive furniture remain **next milestone**. Keep both existing browser
   playtest entrypoints in the workflow.
+
+
+### Room gathering CI follow-up — November 19, 2026
+
+- PR #54 head `2ef5f51`: Verify ZeroW [44661182382](https://github.com/unixv/zerow/actions/runs/44661182382) passed; Player Playtest [44661180713](https://github.com/unixv/zerow/actions/runs/44661180713) failed in `tests/rooms_playtest.py` after daily claim: expected 365 coins after chair purchase but wallet remained 400. The buy click could be ignored while the preceding claim's asynchronous reload retained the shared `running` guard.
+- Follow-up `1e25129`: disable shop buttons during the pending transaction, then restore their correct affordability state after completion; clear room-chat message signature when changing rooms so coincident message IDs cannot hide a different conversation. Both workflows and screenshot review remain required on the new head; no production Pi verification.
