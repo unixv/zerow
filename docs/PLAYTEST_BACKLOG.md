@@ -226,3 +226,10 @@ verification remains untested. On mobile the studio remains in normal flow.
 - Isolated GitHub Actions Player Playtest run 44710198295 failed because the `#lanternToggle` control was hidden by the simplified toolbar. The journey still requires opening Lantern Circle; hiding the control removed functionality, not merely clutter.
 - Corrected the CSS to restore Lantern Circle while keeping redundant Evening mode and Chat shortcuts hidden. This correction is **not verified** until both workflows pass on commit a42508785ea5dfe7067fcbacddc1a18c8842112e and Chromium screenshots are reviewed.
 - Production Pi: untested. Real walkable multiplayer rooms remain outstanding; room social panel is not equivalent to playable rooms.
+
+
+## November 20 — Docked chat release gate
+
+- PR #55 commit 43a863c passed Verify ZeroW ([44735470398](https://github.com/unixv/zerow/actions/runs/44735470398)) and ZeroW Player Playtest ([44735470455](https://github.com/unixv/zerow/actions/runs/44735470455)). These are isolated CI results, **not live Pi verification**.
+- Added browser assertions that desktop chat occupies its own right sidebar, sits below the member panel, has at least 240px height, preserves a 600px world, and does not cover Sky Studio. This new test requires fresh runs on commit 86d10c3.
+- **Unverified:** visual screenshot review of the latest docked layout, live Pi deployment, and real two-player room gameplay. Do not merge until the new checks and visual review succeed.
