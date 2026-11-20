@@ -220,3 +220,9 @@ verification remains untested. On mobile the studio remains in normal flow.
 - Isolated Chromium Player Playtest run [44702149101](https://github.com/unixv/zerow/actions/runs/44702149101) failed while clicking the visible Starlight Sky Studio button: the enlarged floating chat's message list intercepted pointer events. This is a real layout interaction regression, not a stale test expectation.
 - Repositioned the desktop floating chat to the lower-left, away from the lower-right Sky Studio dock, preserving the expanded conversation area and the world canvas. Mobile flow is unchanged.
 - **Pending:** Both workflows on corrected head, screenshot inspection at desktop/mobile widths, and production Pi verification. Do not merge until verified.
+
+## November 20, 2026 — PR #55 Lantern Circle regression
+
+- Isolated GitHub Actions Player Playtest run 44710198295 failed because the `#lanternToggle` control was hidden by the simplified toolbar. The journey still requires opening Lantern Circle; hiding the control removed functionality, not merely clutter.
+- Corrected the CSS to restore Lantern Circle while keeping redundant Evening mode and Chat shortcuts hidden. This correction is **not verified** until both workflows pass on commit a42508785ea5dfe7067fcbacddc1a18c8842112e and Chromium screenshots are reviewed.
+- Production Pi: untested. Real walkable multiplayer rooms remain outstanding; room social panel is not equivalent to playable rooms.
