@@ -62,6 +62,10 @@ def ensure_schema(con):
         room_id INTEGER NOT NULL,
         seen REAL NOT NULL
     )""")
+    visitor_fields = {r["name"] for r in con.execute("PRAGMA table_info(room_visitors)")}
+    for column in ("x", "y"):
+        if column not in visitor_fields:
+            con.execute(f"ALTER TABLE room_visitors ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
     con.execute("CREATE INDEX IF NOT EXISTS room_visitors_room_idx ON room_visitors(room_id,seen)")
     con.execute("""CREATE TABLE IF NOT EXISTS room_messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,10 +142,38 @@ def register(app, connect, identity, error):
             if not con.execute("SELECT 1 FROM player_rooms WHERE id=?", (room_id,)).fetchone():
                 return error("Room not found.", 404)
             now = time.time()
-            con.execute("INSERT INTO room_visitors(user_id,room_id,seen) VALUES(?,?,?) "
-                        "ON CONFLICT(user_id) DO UPDATE SET room_id=excluded.room_id,seen=excluded.seen",
+            con.execute("INSERT INTO room_visitors(user_id,room_id,seen,x,y) VALUES(?,?,?,0,0) "
+                        "ON CONFLICT(user_id) DO UPDATE SET "
+                        "x=CASE WHEN room_id=excluded.room_id THEN x ELSE 0 END,"
+                        "y=CASE WHEN room_id=excluded.room_id THEN y ELSE 0 END,"
+                        "room_id=excluded.room_id,seen=excluded.seen",
                         (u["id"], room_id, now))
             return jsonify(ok=True)
+
+    @app.post("/api/homes/<int:room_id>/move")
+    def move_in_home(room_id):
+        data = request.get_json(silent=True) or {}
+        x, y = data.get("x"), data.get("y")
+        if type(x) is not int or type(y) is not int or not (0 <= x < ROOM_WIDTH and 0 <= y < ROOM_HEIGHT):
+            return error("Choose a tile inside the room.")
+        with connect() as con:
+            u = current(con)
+            if u is None:
+                return error("Log in first.", 401)
+            now = time.time()
+            visitor = con.execute(
+                "SELECT room_id,seen,x,y FROM room_visitors WHERE user_id=?", (u["id"],)
+            ).fetchone()
+            if visitor is None or visitor["room_id"] != room_id or visitor["seen"] < now-30:
+                return error("Enter this room before walking.", 403)
+            if con.execute("SELECT 1 FROM furniture_items WHERE room_id=? AND x=? AND y=?",
+                           (room_id,x,y)).fetchone():
+                return error("Furniture blocks that tile.", 409)
+            if abs(x-visitor["x"])+abs(y-visitor["y"]) != 1:
+                return error("Walk to an adjacent tile.", 400)
+            con.execute("UPDATE room_visitors SET x=?,y=?,seen=? WHERE user_id=?",
+                        (x,y,now,u["id"]))
+            return jsonify(ok=True,x=x,y=y)
 
     @app.post("/api/homes/leave")
     def leave_home():
@@ -162,11 +194,12 @@ def register(app, connect, identity, error):
                 return error("Room not found.", 404)
             now = time.time()
             visitors = [dict(row) for row in con.execute(
-                """SELECT u.name,u.avatar_color,u.avatar_style
+                """SELECT u.name,u.avatar_color,u.avatar_style,v.x,v.y,
+                          CASE WHEN u.id=? THEN 1 ELSE 0 END AS self
                    FROM room_visitors v JOIN users u ON u.id=v.user_id
                    WHERE v.room_id=? AND v.seen>? AND EXISTS (
                      SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?)
-                   ORDER BY u.name LIMIT 30""", (room_id, now-30, now))]
+                   ORDER BY u.name LIMIT 30""", (u["id"],room_id, now-30, now))]
             messages = [dict(row) for row in con.execute(
                 """SELECT id,name,body,created FROM (
                    SELECT id,name,body,created FROM room_messages
