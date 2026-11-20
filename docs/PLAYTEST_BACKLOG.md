@@ -189,3 +189,12 @@ account-isolation coverage and moved the desktop studio into a floating dock
 without taking another layout row. Both fixes require fresh CI and screenshot
 review on the new PR head; do not merge on the previous failures. Live Pi
 verification remains untested. On mobile the studio remains in normal flow.
+
+
+## November 20, 2026 — Plaza chat and toolbar candidate (PR #55)
+
+- Screenshot-reported usability: plaza chat was only 148px tall on desktop, and multiple redundant shortcuts cluttered the world toolbar. These are owner-observed production UI concerns, not isolated test results.
+- Candidate uses a larger floating chat panel without reducing canvas height, enlarges message/composer typography, and hides redundant Lantern Circle, evening and Chat shortcuts while keeping the Explore plaza guide reachable.
+- Initial Chromium playtest failed when its Explore plaza control was hidden; restored that control and corrected a literal newline escape in the floating-panel CSS. Both required workflows and screenshot review must be repeated on the corrected head before merge.
+- Rooms still require a genuinely walkable shared world with visible visitors and direct furniture interaction. PR #54 adds room presence/chat but does not satisfy this acceptance criterion.
+- Production deployment and live Pi gameplay remain unverified for this candidate.
