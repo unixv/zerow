@@ -217,6 +217,20 @@ def main():
             alice.locator("#message").click()
             expect(alice.locator("#message")).to_be_focused()
 
+            print("Chat HTML payload remains inert across both players and reload")
+            payload = '<img src=x onerror="window.__atrium_chat_xss=1">QA-inert'
+            alice.locator("#message").fill(payload)
+            alice.locator("#send").click()
+            for page in (alice, bob):
+                expect(page.locator("#lines")).to_contain_text(payload, timeout=10000)
+                assert page.locator("#lines img").count() == 0, "Chat created an executable image element"
+                assert page.evaluate("window.__atrium_chat_xss === undefined"), "Chat executed injected HTML"
+            bob.reload()
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            expect(bob.locator("#lines")).to_contain_text(payload, timeout=10000)
+            assert bob.locator("#lines img").count() == 0, "Persisted chat rendered injected HTML"
+            assert bob.evaluate("window.__atrium_chat_xss === undefined"), "Persisted chat executed HTML"
+
             print("Wardrobe changes persist and are visible to the other player")
             alice.locator("#avatarSettings").click()
             expect(alice.locator("#wardrobe")).to_be_visible()
