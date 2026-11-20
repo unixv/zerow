@@ -213,3 +213,10 @@ verification remains untested. On mobile the studio remains in normal flow.
 - Player Playtest [44695747838](https://github.com/unixv/zerow/actions/runs/44695747838) failed because the browser script expected `#exploreGuide` to be hidden, although the product intentionally retained the visible Explore plaza control. Corrected the assertion to verify the actual visible shortcut. This is isolated runner evidence, not live Pi evidence.
 - Verify ZeroW [44695747851](https://github.com/unixv/zerow/actions/runs/44695747851) passed on the prior head. Both checks must pass on the corrected head before merge; inspect desktop/mobile screenshots.
 - PR #54 checks passed on head 88b8a62, but screenshot review and release remain pending. Walkable rooms, avatars and direct furniture placement are still unimplemented.
+
+
+## November 20, 2026 — PR #55 floating chat overlap triage
+
+- Isolated Chromium Player Playtest run [44702149101](https://github.com/unixv/zerow/actions/runs/44702149101) failed while clicking the visible Starlight Sky Studio button: the enlarged floating chat's message list intercepted pointer events. This is a real layout interaction regression, not a stale test expectation.
+- Repositioned the desktop floating chat to the lower-left, away from the lower-right Sky Studio dock, preserving the expanded conversation area and the world canvas. Mobile flow is unchanged.
+- **Pending:** Both workflows on corrected head, screenshot inspection at desktop/mobile widths, and production Pi verification. Do not merge until verified.
