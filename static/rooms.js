@@ -20,7 +20,8 @@
       avatar.style.left=((person.x+.5)*10)+"%";
       avatar.style.top=((person.y+.5)*100/7)+"%";
       // Colors are only accepted as CSS hex colors, never HTML.
-      avatar.style.setProperty("--walker-color",/^#[0-9a-fA-F]{6}$/.test(person.avatar_color)?person.avatar_color:"#8fc9bc");
+      const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
+      avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
       avatar.textContent=person.name.slice(0,2).toUpperCase();
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
