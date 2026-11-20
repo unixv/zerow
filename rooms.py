@@ -57,6 +57,22 @@ def ensure_schema(con):
     )""")
     con.execute("CREATE INDEX IF NOT EXISTS furniture_owner_idx ON furniture_items(owner_id)")
     con.execute("CREATE INDEX IF NOT EXISTS furniture_room_idx ON furniture_items(room_id)")
+    con.execute("""CREATE TABLE IF NOT EXISTS room_visitors (
+        user_id INTEGER PRIMARY KEY,
+        room_id INTEGER NOT NULL,
+        seen REAL NOT NULL
+    )""")
+    con.execute("CREATE INDEX IF NOT EXISTS room_visitors_room_idx ON room_visitors(room_id,seen)")
+    con.execute("""CREATE TABLE IF NOT EXISTS room_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        room_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        body TEXT NOT NULL,
+        created REAL NOT NULL
+    )""")
+    con.execute("CREATE INDEX IF NOT EXISTS room_messages_room_idx ON room_messages(room_id,id DESC)")
+    con.execute("CREATE INDEX IF NOT EXISTS room_messages_user_idx ON room_messages(user_id,id DESC)")
 
 
 def catalog():
@@ -111,6 +127,81 @@ def register(app, connect, identity, error):
                                  "editable": room["owner_id"] == u["id"],
                                  "width": ROOM_WIDTH, "height": ROOM_HEIGHT},
                            items=items)
+
+
+    @app.post("/api/homes/<int:room_id>/visit")
+    def visit_home(room_id):
+        with connect() as con:
+            u = current(con)
+            if u is None:
+                return error("Log in first.", 401)
+            if not con.execute("SELECT 1 FROM player_rooms WHERE id=?", (room_id,)).fetchone():
+                return error("Room not found.", 404)
+            now = time.time()
+            con.execute("INSERT INTO room_visitors(user_id,room_id,seen) VALUES(?,?,?) "
+                        "ON CONFLICT(user_id) DO UPDATE SET room_id=excluded.room_id,seen=excluded.seen",
+                        (u["id"], room_id, now))
+            return jsonify(ok=True)
+
+    @app.post("/api/homes/leave")
+    def leave_home():
+        with connect() as con:
+            u = current(con)
+            if u is None:
+                return error("Log in first.", 401)
+            con.execute("DELETE FROM room_visitors WHERE user_id=?", (u["id"],))
+            return jsonify(ok=True)
+
+    @app.get("/api/homes/<int:room_id>/social")
+    def home_social(room_id):
+        with connect() as con:
+            u = current(con)
+            if u is None:
+                return error("Log in first.", 401)
+            if not con.execute("SELECT 1 FROM player_rooms WHERE id=?", (room_id,)).fetchone():
+                return error("Room not found.", 404)
+            now = time.time()
+            visitors = [dict(row) for row in con.execute(
+                """SELECT u.name,u.avatar_color,u.avatar_style
+                   FROM room_visitors v JOIN users u ON u.id=v.user_id
+                   WHERE v.room_id=? AND v.seen>? AND EXISTS (
+                     SELECT 1 FROM sessions s WHERE s.user_id=u.id AND s.expires>?)
+                   ORDER BY u.name LIMIT 30""", (room_id, now-30, now))]
+            messages = [dict(row) for row in con.execute(
+                """SELECT id,name,body,created FROM (
+                   SELECT id,name,body,created FROM room_messages
+                   WHERE room_id=? ORDER BY id DESC LIMIT 35) ORDER BY id""",
+                (room_id,))]
+            return jsonify(visitors=visitors,messages=messages)
+
+    @app.post("/api/homes/<int:room_id>/chat")
+    def home_chat(room_id):
+        data = request.get_json(silent=True) or {}
+        body = data.get("message")
+        if not isinstance(body, str):
+            return error("Invalid message.")
+        body = body.strip()
+        if not body or len(body)>280 or any(ord(c)<32 and c not in "\n\t" for c in body):
+            return error("Message must be 1–280 characters.")
+        with connect() as con:
+            u = current(con)
+            if u is None:
+                return error("Log in first.", 401)
+            now = time.time()
+            visitor = con.execute("SELECT room_id,seen FROM room_visitors WHERE user_id=?",
+                                  (u["id"],)).fetchone()
+            if visitor is None or visitor["room_id"] != room_id or visitor["seen"] < now-30:
+                return error("Enter this room to chat.", 403)
+            last = con.execute("SELECT created FROM room_messages WHERE user_id=? ORDER BY id DESC LIMIT 1",
+                               (u["id"],)).fetchone()
+            if last and now-last["created"] < 1.25:
+                return error("Slow down a little.", 429)
+            con.execute("INSERT INTO room_messages(room_id,user_id,name,body,created) VALUES(?,?,?,?,?)",
+                        (room_id,u["id"],u["name"],body,now))
+            con.execute("UPDATE room_visitors SET seen=? WHERE user_id=?", (now,u["id"]))
+            con.execute("DELETE FROM room_messages WHERE id IN (SELECT id FROM room_messages "
+                        "WHERE room_id=? ORDER BY id DESC LIMIT -1 OFFSET 100)", (room_id,))
+            return jsonify(ok=True)
 
     @app.post("/api/homes/create")
     def create_home():

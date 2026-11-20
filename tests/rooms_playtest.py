@@ -50,6 +50,23 @@ def main():
             assert bob.locator("#homeGrid").bounding_box()["y"] < 844, "390px room grid hidden below fold"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-mobile.png"), full_page=True)
 
+            print("Two-player room gathering: visible roster, real chat and safe rendering")
+            expect(alice.locator("#homesVisitorCount")).to_have_text("2 here", timeout=12000)
+            expect(bob.locator("#homesVisitorCount")).to_have_text("2 here", timeout=12000)
+            expect(alice.locator("#homesVisitors")).to_contain_text("roomplayer_b")
+            expect(bob.locator("#homesVisitors")).to_contain_text("roomplayer_a")
+            payload = "<img src=x onerror=alert(1)>"
+            bob.locator("#homesChatDraft").fill(payload)
+            bob.locator("#homesChatForm").get_by_role("button", name="Send").tap()
+            expect(bob.locator("#homesChatDraft")).to_have_value("")
+            expect(alice.locator("#homesRoomMessages")).to_contain_text(payload, timeout=12000)
+            assert alice.locator("#homesRoomMessages img").count() == 0, "Room chat rendered HTML"
+            alice.locator("#homesChatDraft").fill("Welcome to the Fern Loft!")
+            alice.locator("#homesChatForm").get_by_role("button", name="Send").click()
+            expect(bob.locator("#homesRoomMessages")).to_contain_text("Welcome to the Fern Loft!", timeout=12000)
+            alice.screenshot(path=str(ARTIFACTS / "atrium-two-player-gathering-desktop.png"), full_page=True)
+            bob.screenshot(path=str(ARTIFACTS / "atrium-two-player-gathering-mobile.png"), full_page=True)
+
             print("Narrow 320px Atrium Homes: visitor controls and viewport containment")
             bob.set_viewport_size({"width": 320, "height": 700})
             expect(bob.locator("#homesOverlay")).to_be_visible()

@@ -189,3 +189,36 @@ account-isolation coverage and moved the desktop studio into a floating dock
 without taking another layout row. Both fixes require fresh CI and screenshot
 review on the new PR head; do not merge on the previous failures. Live Pi
 verification remains untested. On mobile the studio remains in normal flow.
+
+
+## Development milestone — November 19, 2026: live room gatherings (PR pending)
+
+- Added authenticated, room-scoped **visitor presence** (30-second expiry) and a
+  lightweight **room conversation** panel to Atrium Homes. Players visiting the
+  same room can see one another's names and exchange persistent messages;
+  switching rooms changes the audience. The panel works with the existing
+  320px-first room floor and furniture interactions.
+- Server enforces room existence, active room membership before chat, session
+  authentication, 280-character messages, 1.25-second chat cooldown and
+  100-message-per-room retention. Messages are rendered with text nodes rather
+  than HTML. Additive SQLite tables preserve existing accounts and furniture.
+- New \`tests/test_room_social.py\` covers two-player presence, cross-room
+  isolation, leaving, expiration, message retention, unauthorized requests,
+  cooldown, and literal HTML payload storage. **Pending CI**; not yet verified
+  in an isolated browser or on the public Raspberry Pi.
+- Coverage matrix: room presence/chat = **implemented, unverified**;
+  mobile live gameplay = **untested**; physical room avatar movement and
+  interactive furniture remain **next milestone**. Keep both existing browser
+  playtest entrypoints in the workflow.
+
+
+### Room gathering CI follow-up — November 19, 2026
+
+- PR #54 head `2ef5f51`: Verify ZeroW [44661182382](https://github.com/unixv/zerow/actions/runs/44661182382) passed; Player Playtest [44661180713](https://github.com/unixv/zerow/actions/runs/44661180713) failed in `tests/rooms_playtest.py` after daily claim: expected 365 coins after chair purchase but wallet remained 400. The buy click could be ignored while the preceding claim's asynchronous reload retained the shared `running` guard.
+- Follow-up `1e25129`: disable shop buttons during the pending transaction, then restore their correct affordability state after completion; clear room-chat message signature when changing rooms so coincident message IDs cannot hide a different conversation. Both workflows and screenshot review remain required on the new head; no production Pi verification.
+
+## Two-player room gathering browser acceptance — November 20, 2026
+
+- Added a real two-context Chromium scenario to `tests/rooms_playtest.py`: desktop owner and mobile visitor both see the same two-person roster; visitor sends an HTML-shaped message that must render as inert text on the owner's screen; owner replies and visitor receives it. Dedicated desktop/mobile gathering screenshots are captured for inspection.
+- This is **isolated browser coverage only**, not a production Pi or cloud-browser observation. The new scenario is **pending Verify ZeroW, ZeroW Player Playtest, and screenshot review on the new PR #54 head**. Existing API-level social tests passed on the preceding head, but do not substitute for this end-to-end check.
+- PR #55's enlarged chat remains a separate unmerged release; review compatibility against current main before merging either PR. Walkable room avatars and direct furniture interaction remain unimplemented.
