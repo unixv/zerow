@@ -185,7 +185,7 @@ def main():
             for page in (alice, bob):
                 # The secondary Explore and Evening buttons were removed from the
                 # toolbar; the Sky Studio is the supported visible atmosphere UI.
-                expect(page.locator("#exploreGuide")).to_be_hidden()
+                expect(page.locator("#exploreGuide")).to_be_visible()
                 expect(page.locator("#sceneToggle")).to_be_hidden()
                 sunlit = page.locator('[data-scene="day"]')
                 night = page.locator('[data-scene="night"]')
