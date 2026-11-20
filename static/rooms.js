@@ -15,6 +15,7 @@
     socialRoom=null;
     byId("homesVisitors").replaceChildren();
     byId("homesRoomMessages").replaceChildren();
+    delete byId("homesRoomMessages").dataset.signature;
     byId("homesVisitorCount").textContent="0 here";
     byId("homesChatNotice").textContent="";
   }
@@ -74,7 +75,7 @@
       if(input.value.trim()===draft)input.value="";
       await refreshSocial();
     }catch(err){byId("homesChatNotice").textContent=err.message;}
-    finally{running=false;}
+    finally{releaseBusy();}
   });
   socialTimer=setInterval(()=>{if(!root.hidden && selectedRoomId)refreshSocial();},3500);
   function text(id, value){byId(id).textContent = value;}
@@ -110,6 +111,13 @@
     renderCatalog();renderRooms();
     await reloadRoom();renderInventory();
   }
+  function releaseBusy(){
+    running=false;
+    document.querySelectorAll("#homesShop button").forEach(button=>{
+      const price=Number(button.querySelector(".price")?.textContent.split(" ")[0]);
+      button.disabled=Number.isFinite(price) && model.coins<price;
+    });
+  }
   function renderCatalog(){
     text("homesWallet",coinLabel());
     const claim=byId("claimCoins");
@@ -126,10 +134,10 @@
           const result=await request("/api/homes/buy","POST",{sku:item.sku});
           chosenItem=result.item_id;
           await reloadAll();status("Bought "+item.name+". Select an empty tile to place it.");
-        }catch(e){status(e.message);}finally{running=false;}
+        }catch(e){status(e.message);}finally{releaseBusy();}
       },null);
       const price=document.createElement("span");price.className="price";price.textContent=item.price+" coins";
-      b.append(price);b.disabled=model.coins<item.price;
+      b.append(price);b.disabled=running||model.coins<item.price;
       shop.append(b);
     }
   }
@@ -203,7 +211,7 @@
             chosenItem=null;status("Furniture placed. Other players can visit and see it.");
           }
           await reloadAll();
-        }catch(e){status(e.message);}finally{running=false;}
+        }catch(e){status(e.message);}finally{releaseBusy();}
       },null);
       b.setAttribute("aria-label",label);
       b.dataset.filled=String(!!item);
@@ -232,14 +240,14 @@
       selectedRoomId=result.room_id;chosenItem=null;
       byId("newHomeName").value="";
       await reloadAll();status("Room created! It's public, and you can decorate it.");
-    }catch(error){status(error.message);}finally{running=false;}
+    }catch(error){status(error.message);}finally{releaseBusy();}
   });
   byId("claimCoins").addEventListener("click",async()=>{
     if(running)return;running=true;
     try{
       const result=await request("/api/homes/claim","POST",{});
       await reloadAll();status("Claimed "+result.awarded+" coins.");
-    }catch(e){status(e.message);}finally{running=false;}
+    }catch(e){status(e.message);}finally{releaseBusy();}
   });
   root.addEventListener("keydown",e=>{
     if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close();return;}
