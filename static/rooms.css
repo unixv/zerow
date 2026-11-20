@@ -93,3 +93,94 @@
   transition:left .16s linear,top .16s linear}
 .homes-walker-self{box-shadow:0 4px 0 #0a1b2080,0 0 0 3px #f3d38b}
 @media(max-width:760px){.homes-avatar-layer{inset:4px}.homes-walker{width:20px;height:20px;font-size:8px}}
+
+/* Atrium character stage: layered CSS sprites, no canvas library or image requests.
+   Characters remain non-interactive so tile tapping and furniture placement work. */
+.homes-roomcanvas{
+  background:radial-gradient(ellipse at 50% 15%,#42665a 0%,#244840 85%);
+  box-shadow:inset 0 0 0 4px #102b32,0 12px 32px #071a2080;
+}
+.homes-roomcanvas button{
+  background:linear-gradient(145deg,#466b60,#2e534b);
+  border-color:#52766a;
+  box-shadow:inset 0 1px #ffffff12;
+}
+.homes-roomcanvas button:nth-child(20n+1),
+.homes-roomcanvas button:nth-child(20n+3){background:linear-gradient(145deg,#52796a,#355d51)}
+.homes-roomcanvas button[data-filled=true]{
+  background:radial-gradient(ellipse,#8a725a,#5c4b42);
+  box-shadow:inset 0 0 0 2px #d5ba8350,0 2px 8px #091a1b55;
+  text-shadow:0 2px 3px #000a;
+}
+.homes-character{
+  --character-color:#8fc9bc;
+  position:absolute;width:42px;height:62px;z-index:4;
+  transform:translate(-50%,-70%);pointer-events:none;
+  transition:left .22s linear,top .22s linear;
+  filter:drop-shadow(0 2px 1px #07181b99);
+}
+.homes-character-shadow{
+  position:absolute;bottom:8px;left:6px;width:30px;height:9px;
+  border-radius:50%;background:#071d1d88;
+}
+.homes-character-legs{
+  position:absolute;bottom:11px;left:13px;width:16px;height:16px;
+  border-left:6px solid #263d55;border-right:6px solid #263d55;
+  border-radius:2px 2px 5px 5px;
+}
+.homes-character-body{
+  position:absolute;bottom:23px;left:8px;width:26px;height:22px;
+  background:var(--character-color);border:2px solid #18323a;
+  border-radius:9px 9px 5px 5px;
+  box-shadow:inset 0 4px #ffffff33;
+}
+.homes-character-body:before,.homes-character-body:after{
+  content:"";position:absolute;top:4px;width:7px;height:15px;
+  border-radius:5px;background:var(--character-color);border:1px solid #19323b;
+}
+.homes-character-body:before{left:-7px;transform:rotate(12deg)}
+.homes-character-body:after{right:-7px;transform:rotate(-12deg)}
+.homes-character-head{
+  position:absolute;top:3px;left:9px;width:24px;height:24px;
+  border-radius:10px 10px 12px 12px;
+  background:#edc6a0;border:2px solid #513d3b;
+}
+.homes-character-hair{
+  position:absolute;top:-3px;left:-2px;right:-2px;height:10px;
+  border-radius:10px 10px 3px 3px;background:#493b38;
+}
+.homes-character-face{
+  position:absolute;top:11px;left:5px;width:3px;height:3px;
+  border-radius:50%;background:#24343d;box-shadow:9px 0 #24343d;
+}
+.homes-character-name{
+  position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);
+  max-width:90px;padding:2px 5px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;background:#102b36e8;border:1px solid #7baca0;
+  border-radius:5px;color:#fff;font:700 10px/1.2 system-ui,sans-serif;
+  text-shadow:0 1px #000;
+}
+.homes-character-self .homes-character-name{
+  background:#51492b;border-color:#f6d88e;color:#fff2c3;
+}
+.homes-character-self .homes-character-shadow{background:#f1d38a55}
+.homes-character[data-style*="hood"] .homes-character-hair{
+  height:15px;background:#2d4755;border-radius:12px 12px 5px 5px;
+}
+.homes-character[data-style*="crown"] .homes-character-hair{
+  background:#e7c367;clip-path:polygon(0 90%,0 0,30% 45%,50% 0,70% 45%,100% 0,100% 90%);
+}
+.homes-character[data-facing="back"] .homes-character-face{opacity:0}
+.homes-character[data-facing="left"] .homes-character-face{box-shadow:none}
+.homes-character[data-facing="right"] .homes-character-face{left:14px;box-shadow:none}
+.homes-character-moving .homes-character-legs{animation:atrium-stride .22s ease-in-out 2 alternate}
+.homes-character-moving .homes-character-body{animation:atrium-bob .22s ease-in-out 2 alternate}
+@keyframes atrium-stride{to{transform:skewX(12deg)}}
+@keyframes atrium-bob{to{transform:translateY(-3px)}}
+@media(max-width:760px){
+  .homes-character{width:30px;height:48px;transform:translate(-50%,-68%) scale(.78);transform-origin:bottom center}
+  .homes-character-name{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .homes-character,.homes-character *{transition:none!important;animation:none!important}
+}
