@@ -198,3 +198,11 @@ verification remains untested. On mobile the studio remains in normal flow.
 - Initial Chromium playtest failed when its Explore plaza control was hidden; restored that control and corrected a literal newline escape in the floating-panel CSS. Both required workflows and screenshot review must be repeated on the corrected head before merge.
 - Rooms still require a genuinely walkable shared world with visible visitors and direct furniture interaction. PR #54 adds room presence/chat but does not satisfy this acceptance criterion.
 - Production deployment and live Pi gameplay remain unverified for this candidate.
+
+
+### November 20 — PR #55 browser regression triage
+
+- Player Playtest run 44688136179 failed because the previous simplified toolbar hid `#sceneToggle`, while the browser script still clicked it. This is an isolated Chromium failure, not a production Pi observation.
+- The visible Sky Studio now supplies the atmosphere control tested in `tests/playtest.py`; the chat input replaces the redundant chat-focus shortcut. The Lantern Circle button remains available for the mobile lantern journey. The exploration guide shortcut stays hidden to reduce toolbar clutter; existing landmark canvas tests still exercise discovery.
+- Fresh Verify ZeroW and ZeroW Player Playtest results on commit 5012be6 are required before merge. Screenshots and production Pi remain unverified.
+- Separate unresolved design milestone: Homes must become genuinely walkable shared rooms with avatars, interactive furniture and room-local social activity. Room gatherings alone are not a playable room.
