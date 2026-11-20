@@ -11,22 +11,48 @@
   const avatarLayer = document.createElement("div");
   avatarLayer.className = "homes-avatar-layer";
   avatarLayer.setAttribute("aria-label", "Players walking in this room");
+  // Reuse avatar nodes between polls: otherwise every presence refresh restarts
+  // the walking animation and makes other players visibly flicker.
+  const avatarNodes = new Map();
   function paintWalkers(){
-    avatarLayer.replaceChildren();
+    const active = new Set();
     for(const person of walkers){
       if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
-      const avatar=document.createElement("span");
-      avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
+      const key=String(person.id ?? person.name);
+      active.add(key);
+      let avatar=avatarNodes.get(key);
+      if(!avatar){
+        avatar=document.createElement("span");
+        avatar.className="homes-character homes-walker"+(person.self?" homes-walker-self":"");
+        const shadow=document.createElement("span");shadow.className="homes-character-shadow";
+        const legs=document.createElement("span");legs.className="homes-character-legs";
+        const body=document.createElement("span");body.className="homes-character-body";
+        const head=document.createElement("span");head.className="homes-character-head";
+        const hair=document.createElement("span");hair.className="homes-character-hair";
+        const face=document.createElement("span");face.className="homes-character-face";
+        const badge=document.createElement("span");badge.className="homes-character-name";
+        head.append(hair,face);avatar.append(shadow,legs,body,head,badge);
+        avatarNodes.set(key,avatar);avatarLayer.append(avatar);
+      }
+      const oldX=Number(avatar.dataset.x),oldY=Number(avatar.dataset.y);
+      if(avatar.dataset.x!==undefined && (oldX!==person.x||oldY!==person.y)){
+        avatar.dataset.facing=person.x>oldX?"right":person.x<oldX?"left":person.y<oldY?"back":"front";
+        avatar.classList.remove("homes-character-moving");
+        void avatar.offsetWidth;
+        avatar.classList.add("homes-character-moving");
+      }
+      avatar.dataset.x=String(person.x);avatar.dataset.y=String(person.y);
+      avatar.classList.toggle("homes-character-self",!!person.self);
       avatar.style.left=((person.x+.5)*10)+"%";
       avatar.style.top=((person.y+.5)*100/7)+"%";
-      // Colors are only accepted as CSS hex colors, never HTML.
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
-      avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
-      avatar.textContent=person.name.slice(0,2).toUpperCase();
-      avatar.title=person.name+" · "+person.avatar_style;
+      avatar.style.setProperty("--character-color",colors[person.avatar_color]||"#8fc9bc");
+      avatar.querySelector(".homes-character-name").textContent=person.name;
+      avatar.title=person.name+" · "+(person.avatar_style||"explorer");
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
-      avatarLayer.append(avatar);
+      avatar.dataset.style=person.avatar_style||"";
     }
+    for(const [key,node] of avatarNodes)if(!active.has(key)){node.remove();avatarNodes.delete(key);}
   }
   async function walkTo(x,y){
     if(walking||!room||!selectedRoomId)return;
@@ -65,7 +91,7 @@
   social.innerHTML = '<div class="homes-social-head"><h3>Room gathering</h3><span id="homesVisitorCount">0 here</span></div><div id="homesVisitors" class="homes-visitors" aria-label="Players in this room"></div><div id="homesRoomMessages" class="homes-roommessages" role="log" aria-label="Room conversation"></div><form id="homesChatForm" class="homes-chat"><input id="homesChatDraft" aria-label="Message this room" maxlength="280" autocomplete="off" placeholder="Say something to the room…" required><button type="submit">Send</button></form><p id="homesChatNotice" role="status"></p>';
   document.querySelector(".homes-main").append(social);
   function resetSocial(){
-    socialRoom=null;walkers=[];roomGeneration++;avatarLayer.replaceChildren();
+    socialRoom=null;walkers=[];roomGeneration++;avatarLayer.replaceChildren();avatarNodes.clear();
     byId("homesVisitors").replaceChildren();
     byId("homesRoomMessages").replaceChildren();
     delete byId("homesRoomMessages").dataset.signature;
