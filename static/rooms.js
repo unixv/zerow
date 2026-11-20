@@ -7,12 +7,64 @@
                  sofa:"🛋", books:"📚", flower:"🌷"};
   let model = null, selectedRoomId = null, room = null, chosenItem = null;
   let running = false, socialTimer = null, socialRoom = null, socialPending = false;
+  let walkers = [], walking = false, roomGeneration = 0;
+  const avatarLayer = document.createElement("div");
+  avatarLayer.className = "homes-avatar-layer";
+  avatarLayer.setAttribute("aria-label", "Players walking in this room");
+  function paintWalkers(){
+    avatarLayer.replaceChildren();
+    for(const person of walkers){
+      if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
+      const avatar=document.createElement("span");
+      avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
+      avatar.style.left=((person.x+.5)*10)+"%";
+      avatar.style.top=((person.y+.5)*100/7)+"%";
+      // Colors are only accepted as CSS hex colors, never HTML.
+      avatar.style.setProperty("--walker-color",/^#[0-9a-fA-F]{6}$/.test(person.avatar_color)?person.avatar_color:"#8fc9bc");
+      avatar.textContent=person.name.slice(0,2).toUpperCase();
+      avatar.title=person.name+" · "+person.avatar_style;
+      avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
+      avatarLayer.append(avatar);
+    }
+  }
+  async function walkTo(x,y){
+    if(walking||!room||!selectedRoomId)return;
+    const me=walkers.find(p=>p.self);
+    if(!me){status("Waiting to join this room…");return;}
+    const blocked=new Set(room.items.map(i=>i.x+","+i.y));
+    if(blocked.has(x+","+y)){status("Furniture blocks that tile.");return;}
+    const start=me.x+","+me.y,target=x+","+y;
+    const queue=[[me.x,me.y]],visited=new Map([[start,null]]);
+    for(let i=0;i<queue.length&&!visited.has(target);i++){
+      const [cx,cy]=queue[i];
+      for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
+        const nx=cx+dx,ny=cy+dy,key=nx+","+ny;
+        if(nx>=0&&nx<10&&ny>=0&&ny<7&&!blocked.has(key)&&!visited.has(key)){
+          visited.set(key,[cx,cy]);queue.push([nx,ny]);
+        }
+      }
+    }
+    if(!visited.has(target)){status("No clear path to that tile.");return;}
+    const path=[];
+    for(let at=[x,y];at&&at.join(",")!==start;at=visited.get(at.join(",")))path.unshift(at);
+    const id=selectedRoomId,generation=roomGeneration;
+    walking=true;
+    try{
+      for(const [nx,ny] of path){
+        if(root.hidden||selectedRoomId!==id||generation!==roomGeneration)break;
+        await request("/api/homes/"+id+"/move","POST",{x:nx,y:ny});
+        me.x=nx;me.y=ny;paintWalkers();
+      }
+      await refreshSocial();
+    }catch(err){status(err.message);await refreshSocial();}
+    finally{walking=false;}
+  }
   const social = document.createElement("section");
   social.className = "homes-social";
   social.innerHTML = '<div class="homes-social-head"><h3>Room gathering</h3><span id="homesVisitorCount">0 here</span></div><div id="homesVisitors" class="homes-visitors" aria-label="Players in this room"></div><div id="homesRoomMessages" class="homes-roommessages" role="log" aria-label="Room conversation"></div><form id="homesChatForm" class="homes-chat"><input id="homesChatDraft" aria-label="Message this room" maxlength="280" autocomplete="off" placeholder="Say something to the room…" required><button type="submit">Send</button></form><p id="homesChatNotice" role="status"></p>';
   document.querySelector(".homes-main").append(social);
   function resetSocial(){
-    socialRoom=null;
+    socialRoom=null;walkers=[];roomGeneration++;avatarLayer.replaceChildren();
     byId("homesVisitors").replaceChildren();
     byId("homesRoomMessages").replaceChildren();
     delete byId("homesRoomMessages").dataset.signature;
@@ -35,13 +87,15 @@
       await request("/api/homes/"+id+"/visit","POST",{});
       const data=await request("/api/homes/"+id+"/social");
       if(id!==selectedRoomId || root.hidden)return;
+      walkers=data.visitors;
+      paintWalkers();
       const visitors=byId("homesVisitors");
       visitors.replaceChildren();
       for(const person of data.visitors){
         const chip=document.createElement("span");
         chip.className="homes-visitor";
         chip.textContent=person.name;
-        chip.title=person.avatar_color+" · "+person.avatar_style;
+        chip.title=person.avatar_color+" · "+person.avatar_style+" · tile "+person.x+","+person.y;
         visitors.append(chip);
       }
       byId("homesVisitorCount").textContent=data.visitors.length+" here";
@@ -188,8 +242,8 @@
     }
     canvas.classList.remove("homes-empty");
     text("homesRoomTitle",room.room.name);
-    text("homesRoomOwner",room.room.editable?"Your room · click furniture to pick it up":
-         "Visiting "+room.room.owner+"'s room · view only");
+    text("homesRoomOwner",room.room.editable?"Your room · tap an empty tile to walk, or select furniture to decorate":
+         "Visiting "+room.room.owner+"'s room · tap empty tiles to walk together");
     const occupied=new Map(room.items.map(item=>[item.x+","+item.y,item]));
     const width=room.room.width,height=room.room.height;
     for(let y=0;y<height;y++)for(let x=0;x<width;x++){
@@ -198,14 +252,18 @@
       const label=item ? "Pick up "+(cat?.name||item.sku)+" at "+x+","+y :
                      "Tile "+x+","+y;
       const b=makeButton(item?(icons[item.sku]||"✦"):"",async()=>{
-        if(running||!room?.room.editable)return;
+        if(running)return;
+        if(!room?.room.editable){
+          if(!item)await walkTo(x,y);
+          return;
+        }
         running=true;
         try{
           if(item){
             await request("/api/homes/pickup","POST",{room_id:room.room.id,item_id:item.id});
             status("Picked up "+(cat?.name||item.sku)+". It's back in your inventory.");
           }else{
-            if(!chosenItem){status("Select furniture from your inventory before choosing a tile.");return;}
+            if(!chosenItem){releaseBusy();await walkTo(x,y);return;}
             await request("/api/homes/place","POST",
                            {room_id:room.room.id,item_id:chosenItem,x,y});
             chosenItem=null;status("Furniture placed. Other players can visit and see it.");
@@ -215,9 +273,11 @@
       },null);
       b.setAttribute("aria-label",label);
       b.dataset.filled=String(!!item);
-      if(!room.room.editable)b.disabled=true;
+      if(!room.room.editable&&item)b.disabled=true;
       canvas.append(b);
     }
+    canvas.append(avatarLayer);
+    paintWalkers();
   }
   async function open(){
     if(typeof me==="undefined"||!me){notify("Log in to explore player rooms.");return;}
