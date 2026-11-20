@@ -239,3 +239,12 @@ verification remains untested. On mobile the studio remains in normal flow.
 - **Release gate:** This branch is not production. Run Verify ZeroW and ZeroW Player Playtest on the exact integration head; inspect walking screenshots at desktop, mobile and 320px. Confirm old room purchase, placement, pickup, visitor restrictions and chat tests still pass. Do not merge on failed checks.
 - **Live evidence:** No public Pi walking verification yet. Prior live evidence is unchanged.
 - **Remaining larger-game milestone:** replace initials with more expressive sprite avatars and add furniture interactions and cooperative activities. Do not claim those features exist yet.
+
+
+## Character stage candidate — November 20, 2026
+
+- Candidate branch `feat/atrium-expressive-room-avatars-20261120` replaces two-letter room markers with lightweight full-body CSS characters (head, face, hair/headwear, outfit, legs, shadow and nameplates), directional walking motion, owner highlight and a warmer tile-floor treatment. No new framework, database schema or network polling.
+- Avatar DOM nodes are reused across social polls to avoid flicker and preserve walking transitions. Usernames use `textContent`; wardrobe colors are selected from a fixed palette. Avatar overlays do not intercept floor taps. Reduced-motion users receive static characters.
+- New `tests/test_room_characters.py` covers renderer safety, node reuse, sprite parts, motion and movement interaction contract. Existing `tests/playtest.py` and `tests/journey_playtest.py` must continue running unchanged.
+- **Release gate:** Both Verify ZeroW and ZeroW Player Playtest must pass on the exact candidate head. Review desktop and 320px/mobile screenshots with two visible players before merging. Source-contract tests alone do not prove visual acceptance. Production Raspberry Pi rendering remains **untested** until a separate live observation.
+- **Next milestone:** Real furniture interactions and shared cooperative room activities, with server-authoritative persistence and two-player browser tests.
