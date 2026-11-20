@@ -189,3 +189,24 @@ account-isolation coverage and moved the desktop studio into a floating dock
 without taking another layout row. Both fixes require fresh CI and screenshot
 review on the new PR head; do not merge on the previous failures. Live Pi
 verification remains untested. On mobile the studio remains in normal flow.
+
+
+## Development milestone — November 19, 2026: live room gatherings (PR pending)
+
+- Added authenticated, room-scoped **visitor presence** (30-second expiry) and a
+  lightweight **room conversation** panel to Atrium Homes. Players visiting the
+  same room can see one another's names and exchange persistent messages;
+  switching rooms changes the audience. The panel works with the existing
+  320px-first room floor and furniture interactions.
+- Server enforces room existence, active room membership before chat, session
+  authentication, 280-character messages, 1.25-second chat cooldown and
+  100-message-per-room retention. Messages are rendered with text nodes rather
+  than HTML. Additive SQLite tables preserve existing accounts and furniture.
+- New \`tests/test_room_social.py\` covers two-player presence, cross-room
+  isolation, leaving, expiration, message retention, unauthorized requests,
+  cooldown, and literal HTML payload storage. **Pending CI**; not yet verified
+  in an isolated browser or on the public Raspberry Pi.
+- Coverage matrix: room presence/chat = **implemented, unverified**;
+  mobile live gameplay = **untested**; physical room avatar movement and
+  interactive furniture remain **next milestone**. Keep both existing browser
+  playtest entrypoints in the workflow.
