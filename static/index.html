@@ -220,6 +220,20 @@ canvas{min-height:0}
  .scene-studio small{display:none}
 }
 @media(max-width:520px){.scene-studio{gap:5px;padding:5px 8px}.scene-studio button{min-height:38px;flex:1}.scene-studio small{display:none}}
+
+/* Atrium usability: readable conversation and a single primary action row. */
+@media(min-width:801px){
+ .shell{grid-template-rows:54px minmax(0,1fr) clamp(260px,34dvh,380px)}
+ .shell .chathead{padding:10px 14px;font-size:13px;font-weight:700}
+ .shell .lines{padding:12px 16px;font-size:14px;line-height:1.75}
+ .shell .quickchat{padding:7px 12px}
+ .shell .compose{padding:10px 12px}
+ .shell .compose input,.shell .compose button{padding:11px 13px;font-size:14px}
+}
+@media(max-width:800px){.chat{min-height:310px}.lines{min-height:140px}}
+/* Secondary tutorials remain available from the discovery panel; keep the plaza uncluttered. */
+.explorebar #exploreGuide,.explorebar #lanternToggle,.explorebar #sceneToggle,.explorebar #chatFocus{display:none}
+@media(max-width:520px){.chat{min-height:340px}.lines{min-height:170px}}
 </style>
 <link rel="stylesheet" href="/static/rooms.css">
 </head>
