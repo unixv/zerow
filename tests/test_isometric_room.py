@@ -15,6 +15,18 @@ class IsometricRoomTests(unittest.TestCase):
         self.assertIn("tileCenter(person.x,person.y)", source)
         self.assertIn("tileCenter(x,y)", source)
 
+    def test_original_room_furnishings_and_characters(self):
+        js = (ROOT / "static/rooms.js").read_text()
+        css = (ROOT / "static/rooms.css").read_text()
+        self.assertIn('furnishing.className="homes-furnishing"', js)
+        self.assertIn('avatar.append(shadow,body,face,hair,label)', js)
+        self.assertIn('label.textContent=person.name', js)
+        for sku in ("chair", "sofa", "table", "lamp", "plant", "rug", "books", "flower"):
+            self.assertIn('button[data-sku="' + sku + '"]', css)
+        self.assertIn(".homes-character-face", css)
+        self.assertIn(".homes-character-name", css)
+        self.assertIn("@media(prefers-reduced-motion:reduce)", css)
+
     def test_interactive_tiles_and_visitors_remain_available(self):
         js = (ROOT / "static/rooms.js").read_text()
         css = (ROOT / "static/rooms.css").read_text()
