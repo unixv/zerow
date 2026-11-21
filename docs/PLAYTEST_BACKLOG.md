@@ -289,3 +289,10 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - PR #59 commit `0a64472`: [Verify ZeroW 44861131412](https://github.com/unixv/zerow/actions/runs/44861131412) passed; [Player Playtest 44861131564](https://github.com/unixv/zerow/actions/runs/44861131564) failed because the new contextual drawer intentionally hides `#newHomeName`, while the old browser journey tried to fill it without opening the drawer. The original and journey playtests passed earlier in the same run. This is an isolated browser regression, not a live Pi observation.
 - Updated `tests/rooms_playtest.py` to open the Rooms & furniture drawer before creating rooms and visiting rooms, and close it before interacting with the floor. Updated the walker renderer to retain the walking class and refresh position accessibility labels during social polling.
 - Both required workflows must pass on the new integration head, followed by inspection of desktop, mobile, 320px, furnished-room and two-player screenshots. Do not merge while either check is missing or failing. Live Pi deployment and signed-in production room interactions remain unverified.
+
+
+## Isometric room PR #59 CI follow-up — November 20, 2026
+
+- Commit `f2b18b4` passed [Verify ZeroW 44866371470](https://github.com/unixv/zerow/actions/runs/44866371470), but [Player Playtest 44866371430](https://github.com/unixv/zerow/actions/runs/44866371430) failed at `tests/rooms_playtest.py:24`: the unscoped accessible-name query for `Rooms & furniture` matched both the plaza launch button and the room drawer toggle (Playwright strict-mode violation). The base and journey playtests passed before the room test failed.
+- Corrective commit `2bbdf9a` scopes both room-tool toggle interactions to `.homes-drawer-toggle`. This is a test locator correction, not proof of completed visual acceptance. Both workflows must run again on the updated PR head; retain draft status and do not merge on prior checks.
+- Public Pi, fresh desktop/mobile screenshots and live signed-in room play remain **unverified** for this candidate.
