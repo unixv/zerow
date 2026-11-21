@@ -178,21 +178,43 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 @media(max-width:760px){.homes-content{display:flex;flex-direction:column;overflow-y:auto}.homes-sidebar{position:fixed;top:52px;bottom:0;left:0;order:unset;overflow-y:auto;display:grid;align-content:start;z-index:35;background:#172f39}.homes-sidebar section{margin-bottom:0}.homes-main{order:0}.homes-roomcanvas.homes-isometric{aspect-ratio:1.2}.homes-speech-bubble{font-size:10px;max-width:115px}.homes-main-title{align-items:center}}
 @media(prefers-reduced-motion:reduce){.homes-sidebar{transition:none}.homes-character-walking .homes-character-body{animation:none}}
 
-/* Drawer sections stay in document flow while their dynamic inventory grows. */
-.homes-drawer-open .homes-sidebar{display:block;overflow-y:auto;overscroll-behavior:contain}
-.homes-drawer-open .homes-sidebar section{position:relative;margin-bottom:16px}
+/* The room tools drawer uses normal block layout. Keep each section as a
+   containing block; display:contents previously flattened section children
+   into flex items and let the shop cover the inventory hit targets. */
+.homes-drawer-open .homes-sidebar{
+  display:block;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  min-height:0;
+}
+.homes-drawer-open .homes-sidebar > section{
+  display:block;
+  position:static;
+  height:auto;
+  min-height:0;
+  margin:0 0 20px;
+  clear:both;
+}
+.homes-drawer-open .homes-sidebar > section > *{
+  position:static;
+  height:auto;
+  min-height:0;
+}
+.homes-drawer-open .homes-sidebar #homesShop,
+.homes-drawer-open .homes-sidebar #homesInventory{
+  display:grid;
+  position:static;
+  height:auto;
+  max-height:none;
+  overflow:visible;
+  align-content:start;
+}
+.homes-drawer-open .homes-sidebar button{position:static}
 .homes-drawer-open #homesInventory button{scroll-margin-block:20px}
-
-/* Keep each drawer section in its own vertical flow slot. The former grid
-   could overlap growing inventory and shop controls during async refresh. */
-.homes-drawer-open .homes-sidebar{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;min-height:0}
-.homes-drawer-open .homes-sidebar > *{position:relative;flex:0 0 auto;min-height:min-content;margin:0}
-.homes-drawer-open .homes-sidebar button{position:relative;z-index:1}
-@media(max-width:760px){.homes-drawer-open .homes-sidebar{height:calc(100dvh - 52px);max-height:calc(100dvh - 52px)}}
-
-/* Flatten section wrappers so growing shop and inventory grids cannot share
-   overlapping grid/flex slots. Each control occupies intrinsic flow height. */
-.homes-drawer-open .homes-sidebar > section{display:contents}
-.homes-drawer-open .homes-sidebar > section > *{position:relative;flex:0 0 auto;min-height:min-content;min-width:0;margin:0}
-.homes-drawer-open .homes-sidebar > section > h3{margin-top:12px}
-.homes-drawer-open .homes-sidebar #homesShop,.homes-drawer-open .homes-sidebar #homesInventory{align-self:stretch;height:auto;max-height:none;overflow:visible}
+@media(max-width:760px){
+  .homes-drawer-open .homes-sidebar{
+    height:calc(100dvh - 52px);
+    max-height:calc(100dvh - 52px);
+  }
+}
