@@ -25,7 +25,14 @@
       // Colors are only accepted as CSS hex colors, never HTML.
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
       avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
-      avatar.textContent=person.name.slice(0,2).toUpperCase();
+      avatar.dataset.style=String(person.avatar_style||"").toLowerCase().replace(/[^a-z-]/g,"");
+      const shadow=document.createElement("span");shadow.className="homes-character-shadow";
+      const body=document.createElement("span");body.className="homes-character-body";
+      const face=document.createElement("span");face.className="homes-character-face";
+      const hair=document.createElement("span");hair.className="homes-character-hair";
+      const label=document.createElement("span");label.className="homes-character-name";
+      label.textContent=person.name;
+      avatar.append(shadow,body,face,hair,label);
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
       avatarLayer.append(avatar);
@@ -259,7 +266,7 @@
       const cat=item?model.catalog.find(p=>p.sku===item.sku):null;
       const label=item ? "Pick up "+(cat?.name||item.sku)+" at "+x+","+y :
                      "Tile "+x+","+y;
-      const b=makeButton(item?(icons[item.sku]||"✦"):"",async()=>{
+      const b=makeButton("",async()=>{
         if(running)return;
         if(!room?.room.editable){
           if(!item)await walkTo(x,y);
@@ -282,6 +289,12 @@
       b.setAttribute("aria-label",label);
       b.dataset.filled=String(!!item);
       b.dataset.sku=item?.sku||"";
+      if(item){
+        const furnishing=document.createElement("span");
+        furnishing.className="homes-furnishing";
+        furnishing.setAttribute("aria-hidden","true");
+        b.append(furnishing);
+      }
       const position=tileCenter(x,y);
       b.style.left=position.left;
       b.style.top=position.top;
