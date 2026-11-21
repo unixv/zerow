@@ -21,10 +21,13 @@ def main():
             alice.locator("#openRooms").click()
             expect(alice.locator("#homesOverlay")).to_be_visible()
             expect(alice.locator("#homesWallet")).to_contain_text("300 coins")
+            alice.locator(".homes-drawer-toggle").click()
             alice.locator("#newHomeName").fill("The Fern Loft")
             alice.locator("#createHomeForm").get_by_role("button", name="Create").click()
             expect(alice.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
             expect(alice.locator("#homeGrid button")).to_have_count(70)
+            # Room creation is asynchronous; the reward control must not accept a dropped click.
+            expect(alice.locator("#claimCoins")).to_be_enabled(timeout=12000)
             alice.locator("#claimCoins").click()
             expect(alice.locator("#homesWallet")).to_contain_text("400 coins")
             expect(alice.locator("#claimCoins")).to_be_disabled()
@@ -32,7 +35,37 @@ def main():
             print("Buying furniture, placing a chair, reloading and picking it up")
             alice.locator("#homesShop").get_by_role("button", name="Reading chair").click()
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
+            # Growing shop/inventory lists must not overlap neighboring sections.
+            assert alice.locator("#atriumRoomDrawer").evaluate("""drawer => {
+                const sections = [...drawer.querySelectorAll(':scope > section')];
+                return sections.every((section, index) => !index ||
+                    section.getBoundingClientRect().top >=
+                    sections[index - 1].getBoundingClientRect().bottom - 1);
+            }"""), "Room tools sections overlap and intercept furniture clicks"
+            # Inspect the actual hit target before clicking. A visible button may still
+            # be covered by another drawer control, even if sections do not overlap.
+            hit = alice.locator("#homesInventory").get_by_role("button", name="Reading chair").evaluate("""button => {
+                button.scrollIntoView({block: 'center'});
+                const rect = button.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                const top = document.elementFromPoint(x, y);
+                const describe = element => element && ({
+                    tag: element.tagName, id: element.id, className: element.className,
+                    text: (element.textContent || '').trim().slice(0, 90),
+                    rect: (() => { const r = element.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()
+                });
+                return {target: describe(button), top: describe(top),
+                    drawer: describe(document.querySelector('#atriumRoomDrawer')),
+                    inventory: describe(document.querySelector('#homesInventory')),
+                    shop: describe(document.querySelector('#homesShop')),
+                    sections: [...document.querySelectorAll('#atriumRoomDrawer > section')].map(describe),
+                    hit: top === button || button.contains(top)};
+            }""")
+            print("ATRIUM INVENTORY HIT TEST:", hit, flush=True)
+            assert hit["hit"], "Inventory Reading chair center is obstructed: " + repr(hit)
             alice.locator("#homesInventory").get_by_role("button", name="Reading chair").click()
+            alice.get_by_role("button", name="Close room tools").click()
             alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2").click()
             expect(alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_visible()
             alice.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-desktop.png"), full_page=True)
@@ -43,7 +76,9 @@ def main():
             print("Second player visits room but cannot edit furniture")
             bob.locator("#openRooms").tap()
             expect(bob.locator("#homesOverlay")).to_be_visible()
+            bob.locator(".homes-drawer-toggle").tap()
             bob.locator("#homesRooms").get_by_role("button", name="The Fern Loft").tap()
+            bob.get_by_role("button", name="Close room tools").tap()
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
             bob.locator("#viewHome").tap()

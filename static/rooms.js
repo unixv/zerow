@@ -8,25 +8,55 @@
   let model = null, selectedRoomId = null, room = null, chosenItem = null;
   let running = false, socialTimer = null, socialRoom = null, socialPending = false;
   let walkers = [], walking = false, roomGeneration = 0;
+  const avatarNodes = new Map(), recentSpeech = new Map();
+  let lastSpeechSignature = "";
+  const tileCenter=(x,y)=>({left:(50+(x-y)*4.35)+"%",top:(15+(x+y)*4.65)+"%"});
   const avatarLayer = document.createElement("div");
   avatarLayer.className = "homes-avatar-layer";
   avatarLayer.setAttribute("aria-label", "Players walking in this room");
   function paintWalkers(){
-    avatarLayer.replaceChildren();
+    const present = new Set();
     for(const person of walkers){
       if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
-      const avatar=document.createElement("span");
-      avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
-      avatar.style.left=((person.x+.5)*10)+"%";
-      avatar.style.top=((person.y+.5)*100/7)+"%";
+      const key=String(person.name);
+      present.add(key);
+      let avatar=avatarNodes.get(key);
+      if(!avatar){avatar=document.createElement("span");avatarNodes.set(key,avatar);}
+      const previous=avatar.dataset.position;
+      const next=person.x+","+person.y;
+      avatar.className="homes-walker"+(person.self?" homes-walker-self":"")+(previous&&previous!==next?" homes-character-walking":"");
+      avatar.dataset.position=next;
+      avatar.title=person.name+" · "+person.avatar_style;
+      avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
+      const position=tileCenter(person.x,person.y);
+      avatar.style.left=position.left;
+      avatar.style.top=position.top;
+      avatar.style.zIndex=String(20+person.x+person.y);
       // Colors are only accepted as CSS hex colors, never HTML.
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
       avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
-      avatar.textContent=person.name.slice(0,2).toUpperCase();
+      avatar.dataset.style=String(person.avatar_style||"").toLowerCase().replace(/[^a-z-]/g,"");
+      if(avatar.isConnected){
+        const bubble=avatar.querySelector(".homes-speech-bubble");
+        const speech=recentSpeech.get(key);
+        if(speech && speech.until>Date.now()){
+          bubble.textContent=speech.body;bubble.hidden=false;
+        }else bubble.hidden=true;
+        continue;
+      }
+      const shadow=document.createElement("span");shadow.className="homes-character-shadow";
+      const body=document.createElement("span");body.className="homes-character-body";
+      const face=document.createElement("span");face.className="homes-character-face";
+      const hair=document.createElement("span");hair.className="homes-character-hair";
+      const label=document.createElement("span");label.className="homes-character-name";
+      label.textContent=person.name;
+      const bubble=document.createElement("span");bubble.className="homes-speech-bubble";bubble.hidden=true;
+      avatar.append(shadow,body,face,hair,label,bubble);
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
       avatarLayer.append(avatar);
     }
+    for(const [key,node] of avatarNodes){if(!present.has(key)){node.remove();avatarNodes.delete(key);}}
   }
   async function walkTo(x,y){
     if(walking||!room||!selectedRoomId)return;
@@ -66,6 +96,7 @@
   document.querySelector(".homes-main").append(social);
   function resetSocial(){
     socialRoom=null;walkers=[];roomGeneration++;avatarLayer.replaceChildren();
+    avatarNodes.clear();recentSpeech.clear();lastSpeechSignature="";
     byId("homesVisitors").replaceChildren();
     byId("homesRoomMessages").replaceChildren();
     delete byId("homesRoomMessages").dataset.signature;
@@ -103,6 +134,14 @@
       const log=byId("homesRoomMessages");
       const atBottom=log.scrollTop+log.clientHeight>=log.scrollHeight-25;
       const signature=data.messages.map(m=>m.id).join(",");
+      if(lastSpeechSignature && signature!==lastSpeechSignature){
+        const latest=data.messages[data.messages.length-1];
+        if(latest && !lastSpeechSignature.split(",").includes(String(latest.id))){
+          recentSpeech.set(String(latest.name),{body:String(latest.body).slice(0,120),until:Date.now()+6500});
+          paintWalkers();
+        }
+      }
+      lastSpeechSignature=signature;
       if(log.dataset.signature!==signature){
         log.replaceChildren();
         for(const message of data.messages){
@@ -133,6 +172,20 @@
     finally{releaseBusy();}
   });
   socialTimer=setInterval(()=>{if(!root.hidden && selectedRoomId)refreshSocial();},3500);
+  const sidebar=document.querySelector(".homes-sidebar");
+  const drawerButton=document.createElement("button");
+  drawerButton.type="button";drawerButton.className="homes-drawer-toggle";
+  drawerButton.textContent="Rooms & furniture";
+  drawerButton.setAttribute("aria-expanded","false");
+  drawerButton.setAttribute("aria-controls","atriumRoomDrawer");
+  sidebar.id="atriumRoomDrawer";
+  document.querySelector(".homes-main-title").append(drawerButton);
+  function setDrawer(open){
+    root.classList.toggle("homes-drawer-open",open);
+    drawerButton.setAttribute("aria-expanded",String(open));
+    drawerButton.textContent=open?"Close room tools":"Rooms & furniture";
+  }
+  drawerButton.addEventListener("click",()=>setDrawer(!root.classList.contains("homes-drawer-open")));
   function text(id, value){byId(id).textContent = value;}
   function status(value){text("homesStatus", value);}
   async function request(path, method="GET", data){
@@ -168,6 +221,7 @@
   }
   function releaseBusy(){
     running=false;
+    byId("claimCoins").disabled=!!model && model.next_claim>0;
     document.querySelectorAll("#homesShop button").forEach(button=>{
       const price=Number(button.querySelector(".price")?.textContent.split(" ")[0]);
       button.disabled=Number.isFinite(price) && model.coins<price;
@@ -176,7 +230,7 @@
   function renderCatalog(){
     text("homesWallet",coinLabel());
     const claim=byId("claimCoins");
-    claim.disabled=model.next_claim>0;
+    claim.disabled=running||model.next_claim>0;
     claim.textContent=model.next_claim>0?"Next reward tomorrow":"Claim +100 daily coins";
     text("newRoomPrice",model.mine.length?"Additional room: "+model.room_cost+" coins":"Your first room is free");
     byId("createHomeForm").querySelector("button").disabled=model.mine.length>=model.max_rooms;
@@ -209,7 +263,7 @@
     for(const mine of model.mine)if(!shown.some(room=>room.id===mine.id))shown.unshift({...mine,owner:me,furniture_count:0});
     for(const entry of shown){
       const b=makeButton(entry.name+" · "+entry.owner,async()=>{
-        selectedRoomId=entry.id;chosenItem=null;resetSocial();
+        selectedRoomId=entry.id;chosenItem=null;resetSocial();setDrawer(false);
         try{await reloadRoom();renderRooms();renderInventory();status("");jumpTo(".homes-main");}
         catch(e){status(e.message);}
       },selectedRoomId===entry.id);
@@ -238,10 +292,14 @@
     if(!room){
       text("homesRoomTitle","Choose a room");
       text("homesRoomOwner","Create a room or visit another player's home.");
+      canvas.classList.remove("homes-isometric");
       canvas.classList.add("homes-empty");canvas.textContent="Rooms start with an empty floor. Make it yours.";
       return;
     }
     canvas.classList.remove("homes-empty");
+    canvas.classList.add("homes-isometric");
+    canvas.style.setProperty("--room-width",room.room.width);
+    canvas.style.setProperty("--room-height",room.room.height);
     text("homesRoomTitle",room.room.name);
     text("homesRoomOwner",room.room.editable?"Your room · tap an empty tile to walk, or select furniture to decorate":
          "Visiting "+room.room.owner+"'s room · tap empty tiles to walk together");
@@ -252,7 +310,7 @@
       const cat=item?model.catalog.find(p=>p.sku===item.sku):null;
       const label=item ? "Pick up "+(cat?.name||item.sku)+" at "+x+","+y :
                      "Tile "+x+","+y;
-      const b=makeButton(item?(icons[item.sku]||"✦"):"",async()=>{
+      const b=makeButton("",async()=>{
         if(running)return;
         if(!room?.room.editable){
           if(!item)await walkTo(x,y);
@@ -274,6 +332,18 @@
       },null);
       b.setAttribute("aria-label",label);
       b.dataset.filled=String(!!item);
+      b.dataset.sku=item?.sku||"";
+      if(item){
+        const furnishing=document.createElement("span");
+        furnishing.className="homes-furnishing";
+        furnishing.setAttribute("aria-hidden","true");
+        b.append(furnishing);
+      }
+      const position=tileCenter(x,y);
+      b.style.left=position.left;
+      b.style.top=position.top;
+      b.style.zIndex=String(2+x+y);
+      b.title=item?(cat?.name||item.sku):"Walk to tile "+x+", "+y;
       if(!room.room.editable&&item)b.disabled=true;
       canvas.append(b);
     }
@@ -282,19 +352,19 @@
   }
   async function open(){
     if(typeof me==="undefined"||!me){notify("Log in to explore player rooms.");return;}
-    root.hidden=false;status("Loading rooms…");byId("closeHomes").focus();
+    root.hidden=false;setDrawer(false);status("Loading rooms…");byId("closeHomes").focus();
     try{await reloadAll();status("Create a room, buy furniture, and place it on tiles.");}
     catch(e){status(e.message);}
   }
-  function close(){root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
-  byId("browseHomes").addEventListener("click",()=>jumpTo("#homesRooms"));
-  byId("shopHomes").addEventListener("click",()=>jumpTo("#homesShop"));
+  function close(){setDrawer(false);root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
+  byId("browseHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesRooms");});
+  byId("shopHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesShop");});
   byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
   byId("openRooms").addEventListener("click",open);
   byId("closeHomes").addEventListener("click",close);
   byId("createHomeForm").addEventListener("submit",async e=>{
     e.preventDefault();if(running)return;
-    running=true;
+    running=true;byId("claimCoins").disabled=true;
     try{
       const name=byId("newHomeName").value.trim();
       const result=await request("/api/homes/create","POST",{name});
@@ -304,7 +374,7 @@
     }catch(error){status(error.message);}finally{releaseBusy();}
   });
   byId("claimCoins").addEventListener("click",async()=>{
-    if(running)return;running=true;
+    if(running)return;running=true;byId("claimCoins").disabled=true;
     try{
       const result=await request("/api/homes/claim","POST",{});
       await reloadAll();status("Claimed "+result.awarded+" coins.");
