@@ -309,3 +309,9 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - Latest inspected candidate `4db57d2`: Verify ZeroW [44875376197](https://github.com/unixv/zerow/actions/runs/44875376197) passed, but Player Playtest [44875376212](https://github.com/unixv/zerow/actions/runs/44875376212) failed at the furniture inventory click: other room-drawer controls intercepted pointer events. Previous CSS flow fix did not resolve the browser failure.
 - Follow-up candidate uses explicit vertical flex layout for the expanded drawer and non-shrinking sections, and adds a Chromium geometry assertion that drawer sections cannot overlap. This is **not verified** until both workflows pass on the latest commit and screenshots are inspected.
 - Do not merge PR #59 on earlier green results. Preserve existing account/coin/room data; Pi production remains unverified.
+
+## November 21 room release gate
+
+- On PR #59 commit `38061a3`, Verify ZeroW passed, while Player Playtest failed in `tests/rooms_playtest.py`: immediately after creating a room, the daily reward click was ignored and the wallet remained at 300 coins. The room-creation handler still held the shared `running` lock; the reward control appeared enabled and silently returned.
+- Follow-up fix disables the reward control while room creation is pending, restores its correct state when the operation completes, and explicitly waits for readiness in the browser journey. This is an isolated CI diagnosis, not a production observation.
+- Both required workflows must pass on the updated head; inspect fresh desktop/mobile screenshots before merging. Live Raspberry Pi deployment remains unverified.
