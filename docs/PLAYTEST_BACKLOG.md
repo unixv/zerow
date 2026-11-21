@@ -303,3 +303,9 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - PR head `bfb5ef2` passed Verify ZeroW [44871297767](https://github.com/unixv/zerow/actions/runs/44871297767) but failed Player Playtest [44871298014](https://github.com/unixv/zerow/actions/runs/44871298014). The browser failed clicking the purchased Reading chair in `#homesInventory`: another button or the sidebar itself intercepted pointer events. This is a real drawer usability defect, not a selector ambiguity.
 - Candidate `abea429` keeps the expanded room-tools drawer in normal block flow and gives its dynamically expanding inventory room to scroll, instead of grid layout potentially overlapping controls. The existing real-browser furniture purchase/select/place journey is the regression gate.
 - **Unverified candidate:** both workflows must pass on this exact head; inspect updated desktop/mobile/320px screenshots before approving merge. No public Pi acceptance is claimed.
+
+## Atrium isometric room PR #59 — November 21, 2026 drawer regression
+
+- Latest inspected candidate `4db57d2`: Verify ZeroW [44875376197](https://github.com/unixv/zerow/actions/runs/44875376197) passed, but Player Playtest [44875376212](https://github.com/unixv/zerow/actions/runs/44875376212) failed at the furniture inventory click: other room-drawer controls intercepted pointer events. Previous CSS flow fix did not resolve the browser failure.
+- Follow-up candidate uses explicit vertical flex layout for the expanded drawer and non-shrinking sections, and adds a Chromium geometry assertion that drawer sections cannot overlap. This is **not verified** until both workflows pass on the latest commit and screenshots are inspected.
+- Do not merge PR #59 on earlier green results. Preserve existing account/coin/room data; Pi production remains unverified.
