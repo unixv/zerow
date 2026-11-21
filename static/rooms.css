@@ -177,3 +177,8 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 @keyframes atrium-step{50%{transform:translateY(-4px)}}
 @media(max-width:760px){.homes-content{display:flex;flex-direction:column;overflow-y:auto}.homes-sidebar{position:fixed;top:52px;bottom:0;left:0;order:unset;overflow-y:auto;display:grid;align-content:start;z-index:35;background:#172f39}.homes-sidebar section{margin-bottom:0}.homes-main{order:0}.homes-roomcanvas.homes-isometric{aspect-ratio:1.2}.homes-speech-bubble{font-size:10px;max-width:115px}.homes-main-title{align-items:center}}
 @media(prefers-reduced-motion:reduce){.homes-sidebar{transition:none}.homes-character-walking .homes-character-body{animation:none}}
+
+/* Drawer sections stay in document flow while their dynamic inventory grows. */
+.homes-drawer-open .homes-sidebar{display:block;overflow-y:auto;overscroll-behavior:contain}
+.homes-drawer-open .homes-sidebar section{position:relative;margin-bottom:16px}
+.homes-drawer-open #homesInventory button{scroll-margin-block:20px}
