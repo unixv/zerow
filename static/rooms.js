@@ -8,6 +8,7 @@
   let model = null, selectedRoomId = null, room = null, chosenItem = null;
   let running = false, socialTimer = null, socialRoom = null, socialPending = false;
   let walkers = [], walking = false, roomGeneration = 0;
+  const tileCenter=(x,y)=>({left:(50+(x-y)*4.35)+"%",top:(15+(x+y)*4.65)+"%"});
   const avatarLayer = document.createElement("div");
   avatarLayer.className = "homes-avatar-layer";
   avatarLayer.setAttribute("aria-label", "Players walking in this room");
@@ -17,8 +18,10 @@
       if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
       const avatar=document.createElement("span");
       avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
-      avatar.style.left=((person.x+.5)*10)+"%";
-      avatar.style.top=((person.y+.5)*100/7)+"%";
+      const position=tileCenter(person.x,person.y);
+      avatar.style.left=position.left;
+      avatar.style.top=position.top;
+      avatar.style.zIndex=String(20+person.x+person.y);
       // Colors are only accepted as CSS hex colors, never HTML.
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
       avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
@@ -238,10 +241,14 @@
     if(!room){
       text("homesRoomTitle","Choose a room");
       text("homesRoomOwner","Create a room or visit another player's home.");
+      canvas.classList.remove("homes-isometric");
       canvas.classList.add("homes-empty");canvas.textContent="Rooms start with an empty floor. Make it yours.";
       return;
     }
     canvas.classList.remove("homes-empty");
+    canvas.classList.add("homes-isometric");
+    canvas.style.setProperty("--room-width",room.room.width);
+    canvas.style.setProperty("--room-height",room.room.height);
     text("homesRoomTitle",room.room.name);
     text("homesRoomOwner",room.room.editable?"Your room · tap an empty tile to walk, or select furniture to decorate":
          "Visiting "+room.room.owner+"'s room · tap empty tiles to walk together");
@@ -274,6 +281,12 @@
       },null);
       b.setAttribute("aria-label",label);
       b.dataset.filled=String(!!item);
+      b.dataset.sku=item?.sku||"";
+      const position=tileCenter(x,y);
+      b.style.left=position.left;
+      b.style.top=position.top;
+      b.style.zIndex=String(2+x+y);
+      b.title=item?(cat?.name||item.sku):"Walk to tile "+x+", "+y;
       if(!room.room.editable&&item)b.disabled=true;
       canvas.append(b);
     }
