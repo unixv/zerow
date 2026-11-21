@@ -189,3 +189,10 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 .homes-drawer-open .homes-sidebar > *{position:relative;flex:0 0 auto;min-height:min-content;margin:0}
 .homes-drawer-open .homes-sidebar button{position:relative;z-index:1}
 @media(max-width:760px){.homes-drawer-open .homes-sidebar{height:calc(100dvh - 52px);max-height:calc(100dvh - 52px)}}
+
+/* Flatten section wrappers so growing shop and inventory grids cannot share
+   overlapping grid/flex slots. Each control occupies intrinsic flow height. */
+.homes-drawer-open .homes-sidebar > section{display:contents}
+.homes-drawer-open .homes-sidebar > section > *{position:relative;flex:0 0 auto;min-height:min-content;min-width:0;margin:0}
+.homes-drawer-open .homes-sidebar > section > h3{margin-top:12px}
+.homes-drawer-open .homes-sidebar #homesShop,.homes-drawer-open .homes-sidebar #homesInventory{align-self:stretch;height:auto;max-height:none;overflow:visible}
