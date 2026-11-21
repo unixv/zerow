@@ -108,3 +108,57 @@
 .homes-roomcanvas.homes-isometric .homes-walker::before{content:"";position:absolute;width:65%;height:33%;top:-20%;border-radius:45% 45% 38% 38%;background:#efc6a2;border:2px solid #1d3d43}
 .homes-roomcanvas.homes-isometric .homes-walker-self{box-shadow:0 5px 0 #0d2b31a0,0 0 0 3px #f3d38b}
 @media(max-width:760px){.homes-roomcanvas.homes-isometric{width:100%;aspect-ratio:1.22}.homes-roomcanvas.homes-isometric button{font-size:clamp(11px,3.5vw,22px)}.homes-roomcanvas.homes-isometric .homes-walker{width:19px;height:29px;font-size:8px}}
+
+/* Atrium room-first scene: illustrated objects and characters use only CSS. */
+.homes-panel{width:min(1500px,100%);height:min(980px,98dvh);border-radius:8px}
+.homes-content{grid-template-columns:minmax(190px,230px) minmax(0,1fr)}
+.homes-sidebar{padding:12px;gap:12px}
+.homes-main{padding:10px 16px;gap:7px}
+.homes-roomcanvas.homes-isometric{width:min(100%,1100px);aspect-ratio:1.7;border-radius:4px;background:radial-gradient(ellipse at 55% 65%,#365a5c,#142c39 78%);box-shadow:inset 0 20px 50px #081b2788,0 14px 28px #07182088}
+.homes-roomcanvas.homes-isometric::before{opacity:1;background:linear-gradient(180deg,#70938e 0 65%,#446d70 65% 70%,#23464c 70%);clip-path:polygon(50% 0,97% 23%,97% 45%,50% 21%,3% 45%,3% 23%)}
+.homes-roomcanvas.homes-isometric::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 0 47%,#d3d4a811 48% 54%,transparent 55%),radial-gradient(ellipse at 50% 85%,#d6c78c15,transparent 65%)}
+.homes-roomcanvas.homes-isometric button{transition:filter .12s ease;overflow:visible}
+.homes-roomcanvas.homes-isometric button[data-filled=true]{clip-path:none;background:transparent;filter:none;overflow:visible}
+.homes-roomcanvas.homes-isometric button[data-filled=true]::before{content:"";position:absolute;inset:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:#547b72;z-index:-1}
+.homes-roomcanvas.homes-isometric button[data-filled=true]:focus-visible{outline:2px solid #ffe3a1;outline-offset:3px}
+.homes-furnishing{position:absolute;left:50%;bottom:32%;transform:translateX(-50%);width:95%;height:170%;pointer-events:none;filter:drop-shadow(3px 5px 1px #0a242b99);z-index:2}
+.homes-furnishing::before,.homes-furnishing::after{content:"";position:absolute;box-sizing:border-box}
+button[data-sku="chair"] .homes-furnishing::before{left:25%;top:14%;width:52%;height:55%;background:linear-gradient(90deg,#855f48,#b58a67);border:2px solid #463a35;border-radius:5px 5px 2px 2px;box-shadow:0 15px 0 -4px #604a3f,0 26px 0 -8px #352e31}
+button[data-sku="chair"] .homes-furnishing::after{left:17%;top:53%;width:68%;height:22%;background:#d7a77b;border:2px solid #463a35;border-radius:3px;transform:skewY(-12deg)}
+button[data-sku="sofa"] .homes-furnishing::before{left:0;top:20%;width:100%;height:48%;border:3px solid #3b4651;border-radius:12px 12px 4px 4px;background:linear-gradient(110deg,#7ca2b2 0 47%,#638b9d 48%);box-shadow:0 16px 0 -4px #304a59}
+button[data-sku="sofa"] .homes-furnishing::after{left:8%;top:55%;width:84%;height:22%;background:#aac4c4;border:2px solid #425f68;border-radius:5px;transform:skewY(-8deg)}
+button[data-sku="table"] .homes-furnishing::before{left:6%;top:39%;width:88%;height:27%;background:#b68a60;border:3px solid #614b3b;transform:skewY(-13deg);border-radius:50%;box-shadow:0 7px 0 #795943}
+button[data-sku="table"] .homes-furnishing::after{left:43%;top:63%;width:14%;height:31%;background:#6b503f}
+button[data-sku="lamp"] .homes-furnishing::before{left:24%;top:6%;width:52%;height:40%;background:#f6d58b;border:3px solid #b88b5c;clip-path:polygon(23% 0,77% 0,100% 100%,0 100%);box-shadow:0 0 18px #f5dc8d88}
+button[data-sku="lamp"] .homes-furnishing::after{left:46%;top:46%;width:8%;height:50%;background:#b9ad8e;box-shadow:0 0 0 2px #5a6661}
+button[data-sku="plant"] .homes-furnishing::before{left:19%;top:7%;width:62%;height:64%;background:radial-gradient(ellipse at 30% 35%,#a2c986 0 17%,transparent 19%),radial-gradient(ellipse at 70% 24%,#61976e 0 24%,transparent 26%),radial-gradient(ellipse at 50% 70%,#3e755d 0 35%,transparent 37%);filter:drop-shadow(2px 2px #2a5549)}
+button[data-sku="plant"] .homes-furnishing::after{left:29%;top:66%;width:42%;height:30%;background:linear-gradient(#c79065,#865a49);border:2px solid #5e493d;clip-path:polygon(0 0,100% 0,85% 100%,15% 100%)}
+button[data-sku="rug"] .homes-furnishing{height:70%;bottom:9%}
+button[data-sku="rug"] .homes-furnishing::before{inset:16% 2%;background:repeating-linear-gradient(45deg,#bc7975 0 6px,#d4ad8d 6px 12px);border:3px solid #e4c7a1;transform:rotate(-16deg);border-radius:50%}
+button[data-sku="books"] .homes-furnishing::before{left:17%;top:7%;width:66%;height:87%;background:repeating-linear-gradient(90deg,#a67557 0 7px,#e3c894 7px 10px,#648d85 10px 17px,#c18b6d 17px 23px);border:5px solid #63483a;box-shadow:0 4px #463c35}
+button[data-sku="flower"] .homes-furnishing::before{left:23%;top:10%;width:54%;height:57%;background:radial-gradient(circle at 25% 35%,#f2b3ba 0 17%,transparent 19%),radial-gradient(circle at 65% 20%,#f2d2a2 0 18%,transparent 20%),radial-gradient(circle at 70% 65%,#d78b9b 0 20%,transparent 22%),linear-gradient(90deg,transparent 45%,#558d69 45% 55%,transparent 55%)}
+button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;height:33%;background:#85b7c2;border:2px solid #3e6d78;border-radius:2px 2px 9px 9px}
+.homes-roomcanvas.homes-isometric .homes-walker{width:34px;height:57px;border:0;border-radius:0;background:transparent;box-shadow:none;transform:translate(-50%,-84%);transition:left .18s linear,top .18s linear}
+.homes-roomcanvas.homes-isometric .homes-walker::before{display:none}
+.homes-character-shadow{position:absolute;left:8%;bottom:2%;width:84%;height:12%;border-radius:50%;background:#102e3499}
+.homes-character-body{position:absolute;left:17%;top:42%;width:66%;height:40%;border:2px solid #243945;border-radius:8px 8px 4px 4px;background:var(--walker-color);box-shadow:inset -7px 0 #17374744}
+.homes-character-body::before,.homes-character-body::after{content:"";position:absolute;top:83%;height:39%;width:35%;background:#33475d;border:2px solid #243945;border-radius:0 0 4px 4px}
+.homes-character-body::before{left:7%}.homes-character-body::after{right:7%}
+.homes-character-face{position:absolute;left:22%;top:13%;width:56%;height:38%;background:#e8b994;border:2px solid #6b594f;border-radius:8px 8px 10px 10px}
+.homes-character-face::before{content:"";position:absolute;top:40%;left:22%;width:3px;height:3px;background:#26353b;box-shadow:10px 0 #26353b}
+.homes-character-hair{position:absolute;left:19%;top:8%;width:62%;height:18%;background:#473b40;border-radius:9px 9px 3px 3px;border:1px solid #2b2e37}
+.homes-character-name{position:absolute;left:50%;bottom:108%;transform:translateX(-50%);white-space:nowrap;background:#102c36e8;border:1px solid #72978b;border-radius:4px;padding:2px 5px;color:#f1f5e6;font-size:10px;font-weight:700;text-shadow:none;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.homes-roomcanvas.homes-isometric .homes-walker-self{filter:drop-shadow(0 0 3px #f9dc91)}
+.homes-social{padding:9px 12px;gap:6px}
+.homes-roommessages{min-height:65px;max-height:110px}
+@media(max-width:760px){
+ .homes-content{display:flex;flex-direction:column;overflow-y:auto}
+ .homes-main{order:0;min-height:0;padding:7px}
+ .homes-sidebar{order:1;padding:10px}
+ .homes-wallet{padding:5px 9px}
+ .homes-roomcanvas.homes-isometric{width:100%;aspect-ratio:1.18}
+ .homes-roomcanvas.homes-isometric .homes-walker{width:23px;height:40px}
+ .homes-character-name{font-size:8px;max-width:80px}
+ .homes-social{padding:7px}
+}
+@media(prefers-reduced-motion:reduce){.homes-roomcanvas.homes-isometric .homes-walker{transition:none}}
