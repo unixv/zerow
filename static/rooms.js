@@ -8,15 +8,24 @@
   let model = null, selectedRoomId = null, room = null, chosenItem = null;
   let running = false, socialTimer = null, socialRoom = null, socialPending = false;
   let walkers = [], walking = false, roomGeneration = 0;
+  const avatarNodes = new Map(), recentSpeech = new Map();
+  let lastSpeechSignature = "";
   const tileCenter=(x,y)=>({left:(50+(x-y)*4.35)+"%",top:(15+(x+y)*4.65)+"%"});
   const avatarLayer = document.createElement("div");
   avatarLayer.className = "homes-avatar-layer";
   avatarLayer.setAttribute("aria-label", "Players walking in this room");
   function paintWalkers(){
-    avatarLayer.replaceChildren();
+    const present = new Set();
     for(const person of walkers){
       if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
-      const avatar=document.createElement("span");
+      const key=String(person.name);
+      present.add(key);
+      let avatar=avatarNodes.get(key);
+      if(!avatar){avatar=document.createElement("span");avatarNodes.set(key,avatar);}
+      const previous=avatar.dataset.position;
+      const next=person.x+","+person.y;
+      avatar.classList.toggle("homes-character-walking",!!previous&&previous!==next);
+      avatar.dataset.position=next;
       avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
       const position=tileCenter(person.x,person.y);
       avatar.style.left=position.left;
@@ -26,17 +35,27 @@
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
       avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
       avatar.dataset.style=String(person.avatar_style||"").toLowerCase().replace(/[^a-z-]/g,"");
+      if(avatar.isConnected){
+        const bubble=avatar.querySelector(".homes-speech-bubble");
+        const speech=recentSpeech.get(key);
+        if(speech && speech.until>Date.now()){
+          bubble.textContent=speech.body;bubble.hidden=false;
+        }else bubble.hidden=true;
+        continue;
+      }
       const shadow=document.createElement("span");shadow.className="homes-character-shadow";
       const body=document.createElement("span");body.className="homes-character-body";
       const face=document.createElement("span");face.className="homes-character-face";
       const hair=document.createElement("span");hair.className="homes-character-hair";
       const label=document.createElement("span");label.className="homes-character-name";
       label.textContent=person.name;
-      avatar.append(shadow,body,face,hair,label);
+      const bubble=document.createElement("span");bubble.className="homes-speech-bubble";bubble.hidden=true;
+      avatar.append(shadow,body,face,hair,label,bubble);
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
       avatarLayer.append(avatar);
     }
+    for(const [key,node] of avatarNodes){if(!present.has(key)){node.remove();avatarNodes.delete(key);}}
   }
   async function walkTo(x,y){
     if(walking||!room||!selectedRoomId)return;
@@ -76,6 +95,7 @@
   document.querySelector(".homes-main").append(social);
   function resetSocial(){
     socialRoom=null;walkers=[];roomGeneration++;avatarLayer.replaceChildren();
+    avatarNodes.clear();recentSpeech.clear();lastSpeechSignature="";
     byId("homesVisitors").replaceChildren();
     byId("homesRoomMessages").replaceChildren();
     delete byId("homesRoomMessages").dataset.signature;
@@ -113,6 +133,14 @@
       const log=byId("homesRoomMessages");
       const atBottom=log.scrollTop+log.clientHeight>=log.scrollHeight-25;
       const signature=data.messages.map(m=>m.id).join(",");
+      if(lastSpeechSignature && signature!==lastSpeechSignature){
+        const latest=data.messages[data.messages.length-1];
+        if(latest && !lastSpeechSignature.split(",").includes(String(latest.id))){
+          recentSpeech.set(String(latest.name),{body:String(latest.body).slice(0,120),until:Date.now()+6500});
+          paintWalkers();
+        }
+      }
+      lastSpeechSignature=signature;
       if(log.dataset.signature!==signature){
         log.replaceChildren();
         for(const message of data.messages){
@@ -143,6 +171,20 @@
     finally{releaseBusy();}
   });
   socialTimer=setInterval(()=>{if(!root.hidden && selectedRoomId)refreshSocial();},3500);
+  const sidebar=document.querySelector(".homes-sidebar");
+  const drawerButton=document.createElement("button");
+  drawerButton.type="button";drawerButton.className="homes-drawer-toggle";
+  drawerButton.textContent="Rooms & furniture";
+  drawerButton.setAttribute("aria-expanded","false");
+  drawerButton.setAttribute("aria-controls","atriumRoomDrawer");
+  sidebar.id="atriumRoomDrawer";
+  document.querySelector(".homes-main-title").append(drawerButton);
+  function setDrawer(open){
+    root.classList.toggle("homes-drawer-open",open);
+    drawerButton.setAttribute("aria-expanded",String(open));
+    drawerButton.textContent=open?"Close room tools":"Rooms & furniture";
+  }
+  drawerButton.addEventListener("click",()=>setDrawer(!root.classList.contains("homes-drawer-open")));
   function text(id, value){byId(id).textContent = value;}
   function status(value){text("homesStatus", value);}
   async function request(path, method="GET", data){
@@ -219,7 +261,7 @@
     for(const mine of model.mine)if(!shown.some(room=>room.id===mine.id))shown.unshift({...mine,owner:me,furniture_count:0});
     for(const entry of shown){
       const b=makeButton(entry.name+" · "+entry.owner,async()=>{
-        selectedRoomId=entry.id;chosenItem=null;resetSocial();
+        selectedRoomId=entry.id;chosenItem=null;resetSocial();setDrawer(false);
         try{await reloadRoom();renderRooms();renderInventory();status("");jumpTo(".homes-main");}
         catch(e){status(e.message);}
       },selectedRoomId===entry.id);
@@ -308,11 +350,11 @@
   }
   async function open(){
     if(typeof me==="undefined"||!me){notify("Log in to explore player rooms.");return;}
-    root.hidden=false;status("Loading rooms…");byId("closeHomes").focus();
+    root.hidden=false;setDrawer(false);status("Loading rooms…");byId("closeHomes").focus();
     try{await reloadAll();status("Create a room, buy furniture, and place it on tiles.");}
     catch(e){status(e.message);}
   }
-  function close(){root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
+  function close(){setDrawer(false);root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
   byId("browseHomes").addEventListener("click",()=>jumpTo("#homesRooms"));
   byId("shopHomes").addEventListener("click",()=>jumpTo("#homesShop"));
   byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
