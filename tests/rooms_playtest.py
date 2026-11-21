@@ -42,6 +42,28 @@ def main():
                     section.getBoundingClientRect().top >=
                     sections[index - 1].getBoundingClientRect().bottom - 1);
             }"""), "Room tools sections overlap and intercept furniture clicks"
+            # Inspect the actual hit target before clicking. A visible button may still
+            # be covered by another drawer control, even if sections do not overlap.
+            hit = alice.locator("#homesInventory").get_by_role("button", name="Reading chair").evaluate("""button => {
+                button.scrollIntoView({block: 'center'});
+                const rect = button.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                const top = document.elementFromPoint(x, y);
+                const describe = element => element && ({
+                    tag: element.tagName, id: element.id, className: element.className,
+                    text: (element.textContent || '').trim().slice(0, 90),
+                    rect: (() => { const r = element.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()
+                });
+                return {target: describe(button), top: describe(top),
+                    drawer: describe(document.querySelector('#atriumRoomDrawer')),
+                    inventory: describe(document.querySelector('#homesInventory')),
+                    shop: describe(document.querySelector('#homesShop')),
+                    sections: [...document.querySelectorAll('#atriumRoomDrawer > section')].map(describe),
+                    hit: top === button || button.contains(top)};
+            }""")
+            print("ATRIUM INVENTORY HIT TEST:", hit, flush=True)
+            assert hit["hit"], "Inventory Reading chair center is obstructed: " + repr(hit)
             alice.locator("#homesInventory").get_by_role("button", name="Reading chair").click()
             alice.get_by_role("button", name="Close room tools").click()
             alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2").click()
