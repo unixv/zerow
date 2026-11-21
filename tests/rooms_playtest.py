@@ -26,6 +26,8 @@ def main():
             alice.locator("#createHomeForm").get_by_role("button", name="Create").click()
             expect(alice.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
             expect(alice.locator("#homeGrid button")).to_have_count(70)
+            # Room creation is asynchronous; the reward control must not accept a dropped click.
+            expect(alice.locator("#claimCoins")).to_be_enabled(timeout=12000)
             alice.locator("#claimCoins").click()
             expect(alice.locator("#homesWallet")).to_contain_text("400 coins")
             expect(alice.locator("#claimCoins")).to_be_disabled()
