@@ -333,3 +333,10 @@ GitHub Player Playtest run 44909384222 showed the Reading chair inventory button
 - Chromium's measured Reading chair inventory hit test returned `hit: true`: the selected button itself received pointer events. The previous furniture obstruction is resolved in the isolated runner.
 - New failure: after the visitor selects a room, `renderRooms()` automatically closes the drawer, but the test attempted to tap the now-absent `Close room tools` button and timed out. Commit `a30be32` updates the browser test to assert that the drawer is closed instead of attempting a redundant tap. This is a test expectation correction, not a production Pi observation.
 - Both workflows must pass on the latest commit and desktop/mobile screenshots must be reviewed before PR #59 can merge. Remaining visitor movement, chat, 320px and login checks have not yet completed in this run.
+
+
+## November 21 — 320px viewport restoration candidate
+
+- PR #59's previous head `03422a6` passed Verify ZeroW (run 44930263258) but failed Player Playtest (run 44930263225) at the 320×700 initial-room visibility assertion after the two-player journey. Earlier furniture selection, room visiting, movement, and shared chat steps reached completion.
+- Candidate `f43984b` resets the nested room/content scroll positions when closing the tools drawer and on viewport resize, preventing stale scroll positions from hiding the selected room after mobile transitions. This is a proposed fix, not verified evidence of success.
+- Both required workflows and desktop/mobile screenshot inspection remain outstanding on this head. No live Raspberry Pi verification; do not merge before the gates pass.
