@@ -315,3 +315,10 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - On PR #59 commit `38061a3`, Verify ZeroW passed, while Player Playtest failed in `tests/rooms_playtest.py`: immediately after creating a room, the daily reward click was ignored and the wallet remained at 300 coins. The room-creation handler still held the shared `running` lock; the reward control appeared enabled and silently returned.
 - Follow-up fix disables the reward control while room creation is pending, restores its correct state when the operation completes, and explicitly waits for readiness in the browser journey. This is an isolated CI diagnosis, not a production observation.
 - Both required workflows must pass on the updated head; inspect fresh desktop/mobile screenshots before merging. Live Raspberry Pi deployment remains unverified.
+
+
+## November 21 — room drawer containment follow-up
+
+- PR #59 head `3fae240`: [Verify ZeroW 44894651797](https://github.com/unixv/zerow/actions/runs/44894651797) passed; [Player Playtest 44894651664](https://github.com/unixv/zerow/actions/runs/44894651664) failed again at `tests/rooms_playtest.py:45`. Playwright identified a button within `#atriumRoomDrawer` intercepting pointer events when selecting the purchased Reading chair from `#homesInventory`.
+- Candidate `da1fae9` removes the accumulated competing drawer overrides and `display:contents` flattening. Drawer sections now remain ordinary block containers with intrinsic-height shop/inventory grids and one scroll owner. This addresses the actual hit-target failure rather than bypassing browser clickability checks.
+- **Unverified:** rerun both workflows on the exact new head and inspect desktop/mobile/320px screenshots. Do not merge while either check fails. Production Raspberry Pi and signed-in live room gameplay remain untested for this release.
