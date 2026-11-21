@@ -355,8 +355,8 @@
     catch(e){status(e.message);}
   }
   function close(){setDrawer(false);root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
-  byId("browseHomes").addEventListener("click",()=>jumpTo("#homesRooms"));
-  byId("shopHomes").addEventListener("click",()=>jumpTo("#homesShop"));
+  byId("browseHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesRooms");});
+  byId("shopHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesShop");});
   byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
   byId("openRooms").addEventListener("click",open);
   byId("closeHomes").addEventListener("click",close);
