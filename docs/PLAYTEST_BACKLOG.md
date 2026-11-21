@@ -267,3 +267,10 @@ actually observed there. If screenshots show problems, fix and rerun CI.
 **Following cohesive milestone:** original illustrated furniture sprites,
 proper isometric wall/floor depth, walking/sitting animations, in-room speech
 bubbles, and a room-first mobile navigator. Avoid superficial button changes.
+
+
+## Isometric scene visual expansion — November 20, 2026
+
+The draft isometric room PR now includes original CSS-drawn furniture for all eight existing catalog categories, full-body characters with nameplates, larger scene-first desktop layout, and a compact mobile layout. Existing SQLite items, room membership, wallet, movement API and chat remain unchanged. Static tests assert renderer hooks and catalog coverage. **Visual acceptance remains pending** until both required CI workflows pass on the updated head and fresh desktop/mobile/320px/two-player screenshots are inspected. Do not merge on static tests alone. Public Raspberry Pi deployment and signed-in live play are unverified for this revision.
+
+Remaining major work: direct sitting and object interactions, speech bubbles, expressive animation, responsive scene viewport validation, and improved contextual room navigator/shop drawers. Keep the original pixel-art direction and Atrium-only naming.
