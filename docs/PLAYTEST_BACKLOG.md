@@ -296,3 +296,10 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - Commit `f2b18b4` passed [Verify ZeroW 44866371470](https://github.com/unixv/zerow/actions/runs/44866371470), but [Player Playtest 44866371430](https://github.com/unixv/zerow/actions/runs/44866371430) failed at `tests/rooms_playtest.py:24`: the unscoped accessible-name query for `Rooms & furniture` matched both the plaza launch button and the room drawer toggle (Playwright strict-mode violation). The base and journey playtests passed before the room test failed.
 - Corrective commit `2bbdf9a` scopes both room-tool toggle interactions to `.homes-drawer-toggle`. This is a test locator correction, not proof of completed visual acceptance. Both workflows must run again on the updated PR head; retain draft status and do not merge on prior checks.
 - Public Pi, fresh desktop/mobile screenshots and live signed-in room play remain **unverified** for this candidate.
+
+
+## Room-first PR #59 follow-up — November 21, 2026
+
+- PR head `bfb5ef2` passed Verify ZeroW [44871297767](https://github.com/unixv/zerow/actions/runs/44871297767) but failed Player Playtest [44871298014](https://github.com/unixv/zerow/actions/runs/44871298014). The browser failed clicking the purchased Reading chair in `#homesInventory`: another button or the sidebar itself intercepted pointer events. This is a real drawer usability defect, not a selector ambiguity.
+- Candidate `abea429` keeps the expanded room-tools drawer in normal block flow and gives its dynamically expanding inventory room to scroll, instead of grid layout potentially overlapping controls. The existing real-browser furniture purchase/select/place journey is the regression gate.
+- **Unverified candidate:** both workflows must pass on this exact head; inspect updated desktop/mobile/320px screenshots before approving merge. No public Pi acceptance is claimed.
