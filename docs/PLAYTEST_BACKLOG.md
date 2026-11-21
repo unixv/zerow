@@ -282,3 +282,10 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 - Recent room chat messages can appear as transient, text-only speech bubbles above the corresponding visitor. Character DOM nodes persist between polls, allowing walking transitions without recreating every avatar.
 - No new dependencies or SQLite schema changes. Room selection closes the tools drawer; closing the game resets social state.
 - **Unverified candidate:** both workflows and desktop/mobile screenshots must pass on the latest PR #59 head. Live Pi gameplay remains untested. Test the drawer, speech visibility/expiry, character motion, and existing movement/chat/purchase flows before merge.
+
+
+## Room-first CI follow-up — November 20, 2026
+
+- PR #59 commit `0a64472`: [Verify ZeroW 44861131412](https://github.com/unixv/zerow/actions/runs/44861131412) passed; [Player Playtest 44861131564](https://github.com/unixv/zerow/actions/runs/44861131564) failed because the new contextual drawer intentionally hides `#newHomeName`, while the old browser journey tried to fill it without opening the drawer. The original and journey playtests passed earlier in the same run. This is an isolated browser regression, not a live Pi observation.
+- Updated `tests/rooms_playtest.py` to open the Rooms & furniture drawer before creating rooms and visiting rooms, and close it before interacting with the floor. Updated the walker renderer to retain the walking class and refresh position accessibility labels during social polling.
+- Both required workflows must pass on the new integration head, followed by inspection of desktop, mobile, 320px, furnished-room and two-player screenshots. Do not merge while either check is missing or failing. Live Pi deployment and signed-in production room interactions remain unverified.
