@@ -218,3 +218,18 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
     max-height:calc(100dvh - 52px);
   }
 }
+
+/* Keep the drawer dismissal control above the drawer's own hit-testing layer.
+   On narrow screens the drawer covers the room header, so the original
+   in-flow toggle was visible but could not receive touch events. */
+.homes-drawer-open .homes-drawer-toggle{
+  position:fixed;
+  z-index:60;
+  top:clamp(80px,14dvh,124px);
+  right:18px;
+  box-shadow:0 4px 18px #071820cc;
+}
+@media(max-width:760px){
+  .homes-drawer-open .homes-drawer-toggle{top:110px;right:10px}
+  .homes-drawer-open .homes-sidebar{padding-top:62px}
+}
