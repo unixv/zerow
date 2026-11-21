@@ -144,6 +144,7 @@ def main():
             alice.locator("#openRooms").click()
             expect(alice.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
+            alice.locator("#shopHomes").click()
             expect(alice.locator("#homesInventory").get_by_role("button", name="Reading chair")).to_be_visible()
             assert not errors, "JavaScript errors: " + "; ".join(errors)
             print("ROOMS PLAYTEST PASSED: creation, currency, daily reward, shop, placement, visitor, persistence, pickup")
