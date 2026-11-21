@@ -80,7 +80,9 @@ def main():
             expect(bob.locator("#homesOverlay")).to_be_visible()
             bob.locator(".homes-drawer-toggle").tap()
             bob.locator("#homesRooms").get_by_role("button", name="The Fern Loft").tap()
-            bob.get_by_role("button", name="Close room tools").tap()
+            # Selecting a room closes the drawer automatically; a second close tap
+            # would target a button that is intentionally no longer present.
+            expect(bob.locator(".homes-drawer-toggle")).to_have_attribute("aria-expanded", "false")
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
             bob.locator("#viewHome").tap()
