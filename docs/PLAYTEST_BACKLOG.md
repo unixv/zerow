@@ -326,3 +326,10 @@ Remaining major work: direct sitting and object interactions, speech bubbles, ex
 ## November 21 room inventory hit-test root cause
 
 GitHub Player Playtest run 44909384222 showed the Reading chair inventory button at x=35..164, y=507..555 while the room-tools drawer was open. The furniture shop's Floor lamp button at y=512..554 received the pointer event. The inventory was rendered in `.homes-main` **behind** the overlay drawer, not within the drawer; prior CSS changes could not solve this structural overlap. Commit bc6daf5 moves inventory into the drawer as its own section and updates placement guidance; commit 159bfb9 adds DOM containment and drawer-width assertions. This is an isolated runner finding, not a production Pi observation. Both required workflows and updated visual screenshots must pass before merging PR #59.
+
+## November 21 — furniture selection passes; visitor test corrected
+
+- PR #59 commit `d19e9f7`: [Verify ZeroW 44919018926](https://github.com/unixv/zerow/actions/runs/44919018926) passed; [Player Playtest 44919018916](https://github.com/unixv/zerow/actions/runs/44919018916) failed later in the two-player room scenario.
+- Chromium's measured Reading chair inventory hit test returned `hit: true`: the selected button itself received pointer events. The previous furniture obstruction is resolved in the isolated runner.
+- New failure: after the visitor selects a room, `renderRooms()` automatically closes the drawer, but the test attempted to tap the now-absent `Close room tools` button and timed out. Commit `a30be32` updates the browser test to assert that the drawer is closed instead of attempting a redundant tap. This is a test expectation correction, not a production Pi observation.
+- Both workflows must pass on the latest commit and desktop/mobile screenshots must be reviewed before PR #59 can merge. Remaining visitor movement, chat, 320px and login checks have not yet completed in this run.
