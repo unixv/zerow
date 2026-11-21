@@ -19,13 +19,21 @@ class IsometricRoomTests(unittest.TestCase):
         js = (ROOT / "static/rooms.js").read_text()
         css = (ROOT / "static/rooms.css").read_text()
         self.assertIn('furnishing.className="homes-furnishing"', js)
-        self.assertIn('avatar.append(shadow,body,face,hair,label)', js)
+        self.assertIn('avatar.append(shadow,body,face,hair,label,bubble)', js)
         self.assertIn('label.textContent=person.name', js)
         for sku in ("chair", "sofa", "table", "lamp", "plant", "rug", "books", "flower"):
             self.assertIn('button[data-sku="' + sku + '"]', css)
         self.assertIn(".homes-character-face", css)
         self.assertIn(".homes-character-name", css)
         self.assertIn("@media(prefers-reduced-motion:reduce)", css)
+
+    def test_room_first_social_interactions(self):
+        js = (ROOT / "static/rooms.js").read_text()
+        css = (ROOT / "static/rooms.css").read_text()
+        for token in ("homes-drawer-toggle", "recentSpeech.set", "avatarNodes.clear()", "setDrawer(false)"):
+            self.assertIn(token, js)
+        for token in (".homes-speech-bubble[hidden]", ".homes-drawer-open .homes-sidebar", "@keyframes atrium-step"):
+            self.assertIn(token, css)
 
     def test_interactive_tiles_and_visitors_remain_available(self):
         js = (ROOT / "static/rooms.js").read_text()
