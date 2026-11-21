@@ -221,6 +221,7 @@
   }
   function releaseBusy(){
     running=false;
+    byId("claimCoins").disabled=!!model && model.next_claim>0;
     document.querySelectorAll("#homesShop button").forEach(button=>{
       const price=Number(button.querySelector(".price")?.textContent.split(" ")[0]);
       button.disabled=Number.isFinite(price) && model.coins<price;
@@ -229,7 +230,7 @@
   function renderCatalog(){
     text("homesWallet",coinLabel());
     const claim=byId("claimCoins");
-    claim.disabled=model.next_claim>0;
+    claim.disabled=running||model.next_claim>0;
     claim.textContent=model.next_claim>0?"Next reward tomorrow":"Claim +100 daily coins";
     text("newRoomPrice",model.mine.length?"Additional room: "+model.room_cost+" coins":"Your first room is free");
     byId("createHomeForm").querySelector("button").disabled=model.mine.length>=model.max_rooms;
@@ -363,7 +364,7 @@
   byId("closeHomes").addEventListener("click",close);
   byId("createHomeForm").addEventListener("submit",async e=>{
     e.preventDefault();if(running)return;
-    running=true;
+    running=true;byId("claimCoins").disabled=true;
     try{
       const name=byId("newHomeName").value.trim();
       const result=await request("/api/homes/create","POST",{name});
@@ -373,7 +374,7 @@
     }catch(error){status(error.message);}finally{releaseBusy();}
   });
   byId("claimCoins").addEventListener("click",async()=>{
-    if(running)return;running=true;
+    if(running)return;running=true;byId("claimCoins").disabled=true;
     try{
       const result=await request("/api/homes/claim","POST",{});
       await reloadAll();status("Claimed "+result.awarded+" coins.");
