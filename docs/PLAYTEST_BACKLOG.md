@@ -239,3 +239,31 @@ verification remains untested. On mobile the studio remains in normal flow.
 - **Release gate:** This branch is not production. Run Verify ZeroW and ZeroW Player Playtest on the exact integration head; inspect walking screenshots at desktop, mobile and 320px. Confirm old room purchase, placement, pickup, visitor restrictions and chat tests still pass. Do not merge on failed checks.
 - **Live evidence:** No public Pi walking verification yet. Prior live evidence is unchanged.
 - **Remaining larger-game milestone:** replace initials with more expressive sprite avatars and add furniture interactions and cooperative activities. Do not claim those features exist yet.
+
+
+## Room-first isometric milestone — November 20, 2026
+
+The owner rejected the previous flat room-management grid as the primary gameplay
+experience. Atrium must present an original, inhabitable isometric social room,
+with the floor as the focal point. Never include external game names in
+source, PRs, documentation, test names, or player-facing content.
+
+Development branch `feat/atrium-isometric-room-first-20261120` begins this
+transition without changing the SQLite schema or existing room APIs:
+- Shared projection for all 70 floor tile controls and all visitor avatars.
+- Isometric diamond floor, angled wall backdrop, depth-based layering,
+  full-height visitor markers, responsive sizing, and keyboard-focus styling.
+- Existing room movement, server-authoritative furniture placement,
+  inventory, coins, and room chat remain wired to the same tile coordinates.
+
+**Release gate:** This is a first visual iteration, not the complete target.
+Before merging, require both Verify ZeroW and ZeroW Player Playtest green
+on the exact head and inspect actual desktop, 320px, and mobile screenshots.
+Check whether touch targets are usable, furniture labels/avatars remain visible,
+walls do not cover the floor, movement and furniture selection still work,
+and chat remains reachable. Mark production Pi visuals **untested** until
+actually observed there. If screenshots show problems, fix and rerun CI.
+
+**Following cohesive milestone:** original illustrated furniture sprites,
+proper isometric wall/floor depth, walking/sitting animations, in-room speech
+bubbles, and a room-first mobile navigator. Avoid superficial button changes.
