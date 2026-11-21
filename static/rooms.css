@@ -182,3 +182,10 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 .homes-drawer-open .homes-sidebar{display:block;overflow-y:auto;overscroll-behavior:contain}
 .homes-drawer-open .homes-sidebar section{position:relative;margin-bottom:16px}
 .homes-drawer-open #homesInventory button{scroll-margin-block:20px}
+
+/* Keep each drawer section in its own vertical flow slot. The former grid
+   could overlap growing inventory and shop controls during async refresh. */
+.homes-drawer-open .homes-sidebar{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;min-height:0}
+.homes-drawer-open .homes-sidebar > *{position:relative;flex:0 0 auto;min-height:min-content;margin:0}
+.homes-drawer-open .homes-sidebar button{position:relative;z-index:1}
+@media(max-width:760px){.homes-drawer-open .homes-sidebar{height:calc(100dvh - 52px);max-height:calc(100dvh - 52px)}}
