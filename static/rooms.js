@@ -184,6 +184,14 @@
     root.classList.toggle("homes-drawer-open",open);
     drawerButton.setAttribute("aria-expanded",String(open));
     drawerButton.textContent=open?"Close room tools":"Rooms & furniture";
+    // The mobile content scroller can retain a desktop/tablet position after
+    // visiting another room or changing viewport width. Return to the scene.
+    if(!open){
+      const content=root.querySelector(".homes-content");
+      const main=root.querySelector(".homes-main");
+      if(content)content.scrollTop=0;
+      if(main)main.scrollTop=0;
+    }
   }
   drawerButton.addEventListener("click",()=>setDrawer(!root.classList.contains("homes-drawer-open")));
   function text(id, value){byId(id).textContent = value;}
@@ -361,6 +369,14 @@
   byId("shopHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesShop");});
   byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
   byId("openRooms").addEventListener("click",open);
+  window.addEventListener("resize",()=>{
+    if(!root.hidden&&!root.classList.contains("homes-drawer-open")){
+      const content=root.querySelector(".homes-content");
+      const main=root.querySelector(".homes-main");
+      if(content)content.scrollTop=0;
+      if(main)main.scrollTop=0;
+    }
+  });
   byId("closeHomes").addEventListener("click",close);
   byId("createHomeForm").addEventListener("submit",async e=>{
     e.preventDefault();if(running)return;
