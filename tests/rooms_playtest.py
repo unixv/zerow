@@ -33,6 +33,13 @@ def main():
             print("Buying furniture, placing a chair, reloading and picking it up")
             alice.locator("#homesShop").get_by_role("button", name="Reading chair").click()
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
+            # Growing shop/inventory lists must not overlap neighboring sections.
+            assert alice.locator("#atriumRoomDrawer").evaluate("""drawer => {
+                const sections = [...drawer.querySelectorAll(':scope > section')];
+                return sections.every((section, index) => !index ||
+                    section.getBoundingClientRect().top >=
+                    sections[index - 1].getBoundingClientRect().bottom - 1);
+            }"""), "Room tools sections overlap and intercept furniture clicks"
             alice.locator("#homesInventory").get_by_role("button", name="Reading chair").click()
             alice.get_by_role("button", name="Close room tools").click()
             alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2").click()
