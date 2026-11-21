@@ -35,6 +35,8 @@ def main():
             print("Buying furniture, placing a chair, reloading and picking it up")
             alice.locator("#homesShop").get_by_role("button", name="Reading chair").click()
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
+            assert alice.locator("#homesInventory").evaluate("node => node.closest(\'#atriumRoomDrawer\') !== null"), "Inventory must live in the room tools drawer, not behind it"
+            assert alice.locator("#homesInventory").evaluate("node => node.getBoundingClientRect().right <= node.closest(\'#atriumRoomDrawer\').getBoundingClientRect().right + 1"), "Inventory must fit inside room tools"
             # Growing shop/inventory lists must not overlap neighboring sections.
             assert alice.locator("#atriumRoomDrawer").evaluate("""drawer => {
                 const sections = [...drawer.querySelectorAll(':scope > section')];
