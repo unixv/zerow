@@ -274,3 +274,11 @@ bubbles, and a room-first mobile navigator. Avoid superficial button changes.
 The draft isometric room PR now includes original CSS-drawn furniture for all eight existing catalog categories, full-body characters with nameplates, larger scene-first desktop layout, and a compact mobile layout. Existing SQLite items, room membership, wallet, movement API and chat remain unchanged. Static tests assert renderer hooks and catalog coverage. **Visual acceptance remains pending** until both required CI workflows pass on the updated head and fresh desktop/mobile/320px/two-player screenshots are inspected. Do not merge on static tests alone. Public Raspberry Pi deployment and signed-in live play are unverified for this revision.
 
 Remaining major work: direct sitting and object interactions, speech bubbles, expressive animation, responsive scene viewport validation, and improved contextual room navigator/shop drawers. Keep the original pixel-art direction and Atrium-only naming.
+
+
+## November 20 — room-first social interface candidate
+
+- Room tools are now a contextual drawer instead of occupying permanent desktop width; the isometric room uses the full available stage and chat is taller.
+- Recent room chat messages can appear as transient, text-only speech bubbles above the corresponding visitor. Character DOM nodes persist between polls, allowing walking transitions without recreating every avatar.
+- No new dependencies or SQLite schema changes. Room selection closes the tools drawer; closing the game resets social state.
+- **Unverified candidate:** both workflows and desktop/mobile screenshots must pass on the latest PR #59 head. Live Pi gameplay remains untested. Test the drawer, speech visibility/expiry, character motion, and existing movement/chat/purchase flows before merge.
