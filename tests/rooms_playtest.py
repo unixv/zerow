@@ -85,7 +85,8 @@ def main():
             expect(bob.locator(".homes-drawer-toggle")).to_have_attribute("aria-expanded", "false")
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
-            bob.locator("#viewHome").tap()
+            # The room is already visible after selecting it; the drawer can
+            # overlay navigation buttons, so do not tap View room beneath it.
             assert bob.locator("#homeGrid").bounding_box()["y"] < 844, "390px room grid hidden below fold"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-mobile.png"), full_page=True)
 
@@ -117,7 +118,6 @@ def main():
             print("Narrow 320px Atrium Homes: visitor controls and viewport containment")
             bob.set_viewport_size({"width": 320, "height": 700})
             expect(bob.locator("#homesOverlay")).to_be_visible()
-            bob.locator("#viewHome").tap()
             expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
             expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
             assert bob.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "320px room causes horizontal page overflow"
@@ -129,7 +129,7 @@ def main():
             assert title and grid and title["y"] >= 0 and grid["y"] < 700, "320px room must appear in initial viewport"
             bob.locator("#shopHomes").tap()
             expect(bob.locator("#homesShop").get_by_role("button", name="Reading chair")).to_be_visible()
-            bob.locator("#viewHome").tap()
+            bob.get_by_role("button", name="Close room tools").tap()
             assert bob.locator("#homeGrid").bounding_box()["y"] < 700, "return to room should restore visibility"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
 
