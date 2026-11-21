@@ -24,9 +24,10 @@
       if(!avatar){avatar=document.createElement("span");avatarNodes.set(key,avatar);}
       const previous=avatar.dataset.position;
       const next=person.x+","+person.y;
-      avatar.classList.toggle("homes-character-walking",!!previous&&previous!==next);
+      avatar.className="homes-walker"+(person.self?" homes-walker-self":"")+(previous&&previous!==next?" homes-character-walking":"");
       avatar.dataset.position=next;
-      avatar.className="homes-walker"+(person.self?" homes-walker-self":"");
+      avatar.title=person.name+" · "+person.avatar_style;
+      avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
       const position=tileCenter(person.x,person.y);
       avatar.style.left=position.left;
       avatar.style.top=position.top;
