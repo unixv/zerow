@@ -12,7 +12,9 @@ class IsometricRoomTests(unittest.TestCase):
         self.assertIn("const tileCenter=(x,y)", source)
         self.assertIn("50+(x-y)*4.35", source)
         self.assertIn("15+(x+y)*4.65", source)
-        self.assertIn("tileCenter(person.x,person.y)", source)
+        # Seated avatars project to their furniture tile; walkers use their own tile.
+        self.assertIn("tileCenter(seat?seat.x:person.x,seat?seat.y:person.y)", source)
+        self.assertIn("const seat=person.seat_item_id", source)
         self.assertIn("tileCenter(x,y)", source)
 
     def test_original_room_furnishings_and_characters(self):
