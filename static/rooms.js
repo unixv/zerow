@@ -77,9 +77,24 @@
       const options=[[item.x-1,item.y],[item.x+1,item.y],[item.x,item.y-1],[item.x,item.y+1]]
         .filter(([x,y])=>x>=0&&x<10&&y>=0&&y<7&&!blocked.has(x+","+y));
       if(!options.length){status("No space beside that seat.");return;}
-      options.sort((a,b)=>(Math.abs(a[0]-me.x)+Math.abs(a[1]-me.y))-
-                            (Math.abs(b[0]-me.x)+Math.abs(b[1]-me.y)));
-      await walkTo(...options[0]);
+      // Choose a reachable neighboring tile, not merely the nearest by distance.
+      // Furniture can divide a room into disconnected walking areas.
+      const reachable=new Set([me.x+","+me.y]);
+      const queue=[[me.x,me.y]];
+      for(let index=0;index<queue.length;index++){
+        const [cx,cy]=queue[index];
+        for(const [dx,dy] of [[0,1],[1,0],[0,-1],[-1,0]]){
+          const nx=cx+dx,ny=cy+dy,key=nx+","+ny;
+          if(nx>=0&&nx<10&&ny>=0&&ny<7&&!blocked.has(key)&&!reachable.has(key)){
+            reachable.add(key);queue.push([nx,ny]);
+          }
+        }
+      }
+      const candidates=options.filter(([x,y])=>reachable.has(x+","+y));
+      if(!candidates.length){status("No clear path to this seat.");return;}
+      candidates.sort((a,b)=>(Math.abs(a[0]-me.x)+Math.abs(a[1]-me.y))-
+                             (Math.abs(b[0]-me.x)+Math.abs(b[1]-me.y)));
+      await walkTo(...candidates[0]);
       if(Math.abs(me.x-item.x)+Math.abs(me.y-item.y)>1)return;
     }
     try{
