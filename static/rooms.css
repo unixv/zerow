@@ -317,3 +317,12 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 .homes-roomcanvas.homes-isometric .homes-character-walking .homes-character-legs{animation:atrium-room-stride .2s ease-in-out 2 alternate}
 @keyframes atrium-room-stride{from{transform:skewX(-9deg)}to{transform:skewX(9deg)}}
 @media(prefers-reduced-motion:reduce){.homes-roomcanvas.homes-isometric .homes-character-walking .homes-character-legs{animation:none}}
+
+/* Atrium shared seating: seated visitors stay depth-sorted with the furniture. */
+.homes-roomcanvas.homes-isometric .homes-character-seated{
+  transform:translate(-50%,-65%) scaleY(.73);
+  transition:left .16s linear,top .16s linear,transform .16s ease;
+}
+.homes-character-seated .homes-character-legs{transform:translateY(6px) rotate(-65deg);transform-origin:top center}
+.homes-roomcanvas.homes-isometric button[data-sku="chair"],
+.homes-roomcanvas.homes-isometric button[data-sku="sofa"]{cursor:pointer}
