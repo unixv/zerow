@@ -348,9 +348,9 @@
       const cat=item?model.catalog.find(p=>p.sku===item.sku):null;
       const label=item ? ((item.sku==="chair"||item.sku==="sofa")?"Sit on ":"Pick up ")+(cat?.name||item.sku)+" at "+x+","+y :
                      "Tile "+x+","+y;
-      const b=makeButton("",async()=>{
+      const b=makeButton("",async(event)=>{
         if(running)return;
-        if(item&&(item.sku==="chair"||item.sku==="sofa")&&!chosenItem){await sitAt(item);return;}
+        if(item&&(item.sku==="chair"||item.sku==="sofa")&&!chosenItem&&!event.shiftKey){await sitAt(item);return;}
         if(!room?.room.editable){
           if(!item)await walkTo(x,y);
           return;
@@ -382,7 +382,7 @@
       b.style.left=position.left;
       b.style.top=position.top;
       b.style.zIndex=String(2+x+y);
-      b.title=item?(cat?.name||item.sku):"Walk to tile "+x+", "+y;
+      b.title=item?((item.sku==="chair"||item.sku==="sofa")?"Sit · Shift-click to pick up ":"")+(cat?.name||item.sku):"Walk to tile "+x+", "+y;
       if(!room.room.editable&&item&&!["chair","sofa"].includes(item.sku))b.disabled=true;
       canvas.append(b);
     }
