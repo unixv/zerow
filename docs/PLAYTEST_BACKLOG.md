@@ -347,3 +347,26 @@ GitHub Player Playtest run 44909384222 showed the Reading chair inventory button
 - PR #59 integrates directional full-body character presentation into its existing isometric projection: facing changes as players walk, lightweight stride animation, separate legs/arms, outfit-specific hair/headwear, persistent DOM nodes, and retained in-room speech bubbles. Commits `223f6ac` and `6ce0fe2`.
 - The separate PR #58 is not merged; its orthographic placement must not overwrite PR #59's isometric coordinate projection. This integration preserves the room-first branch's multiplayer and chat logic.
 - **Status: unverified candidate.** Run Verify ZeroW and ZeroW Player Playtest on the exact latest head; inspect two-player desktop, 320px and tablet screenshots for avatar position, leg/arm rendering, speech overlap, and furniture occlusion. No production Pi observation or visual acceptance is claimed. Keep draft until both workflows and visual acceptance pass.
+
+## Shared seating integration — November 22, 2026
+
+Draft [PR #64](https://github.com/unixv/zerow/pull/64) targets the isometric room candidate #59.
+The proposed player milestone is shared chair/sofa seating with a distinct avatar pose,
+authoritative occupancy, visitor interaction, stand-on-repeat-tap and owner Shift-click
+pickup. The migration adds a nullable visitor-only seat reference; accounts, furniture
+inventory and coin balances are not rewritten.
+
+| Acceptance case | Status |
+| --- | --- |
+| Seat and stand server contracts | Added source regression; runtime not yet verified |
+| Two users see the same occupied seat | Untested in browser |
+| Two users cannot occupy one seat | Untested in browser |
+| Remote seat releases after moving, leaving or pickup | Untested in browser |
+| Visitor cannot pick up furniture | Existing permission boundary; recheck in browser |
+| 320px and desktop furniture hit targets | Untested visual |
+| Verify ZeroW and Player Playtest on exact PR head | Pending |
+| Production Pi deployment and signed-in play | Not verified |
+
+Do not merge #64 or #59 based on source checks alone. Expand isolated two-account
+Chromium seating assertions, inspect updated screenshots, and integrate independent QA
+#63 without overwriting its branch.
