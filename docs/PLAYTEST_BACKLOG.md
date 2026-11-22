@@ -239,3 +239,153 @@ verification remains untested. On mobile the studio remains in normal flow.
 - **Release gate:** This branch is not production. Run Verify ZeroW and ZeroW Player Playtest on the exact integration head; inspect walking screenshots at desktop, mobile and 320px. Confirm old room purchase, placement, pickup, visitor restrictions and chat tests still pass. Do not merge on failed checks.
 - **Live evidence:** No public Pi walking verification yet. Prior live evidence is unchanged.
 - **Remaining larger-game milestone:** replace initials with more expressive sprite avatars and add furniture interactions and cooperative activities. Do not claim those features exist yet.
+
+
+## Room-first isometric milestone — November 20, 2026
+
+The owner rejected the previous flat room-management grid as the primary gameplay
+experience. Atrium must present an original, inhabitable isometric social room,
+with the floor as the focal point. Never include external game names in
+source, PRs, documentation, test names, or player-facing content.
+
+Development branch `feat/atrium-isometric-room-first-20261120` begins this
+transition without changing the SQLite schema or existing room APIs:
+- Shared projection for all 70 floor tile controls and all visitor avatars.
+- Isometric diamond floor, angled wall backdrop, depth-based layering,
+  full-height visitor markers, responsive sizing, and keyboard-focus styling.
+- Existing room movement, server-authoritative furniture placement,
+  inventory, coins, and room chat remain wired to the same tile coordinates.
+
+**Release gate:** This is a first visual iteration, not the complete target.
+Before merging, require both Verify ZeroW and ZeroW Player Playtest green
+on the exact head and inspect actual desktop, 320px, and mobile screenshots.
+Check whether touch targets are usable, furniture labels/avatars remain visible,
+walls do not cover the floor, movement and furniture selection still work,
+and chat remains reachable. Mark production Pi visuals **untested** until
+actually observed there. If screenshots show problems, fix and rerun CI.
+
+**Following cohesive milestone:** original illustrated furniture sprites,
+proper isometric wall/floor depth, walking/sitting animations, in-room speech
+bubbles, and a room-first mobile navigator. Avoid superficial button changes.
+
+
+## Isometric scene visual expansion — November 20, 2026
+
+The draft isometric room PR now includes original CSS-drawn furniture for all eight existing catalog categories, full-body characters with nameplates, larger scene-first desktop layout, and a compact mobile layout. Existing SQLite items, room membership, wallet, movement API and chat remain unchanged. Static tests assert renderer hooks and catalog coverage. **Visual acceptance remains pending** until both required CI workflows pass on the updated head and fresh desktop/mobile/320px/two-player screenshots are inspected. Do not merge on static tests alone. Public Raspberry Pi deployment and signed-in live play are unverified for this revision.
+
+Remaining major work: direct sitting and object interactions, speech bubbles, expressive animation, responsive scene viewport validation, and improved contextual room navigator/shop drawers. Keep the original pixel-art direction and Atrium-only naming.
+
+
+## November 20 — room-first social interface candidate
+
+- Room tools are now a contextual drawer instead of occupying permanent desktop width; the isometric room uses the full available stage and chat is taller.
+- Recent room chat messages can appear as transient, text-only speech bubbles above the corresponding visitor. Character DOM nodes persist between polls, allowing walking transitions without recreating every avatar.
+- No new dependencies or SQLite schema changes. Room selection closes the tools drawer; closing the game resets social state.
+- **Unverified candidate:** both workflows and desktop/mobile screenshots must pass on the latest PR #59 head. Live Pi gameplay remains untested. Test the drawer, speech visibility/expiry, character motion, and existing movement/chat/purchase flows before merge.
+
+
+## Room-first CI follow-up — November 20, 2026
+
+- PR #59 commit `0a64472`: [Verify ZeroW 44861131412](https://github.com/unixv/zerow/actions/runs/44861131412) passed; [Player Playtest 44861131564](https://github.com/unixv/zerow/actions/runs/44861131564) failed because the new contextual drawer intentionally hides `#newHomeName`, while the old browser journey tried to fill it without opening the drawer. The original and journey playtests passed earlier in the same run. This is an isolated browser regression, not a live Pi observation.
+- Updated `tests/rooms_playtest.py` to open the Rooms & furniture drawer before creating rooms and visiting rooms, and close it before interacting with the floor. Updated the walker renderer to retain the walking class and refresh position accessibility labels during social polling.
+- Both required workflows must pass on the new integration head, followed by inspection of desktop, mobile, 320px, furnished-room and two-player screenshots. Do not merge while either check is missing or failing. Live Pi deployment and signed-in production room interactions remain unverified.
+
+
+## Isometric room PR #59 CI follow-up — November 20, 2026
+
+- Commit `f2b18b4` passed [Verify ZeroW 44866371470](https://github.com/unixv/zerow/actions/runs/44866371470), but [Player Playtest 44866371430](https://github.com/unixv/zerow/actions/runs/44866371430) failed at `tests/rooms_playtest.py:24`: the unscoped accessible-name query for `Rooms & furniture` matched both the plaza launch button and the room drawer toggle (Playwright strict-mode violation). The base and journey playtests passed before the room test failed.
+- Corrective commit `2bbdf9a` scopes both room-tool toggle interactions to `.homes-drawer-toggle`. This is a test locator correction, not proof of completed visual acceptance. Both workflows must run again on the updated PR head; retain draft status and do not merge on prior checks.
+- Public Pi, fresh desktop/mobile screenshots and live signed-in room play remain **unverified** for this candidate.
+
+
+## Room-first PR #59 follow-up — November 21, 2026
+
+- PR head `bfb5ef2` passed Verify ZeroW [44871297767](https://github.com/unixv/zerow/actions/runs/44871297767) but failed Player Playtest [44871298014](https://github.com/unixv/zerow/actions/runs/44871298014). The browser failed clicking the purchased Reading chair in `#homesInventory`: another button or the sidebar itself intercepted pointer events. This is a real drawer usability defect, not a selector ambiguity.
+- Candidate `abea429` keeps the expanded room-tools drawer in normal block flow and gives its dynamically expanding inventory room to scroll, instead of grid layout potentially overlapping controls. The existing real-browser furniture purchase/select/place journey is the regression gate.
+- **Unverified candidate:** both workflows must pass on this exact head; inspect updated desktop/mobile/320px screenshots before approving merge. No public Pi acceptance is claimed.
+
+## Atrium isometric room PR #59 — November 21, 2026 drawer regression
+
+- Latest inspected candidate `4db57d2`: Verify ZeroW [44875376197](https://github.com/unixv/zerow/actions/runs/44875376197) passed, but Player Playtest [44875376212](https://github.com/unixv/zerow/actions/runs/44875376212) failed at the furniture inventory click: other room-drawer controls intercepted pointer events. Previous CSS flow fix did not resolve the browser failure.
+- Follow-up candidate uses explicit vertical flex layout for the expanded drawer and non-shrinking sections, and adds a Chromium geometry assertion that drawer sections cannot overlap. This is **not verified** until both workflows pass on the latest commit and screenshots are inspected.
+- Do not merge PR #59 on earlier green results. Preserve existing account/coin/room data; Pi production remains unverified.
+
+## November 21 room release gate
+
+- On PR #59 commit `38061a3`, Verify ZeroW passed, while Player Playtest failed in `tests/rooms_playtest.py`: immediately after creating a room, the daily reward click was ignored and the wallet remained at 300 coins. The room-creation handler still held the shared `running` lock; the reward control appeared enabled and silently returned.
+- Follow-up fix disables the reward control while room creation is pending, restores its correct state when the operation completes, and explicitly waits for readiness in the browser journey. This is an isolated CI diagnosis, not a production observation.
+- Both required workflows must pass on the updated head; inspect fresh desktop/mobile screenshots before merging. Live Raspberry Pi deployment remains unverified.
+
+
+## November 21 — room drawer containment follow-up
+
+- PR #59 head `3fae240`: [Verify ZeroW 44894651797](https://github.com/unixv/zerow/actions/runs/44894651797) passed; [Player Playtest 44894651664](https://github.com/unixv/zerow/actions/runs/44894651664) failed again at `tests/rooms_playtest.py:45`. Playwright identified a button within `#atriumRoomDrawer` intercepting pointer events when selecting the purchased Reading chair from `#homesInventory`.
+- Candidate `da1fae9` removes the accumulated competing drawer overrides and `display:contents` flattening. Drawer sections now remain ordinary block containers with intrinsic-height shop/inventory grids and one scroll owner. This addresses the actual hit-target failure rather than bypassing browser clickability checks.
+- **Unverified:** rerun both workflows on the exact new head and inspect desktop/mobile/320px screenshots. Do not merge while either check fails. Production Raspberry Pi and signed-in live room gameplay remain untested for this release.
+
+## November 21 room inventory hit-test root cause
+
+GitHub Player Playtest run 44909384222 showed the Reading chair inventory button at x=35..164, y=507..555 while the room-tools drawer was open. The furniture shop's Floor lamp button at y=512..554 received the pointer event. The inventory was rendered in `.homes-main` **behind** the overlay drawer, not within the drawer; prior CSS changes could not solve this structural overlap. Commit bc6daf5 moves inventory into the drawer as its own section and updates placement guidance; commit 159bfb9 adds DOM containment and drawer-width assertions. This is an isolated runner finding, not a production Pi observation. Both required workflows and updated visual screenshots must pass before merging PR #59.
+
+## November 21 — furniture selection passes; visitor test corrected
+
+- PR #59 commit `d19e9f7`: [Verify ZeroW 44919018926](https://github.com/unixv/zerow/actions/runs/44919018926) passed; [Player Playtest 44919018916](https://github.com/unixv/zerow/actions/runs/44919018916) failed later in the two-player room scenario.
+- Chromium's measured Reading chair inventory hit test returned `hit: true`: the selected button itself received pointer events. The previous furniture obstruction is resolved in the isolated runner.
+- New failure: after the visitor selects a room, `renderRooms()` automatically closes the drawer, but the test attempted to tap the now-absent `Close room tools` button and timed out. Commit `a30be32` updates the browser test to assert that the drawer is closed instead of attempting a redundant tap. This is a test expectation correction, not a production Pi observation.
+- Both workflows must pass on the latest commit and desktop/mobile screenshots must be reviewed before PR #59 can merge. Remaining visitor movement, chat, 320px and login checks have not yet completed in this run.
+
+
+## November 21 — 320px viewport restoration candidate
+
+- PR #59's previous head `03422a6` passed Verify ZeroW (run 44930263258) but failed Player Playtest (run 44930263225) at the 320×700 initial-room visibility assertion after the two-player journey. Earlier furniture selection, room visiting, movement, and shared chat steps reached completion.
+- Candidate `f43984b` resets the nested room/content scroll positions when closing the tools drawer and on viewport resize, preventing stale scroll positions from hiding the selected room after mobile transitions. This is a proposed fix, not verified evidence of success.
+- Both required workflows and desktop/mobile screenshot inspection remain outstanding on this head. No live Raspberry Pi verification; do not merge before the gates pass.
+
+
+## November 21 — character renderer integration checkpoint
+
+- PR #59 integrates directional full-body character presentation into its existing isometric projection: facing changes as players walk, lightweight stride animation, separate legs/arms, outfit-specific hair/headwear, persistent DOM nodes, and retained in-room speech bubbles. Commits `223f6ac` and `6ce0fe2`.
+- The separate PR #58 is not merged; its orthographic placement must not overwrite PR #59's isometric coordinate projection. This integration preserves the room-first branch's multiplayer and chat logic.
+- **Status: unverified candidate.** Run Verify ZeroW and ZeroW Player Playtest on the exact latest head; inspect two-player desktop, 320px and tablet screenshots for avatar position, leg/arm rendering, speech overlap, and furniture occlusion. No production Pi observation or visual acceptance is claimed. Keep draft until both workflows and visual acceptance pass.
+
+## Shared seating integration — November 22, 2026
+
+Draft [PR #64](https://github.com/unixv/zerow/pull/64) targets the isometric room candidate #59.
+The proposed player milestone is shared chair/sofa seating with a distinct avatar pose,
+authoritative occupancy, visitor interaction, stand-on-repeat-tap and owner Shift-click
+pickup. The migration adds a nullable visitor-only seat reference; accounts, furniture
+inventory and coin balances are not rewritten.
+
+| Acceptance case | Status |
+| --- | --- |
+| Seat and stand server contracts | Added source regression; runtime not yet verified |
+| Two users see the same occupied seat | Untested in browser |
+| Two users cannot occupy one seat | Untested in browser |
+| Remote seat releases after moving, leaving or pickup | Untested in browser |
+| Visitor cannot pick up furniture | Existing permission boundary; recheck in browser |
+| 320px and desktop furniture hit targets | Untested visual |
+| Verify ZeroW and Player Playtest on exact PR head | Pending |
+| Production Pi deployment and signed-in play | Not verified |
+
+Do not merge #64 or #59 based on source checks alone. Expand isolated two-account
+Chromium seating assertions, inspect updated screenshots, and integrate independent QA
+#63 without overwriting its branch.
+
+
+## November 22 — shared seating browser acceptance candidate
+
+PR #64 commit `190db4c` extends the existing two-account Chromium room journey with
+visitor seating, remote avatar pose synchronization, exclusive seat occupancy,
+stand/reseat, owner pickup via Shift-click, and desktop/mobile seated screenshots.
+It also updates chair accessibility-name expectations from pickup to sitting.
+**These are newly added browser assertions, not passing evidence.** Both required
+workflows must execute on the exact updated head; inspect the screenshots and
+fix any failures before integrating PR #64. The public Pi has not been tested.
+
+## November 22 — integrated release verification handoff
+
+- PR #64 now targets `main` and includes the room-first scene, multiplayer seating, and the independent avatar-layer test correction. PRs #59 and #63 remain separate drafts; do not merge overlapping branches independently.
+- The latest inspected PR #64 head `d552c957d1bd93d729b25dff61cf211c6434a7dc` returned **zero associated pull-request workflow runs**. A mergeable GitHub status is not a test pass. Both `Verify ZeroW` and `ZeroW Player Playtest` must pass on the *same final head* before release.
+- This handoff update creates a new PR synchronization event to request CI evaluation. Verify that GitHub actually creates runs; if not, investigate workflow event filters and permissions rather than asserting success.
+- Acceptance still requires two simultaneous authenticated browser players, seat exclusivity and cleanup, chair/sofa tap targets at 320px/390px/desktop, avatar depth and speech-bubble visual inspection, room chat, furniture permissions, and account/coin/SQLite regression coverage. Record isolated-run results separately from signed-in production Pi observations.
+- Do not merge or claim production deployment until the required workflows and visual review succeed.
