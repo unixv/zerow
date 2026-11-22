@@ -19,7 +19,18 @@ class IsometricRoomTests(unittest.TestCase):
         js = (ROOT / "static/rooms.js").read_text()
         css = (ROOT / "static/rooms.css").read_text()
         self.assertIn('furnishing.className="homes-furnishing"', js)
-        self.assertIn('avatar.append(shadow,body,face,hair,label,bubble)', js)
+        # Assert the avatar's essential layers without freezing the exact
+        # append call: additional visual layers (e.g. animated legs) are valid.
+        append = re.search(r"avatar\\.append\\(([^)]*)\\)", js)
+        self.assertIsNotNone(append, "Avatar layers must be appended to the DOM")
+        layers = [part.strip() for part in append.group(1).split(",")]
+        self.assertEqual(len(layers), len(set(layers)), "Avatar layers must not repeat")
+        for layer in ("shadow", "body", "face", "hair", "label", "bubble"):
+            self.assertIn(layer, layers)
+        self.assertEqual([layers.index(layer) for layer in
+                          ("shadow", "body", "face", "hair", "label", "bubble")],
+                         sorted(layers.index(layer) for layer in
+                                ("shadow", "body", "face", "hair", "label", "bubble")))
         self.assertIn('label.textContent=person.name', js)
         for sku in ("chair", "sofa", "table", "lamp", "plant", "rug", "books", "flower"):
             self.assertIn('button[data-sku="' + sku + '"]', css)
