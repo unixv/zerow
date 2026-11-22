@@ -24,7 +24,11 @@
       if(!avatar){avatar=document.createElement("span");avatarNodes.set(key,avatar);}
       const previous=avatar.dataset.position;
       const next=person.x+","+person.y;
-      avatar.className="homes-walker"+(person.self?" homes-walker-self":"")+(previous&&previous!==next?" homes-character-walking":"");
+      if(previous&&previous!==next){
+        const [oldX,oldY]=previous.split(",").map(Number);
+        avatar.dataset.facing=person.x>oldX?"right":person.x<oldX?"left":person.y<oldY?"back":"front";
+      }else if(!avatar.dataset.facing){avatar.dataset.facing="front";}
+      avatar.className="homes-walker homes-character"+(person.self?" homes-walker-self homes-character-self":"")+(previous&&previous!==next?" homes-character-walking":"");
       avatar.dataset.position=next;
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
@@ -45,13 +49,14 @@
         continue;
       }
       const shadow=document.createElement("span");shadow.className="homes-character-shadow";
+      const legs=document.createElement("span");legs.className="homes-character-legs";
       const body=document.createElement("span");body.className="homes-character-body";
       const face=document.createElement("span");face.className="homes-character-face";
       const hair=document.createElement("span");hair.className="homes-character-hair";
       const label=document.createElement("span");label.className="homes-character-name";
       label.textContent=person.name;
       const bubble=document.createElement("span");bubble.className="homes-speech-bubble";bubble.hidden=true;
-      avatar.append(shadow,body,face,hair,label,bubble);
+      avatar.append(shadow,legs,body,face,hair,label,bubble);
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
       avatarLayer.append(avatar);
