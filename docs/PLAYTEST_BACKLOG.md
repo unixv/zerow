@@ -370,3 +370,14 @@ inventory and coin balances are not rewritten.
 Do not merge #64 or #59 based on source checks alone. Expand isolated two-account
 Chromium seating assertions, inspect updated screenshots, and integrate independent QA
 #63 without overwriting its branch.
+
+
+## November 22 — shared seating browser acceptance candidate
+
+PR #64 commit `190db4c` extends the existing two-account Chromium room journey with
+visitor seating, remote avatar pose synchronization, exclusive seat occupancy,
+stand/reseat, owner pickup via Shift-click, and desktop/mobile seated screenshots.
+It also updates chair accessibility-name expectations from pickup to sitting.
+**These are newly added browser assertions, not passing evidence.** Both required
+workflows must execute on the exact updated head; inspect the screenshots and
+fix any failures before integrating PR #64. The public Pi has not been tested.
