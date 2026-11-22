@@ -21,7 +21,7 @@ class IsometricRoomTests(unittest.TestCase):
         self.assertIn('furnishing.className="homes-furnishing"', js)
         # Assert the avatar's essential layers without freezing the exact
         # append call: additional visual layers (e.g. animated legs) are valid.
-        append = re.search(r"avatar\\.append\\(([^)]*)\\)", js)
+        append = re.search(r"avatar\.append\(([^)]*)\)", js)
         self.assertIsNotNone(append, "Avatar layers must be appended to the DOM")
         layers = [part.strip() for part in append.group(1).split(",")]
         self.assertEqual(len(layers), len(set(layers)), "Avatar layers must not repeat")
