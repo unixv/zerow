@@ -381,3 +381,11 @@ It also updates chair accessibility-name expectations from pickup to sitting.
 **These are newly added browser assertions, not passing evidence.** Both required
 workflows must execute on the exact updated head; inspect the screenshots and
 fix any failures before integrating PR #64. The public Pi has not been tested.
+
+## November 22 — integrated release verification handoff
+
+- PR #64 now targets `main` and includes the room-first scene, multiplayer seating, and the independent avatar-layer test correction. PRs #59 and #63 remain separate drafts; do not merge overlapping branches independently.
+- The latest inspected PR #64 head `d552c957d1bd93d729b25dff61cf211c6434a7dc` returned **zero associated pull-request workflow runs**. A mergeable GitHub status is not a test pass. Both `Verify ZeroW` and `ZeroW Player Playtest` must pass on the *same final head* before release.
+- This handoff update creates a new PR synchronization event to request CI evaluation. Verify that GitHub actually creates runs; if not, investigate workflow event filters and permissions rather than asserting success.
+- Acceptance still requires two simultaneous authenticated browser players, seat exclusivity and cleanup, chair/sofa tap targets at 320px/390px/desktop, avatar depth and speech-bubble visual inspection, room chat, furniture permissions, and account/coin/SQLite regression coverage. Record isolated-run results separately from signed-in production Pi observations.
+- Do not merge or claim production deployment until the required workflows and visual review succeed.
