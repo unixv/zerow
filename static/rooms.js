@@ -28,11 +28,12 @@
         const [oldX,oldY]=previous.split(",").map(Number);
         avatar.dataset.facing=person.x>oldX?"right":person.x<oldX?"left":person.y<oldY?"back":"front";
       }else if(!avatar.dataset.facing){avatar.dataset.facing="front";}
-      avatar.className="homes-walker homes-character"+(person.self?" homes-walker-self homes-character-self":"")+(previous&&previous!==next?" homes-character-walking":"");
+      avatar.className="homes-walker homes-character"+(person.self?" homes-walker-self homes-character-self":"")+(person.seat_item_id?" homes-character-seated":"")+(previous&&previous!==next&&!person.seat_item_id?" homes-character-walking":"");
       avatar.dataset.position=next;
       avatar.title=person.name+" · "+person.avatar_style;
       avatar.setAttribute("aria-label",person.name+" at "+person.x+","+person.y);
-      const position=tileCenter(person.x,person.y);
+      const seat=person.seat_item_id&&room?.items.find(i=>i.id===person.seat_item_id);
+      const position=tileCenter(seat?seat.x:person.x,seat?seat.y:person.y);
       avatar.style.left=position.left;
       avatar.style.top=position.top;
       avatar.style.zIndex=String(20+person.x+person.y);
@@ -63,6 +64,30 @@
     }
     for(const [key,node] of avatarNodes){if(!present.has(key)){node.remove();avatarNodes.delete(key);}}
   }
+  async function sitAt(item){
+    if(walking||!selectedRoomId)return;
+    const me=walkers.find(p=>p.self);
+    if(!me){status("Waiting to join this room…");return;}
+    if(me.seat_item_id===item.id){
+      await request("/api/homes/"+selectedRoomId+"/stand","POST",{});
+      me.seat_item_id=null;paintWalkers();status("You stood up.");return;
+    }
+    if(Math.abs(me.x-item.x)+Math.abs(me.y-item.y)>1){
+      const blocked=new Set(room.items.map(i=>i.x+","+i.y));
+      const options=[[item.x-1,item.y],[item.x+1,item.y],[item.x,item.y-1],[item.x,item.y+1]]
+        .filter(([x,y])=>x>=0&&x<10&&y>=0&&y<7&&!blocked.has(x+","+y));
+      if(!options.length){status("No space beside that seat.");return;}
+      options.sort((a,b)=>(Math.abs(a[0]-me.x)+Math.abs(a[1]-me.y))-
+                            (Math.abs(b[0]-me.x)+Math.abs(b[1]-me.y)));
+      await walkTo(...options[0]);
+      if(Math.abs(me.x-item.x)+Math.abs(me.y-item.y)>1)return;
+    }
+    try{
+      await request("/api/homes/"+selectedRoomId+"/sit","POST",{item_id:item.id});
+      me.seat_item_id=item.id;paintWalkers();status("You're sitting. Tap the seat again to stand.");
+      await refreshSocial();
+    }catch(err){status(err.message);}
+  }
   async function walkTo(x,y){
     if(walking||!room||!selectedRoomId)return;
     const me=walkers.find(p=>p.self);
@@ -89,7 +114,7 @@
       for(const [nx,ny] of path){
         if(root.hidden||selectedRoomId!==id||generation!==roomGeneration)break;
         await request("/api/homes/"+id+"/move","POST",{x:nx,y:ny});
-        me.x=nx;me.y=ny;paintWalkers();
+        me.x=nx;me.y=ny;me.seat_item_id=null;paintWalkers();
       }
       await refreshSocial();
     }catch(err){status(err.message);await refreshSocial();}
@@ -321,10 +346,11 @@
     for(let y=0;y<height;y++)for(let x=0;x<width;x++){
       const item=occupied.get(x+","+y);
       const cat=item?model.catalog.find(p=>p.sku===item.sku):null;
-      const label=item ? "Pick up "+(cat?.name||item.sku)+" at "+x+","+y :
+      const label=item ? ((item.sku==="chair"||item.sku==="sofa")?"Sit on ":"Pick up ")+(cat?.name||item.sku)+" at "+x+","+y :
                      "Tile "+x+","+y;
       const b=makeButton("",async()=>{
         if(running)return;
+        if(item&&(item.sku==="chair"||item.sku==="sofa")&&!chosenItem){await sitAt(item);return;}
         if(!room?.room.editable){
           if(!item)await walkTo(x,y);
           return;
@@ -357,7 +383,7 @@
       b.style.top=position.top;
       b.style.zIndex=String(2+x+y);
       b.title=item?(cat?.name||item.sku):"Walk to tile "+x+", "+y;
-      if(!room.room.editable&&item)b.disabled=true;
+      if(!room.room.editable&&item&&!["chair","sofa"].includes(item.sku))b.disabled=true;
       canvas.append(b);
     }
     canvas.append(avatarLayer);
