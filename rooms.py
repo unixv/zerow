@@ -408,4 +408,5 @@ def register(app, connect, identity, error):
             )
             if changed.rowcount != 1:
                 return error("Furniture not found in this room.", 404)
+            con.execute("UPDATE room_visitors SET seat_item_id=NULL WHERE seat_item_id=?", (item_id,))
             return jsonify(ok=True)
