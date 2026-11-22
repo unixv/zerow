@@ -75,7 +75,7 @@ def main():
             alice.locator("#openRooms").click()
             expect(alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_visible()
 
-            print("Second player visits room but cannot edit furniture")
+            print("Second player visits room and can use seating without editing furniture")
             bob.locator("#openRooms").tap()
             expect(bob.locator("#homesOverlay")).to_be_visible()
             bob.locator(".homes-drawer-toggle").tap()
@@ -84,7 +84,7 @@ def main():
             # would target a button that is intentionally no longer present.
             expect(bob.locator(".homes-drawer-toggle")).to_have_attribute("aria-expanded", "false")
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
-            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_disabled()
+            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_enabled()
             # The room is already visible after selecting it; the drawer can
             # overlay navigation buttons, so do not tap View room beneath it.
             assert bob.locator("#homeGrid").bounding_box()["y"] < 844, "390px room grid hidden below fold"
@@ -136,7 +136,7 @@ def main():
             bob.set_viewport_size({"width": 320, "height": 700})
             expect(bob.locator("#homesOverlay")).to_be_visible()
             expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
-            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_disabled()
+            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_enabled()
             assert bob.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "320px room causes horizontal page overflow"
             for selector in ("#closeHomes", "#homesRoomTitle"):
                 bounds = bob.locator(selector).bounding_box()
