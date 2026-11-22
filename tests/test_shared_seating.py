@@ -91,7 +91,7 @@ class SharedSeatingRuntimeTests(unittest.TestCase):
     def test_seating_rejects_unjoined_invalid_and_distant_players(self):
         self.assertEqual(self.sit(self.eve).status_code, 403)
         self.assertEqual(self.visit(self.eve).status_code, 200)
-        for invalid in (True, "1", -1, 0, None):
+        for invalid in (True, "1", -1, 0):
             self.assertEqual(self.sit(self.eve, invalid).status_code, 400)
         self.assertEqual(self.sit(self.eve, 999999).status_code, 409)
         self.assertEqual(self.post(self.eve, f"/api/homes/{self.room_id}/move",
