@@ -107,6 +107,8 @@ class SharedSeatingRuntimeTests(unittest.TestCase):
         self.assertEqual(self.post(self.bob, f"/api/homes/{self.room_id}/move",
                                    {"x": 0, "y": 1}).status_code, 200)
         self.assertIsNone(self.social(self.alice)["SeatBob"]["seat_item_id"])
+        self.assertEqual(self.post(self.bob, f"/api/homes/{self.room_id}/move",
+                                   {"x": 0, "y": 0}).status_code, 200)
         self.assertEqual(self.sit(self.bob).status_code, 200)
         self.assertEqual(self.post(self.bob, "/api/homes/leave", {}).status_code, 200)
         self.assertNotIn("SeatBob", self.social(self.alice))
