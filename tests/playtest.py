@@ -308,6 +308,34 @@ def main():
             expect(newcomer_page.locator("#trailStatus")).to_contain_text("0 of 4")
             newcomer.close()
 
+            print("Two-player expressions: browser controls, synchronization and expiry")
+            # The isolated Bob login above invalidates his original browser session.
+            login(bob, NAME_B)
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            alice.locator('[data-emote="wave"]').click()
+            bob.wait_for_function("""async () => {
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_alice' && p.emote==='wave');
+            }""", timeout=10000)
+            bob.locator('[data-emote="heart"]').tap()
+            alice.wait_for_function("""async () => {
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_bob' && p.emote==='heart');
+            }""", timeout=10000)
+            bob.reload()
+            expect(bob.locator("#joinScreen")).to_be_hidden(timeout=10000)
+            expect(bob.locator('[data-emote="heart"]')).to_be_enabled(timeout=10000)
+            alice.wait_for_function("""async () => {
+              const r=await fetch('/api/state');
+              if (!r.ok) return false;
+              const s=await r.json();
+              return s.players.some(p=>p.name==='playtest_bob' && !p.emote);
+            }""", timeout=15000)
+
             print("Screenshots for UX review")
             alice.screenshot(path=str(ARTIFACTS / "desktop-lobby.png"), full_page=True)
             bob.screenshot(path=str(ARTIFACTS / "mobile-lobby.png"), full_page=True)
