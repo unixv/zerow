@@ -294,3 +294,26 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
  .homes-header p{display:none}
  .homes-wallet{padding:4px 8px}
 }
+
+/* Atrium room characters: direction and stride remain lightweight CSS, no spritesheets. */
+.homes-roomcanvas.homes-isometric .homes-character-legs{
+  position:absolute;left:23%;top:75%;width:54%;height:24%;
+  background:linear-gradient(90deg,#273a4a 0 43%,transparent 43% 57%,#273a4a 57% 100%);
+  border-bottom:3px solid #172632;border-radius:0 0 3px 3px;
+}
+.homes-roomcanvas.homes-isometric .homes-character-body::before,
+.homes-roomcanvas.homes-isometric .homes-character-body::after{
+  top:20%;height:58%;width:20%;background:var(--walker-color);
+  border:1px solid #263947;border-radius:3px;
+}
+.homes-roomcanvas.homes-isometric .homes-character-body::before{left:-23%}
+.homes-roomcanvas.homes-isometric .homes-character-body::after{right:-23%}
+.homes-roomcanvas.homes-isometric .homes-character[data-facing="back"] .homes-character-face::before{display:none}
+.homes-roomcanvas.homes-isometric .homes-character[data-facing="back"] .homes-character-hair{top:8%;height:29%}
+.homes-roomcanvas.homes-isometric .homes-character[data-facing="left"] .homes-character-face::before{left:22%;box-shadow:none}
+.homes-roomcanvas.homes-isometric .homes-character[data-facing="right"] .homes-character-face::before{left:72%;box-shadow:none}
+.homes-roomcanvas.homes-isometric .homes-character[data-style*="hood"] .homes-character-hair{height:28%;background:#34445b;border-radius:8px 8px 3px 3px}
+.homes-roomcanvas.homes-isometric .homes-character[data-style*="crown"] .homes-character-hair{background:#e3bb58;clip-path:polygon(0 100%,0 10%,24% 48%,50% 0,76% 48%,100% 10%,100% 100%)}
+.homes-roomcanvas.homes-isometric .homes-character-walking .homes-character-legs{animation:atrium-room-stride .2s ease-in-out 2 alternate}
+@keyframes atrium-room-stride{from{transform:skewX(-9deg)}to{transform:skewX(9deg)}}
+@media(prefers-reduced-motion:reduce){.homes-roomcanvas.homes-isometric .homes-character-walking .homes-character-legs{animation:none}}
