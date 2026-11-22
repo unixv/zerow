@@ -389,3 +389,16 @@ fix any failures before integrating PR #64. The public Pi has not been tested.
 - This handoff update creates a new PR synchronization event to request CI evaluation. Verify that GitHub actually creates runs; if not, investigate workflow event filters and permissions rather than asserting success.
 - Acceptance still requires two simultaneous authenticated browser players, seat exclusivity and cleanup, chair/sofa tap targets at 320px/390px/desktop, avatar depth and speech-bubble visual inspection, room chat, furniture permissions, and account/coin/SQLite regression coverage. Record isolated-run results separately from signed-in production Pi observations.
 - Do not merge or claim production deployment until the required workflows and visual review succeed.
+
+## Immersive room layout candidate — November 22, 2026
+
+PR #65 extends the integrated room and seating baseline from #64 with larger
+desktop/mobile isometric viewports, taller room conversation, bigger original
+CSS furniture, short-desktop handling and touch-sized composer controls.
+The source regression is tests/test_immersive_room_layout.py.
+
+This is **unreleased**. Confirm both required CI workflows on #65's exact
+head and inspect 320px, 390px, tablet, short-desktop and two-player seating
+screenshots. Check drawer hit targets, chat input, clipping, furniture depth
+and scrolling. Source-level layout tests do not establish visual acceptance.
+No new live Raspberry Pi gameplay was observed in this change.
