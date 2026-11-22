@@ -69,11 +69,11 @@ def main():
             alice.locator("#homesInventory").get_by_role("button", name="Reading chair").click()
             alice.get_by_role("button", name="Close room tools").click()
             alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2").click()
-            expect(alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_visible()
+            expect(alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_visible()
             alice.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-desktop.png"), full_page=True)
             alice.reload()
             alice.locator("#openRooms").click()
-            expect(alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_visible()
+            expect(alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_visible()
 
             print("Second player visits room but cannot edit furniture")
             bob.locator("#openRooms").tap()
@@ -84,7 +84,7 @@ def main():
             # would target a button that is intentionally no longer present.
             expect(bob.locator(".homes-drawer-toggle")).to_have_attribute("aria-expanded", "false")
             expect(bob.locator("#homesRoomOwner")).to_contain_text("Visiting roomplayer_a")
-            expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
+            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_disabled()
             # The room is already visible after selecting it; the drawer can
             # overlay navigation buttons, so do not tap View room beneath it.
             assert bob.locator("#homeGrid").bounding_box()["y"] < 844, "390px room grid hidden below fold"
@@ -101,6 +101,23 @@ def main():
             expect(alice.locator(".homes-walker[aria-label='roomplayer_b at 1,0']")).to_be_visible(timeout=12000)
             alice.locator("#homeGrid").get_by_role("button", name="Tile 0,1").click()
             expect(bob.locator(".homes-walker[aria-label='roomplayer_a at 0,1']")).to_be_visible(timeout=12000)
+            print("Shared seating: two browsers observe one occupied chair")
+            seat = bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")
+            seat.tap()
+            expect(bob.locator(".homes-walker-self.homes-character-seated")).to_be_visible(timeout=12000)
+            expect(alice.locator(".homes-walker.homes-character-seated[aria-label^='roomplayer_b']")).to_be_visible(timeout=12000)
+            bob.screenshot(path=str(ARTIFACTS / "atrium-seated-visitor-mobile.png"), full_page=True)
+            alice.screenshot(path=str(ARTIFACTS / "atrium-seated-visitor-desktop.png"), full_page=True)
+            alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").click()
+            expect(alice.locator("#homesStatus")).to_contain_text("already sitting", timeout=12000)
+            seat.tap()
+            expect(bob.locator(".homes-walker-self.homes-character-seated")).to_have_count(0, timeout=12000)
+            alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").click()
+            expect(alice.locator(".homes-walker-self.homes-character-seated")).to_be_visible(timeout=12000)
+            bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").tap()
+            expect(bob.locator("#homesStatus")).to_contain_text("already sitting", timeout=12000)
+            alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").click()
+            expect(alice.locator(".homes-walker-self.homes-character-seated")).to_have_count(0, timeout=12000)
             bob.screenshot(path=str(ARTIFACTS / "atrium-shared-room-walking-mobile.png"), full_page=True)
             alice.screenshot(path=str(ARTIFACTS / "atrium-shared-room-walking-desktop.png"), full_page=True)
             payload = "<img src=x onerror=alert(1)>"
@@ -119,7 +136,7 @@ def main():
             bob.set_viewport_size({"width": 320, "height": 700})
             expect(bob.locator("#homesOverlay")).to_be_visible()
             expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
-            expect(bob.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2")).to_be_disabled()
+            expect(bob.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_disabled()
             assert bob.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "320px room causes horizontal page overflow"
             for selector in ("#closeHomes", "#homesRoomTitle"):
                 bounds = bob.locator(selector).bounding_box()
@@ -133,7 +150,7 @@ def main():
             assert bob.locator("#homeGrid").bounding_box()["y"] < 700, "return to room should restore visibility"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
 
-            alice.locator("#homeGrid").get_by_role("button", name="Pick up Reading chair at 2,2").click()
+            alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").click(modifiers=["Shift"])
             expect(alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2")).to_be_visible()
             expect(alice.locator("#homesWallet")).to_contain_text("365 coins")
 
