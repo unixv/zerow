@@ -340,3 +340,10 @@ GitHub Player Playtest run 44909384222 showed the Reading chair inventory button
 - PR #59's previous head `03422a6` passed Verify ZeroW (run 44930263258) but failed Player Playtest (run 44930263225) at the 320×700 initial-room visibility assertion after the two-player journey. Earlier furniture selection, room visiting, movement, and shared chat steps reached completion.
 - Candidate `f43984b` resets the nested room/content scroll positions when closing the tools drawer and on viewport resize, preventing stale scroll positions from hiding the selected room after mobile transitions. This is a proposed fix, not verified evidence of success.
 - Both required workflows and desktop/mobile screenshot inspection remain outstanding on this head. No live Raspberry Pi verification; do not merge before the gates pass.
+
+
+## November 21 — character renderer integration checkpoint
+
+- PR #59 integrates directional full-body character presentation into its existing isometric projection: facing changes as players walk, lightweight stride animation, separate legs/arms, outfit-specific hair/headwear, persistent DOM nodes, and retained in-room speech bubbles. Commits `223f6ac` and `6ce0fe2`.
+- The separate PR #58 is not merged; its orthographic placement must not overwrite PR #59's isometric coordinate projection. This integration preserves the room-first branch's multiplayer and chat logic.
+- **Status: unverified candidate.** Run Verify ZeroW and ZeroW Player Playtest on the exact latest head; inspect two-player desktop, 320px and tablet screenshots for avatar position, leg/arm rendering, speech overlap, and furniture occlusion. No production Pi observation or visual acceptance is claimed. Keep draft until both workflows and visual acceptance pass.
