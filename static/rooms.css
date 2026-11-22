@@ -326,3 +326,68 @@ button[data-sku="flower"] .homes-furnishing::after{left:35%;top:63%;width:30%;he
 .homes-character-seated .homes-character-legs{transform:translateY(6px) rotate(-65deg);transform-origin:top center}
 .homes-roomcanvas.homes-isometric button[data-sku="chair"],
 .homes-roomcanvas.homes-isometric button[data-sku="sofa"]{cursor:pointer}
+
+/* Atrium immersive room release: prioritize the playable floor and conversation.
+   These styles are intentionally CSS-only for the Pi Zero W. */
+.homes-panel{height:min(1020px,99dvh)}
+.homes-main{gap:10px}
+.homes-roomcanvas.homes-isometric{
+  width:min(100%,1320px);
+  aspect-ratio:1.62;
+  flex-shrink:0;
+  background:
+    radial-gradient(ellipse at 50% 72%,#d5b67c33,transparent 55%),
+    linear-gradient(145deg,#2b343d 0 38%,#4b403a 39% 100%);
+}
+.homes-roomcanvas.homes-isometric::before{
+  background:
+    linear-gradient(90deg,transparent 0 17%,#e0bd83 17% 18%,transparent 18% 82%,#e0bd83 82% 83%,transparent 83%),
+    repeating-linear-gradient(0deg,transparent 0 20px,#e0c9a722 21px 23px),
+    linear-gradient(180deg,#686f69 0 13%,#c0a88a 13% 61%,#695448 61% 68%,#352d30 68% 100%);
+}
+.homes-furnishing{height:205%;width:112%;bottom:31%}
+button[data-sku="chair"] .homes-furnishing::before{box-shadow:0 17px 0 -4px #604a3f,0 32px 0 -8px #352e31}
+button[data-sku="sofa"] .homes-furnishing::before{box-shadow:0 21px 0 -4px #304a59,0 27px 0 -8px #1c343d}
+button[data-sku="lamp"] .homes-furnishing::before{box-shadow:0 0 24px 5px #f5dc8d77}
+.homes-social{flex-shrink:0;gap:9px;padding:12px}
+.homes-roommessages{min-height:145px;max-height:260px;line-height:1.5}
+.homes-chat input{min-height:44px;font-size:16px}
+.homes-chat button{min-height:44px}
+.homes-drawer-toggle:focus-visible,.homes-chat button:focus-visible{
+  outline:3px solid #f7d992;outline-offset:2px
+}
+@media(min-width:761px) and (max-height:760px){
+  .homes-header{padding:7px 14px}
+  .homes-wallet{padding:5px 12px}
+  .homes-main{padding:7px 12px}
+  .homes-roomcanvas.homes-isometric{aspect-ratio:1.95}
+  .homes-roommessages{min-height:100px;max-height:150px}
+}
+@media(max-width:760px){
+  .homes-panel{height:100dvh}
+  .homes-content{min-height:0;overflow-y:auto}
+  .homes-main{padding:5px 5px 12px;gap:7px}
+  .homes-main-title{gap:5px}
+  .homes-main-title h3{font-size:15px}
+  .homes-roomcanvas.homes-isometric{
+    width:100%;
+    aspect-ratio:1.05;
+    border-width:4px;
+    border-bottom-width:8px;
+  }
+  .homes-social{padding:9px;gap:7px}
+  .homes-roommessages{min-height:150px;max-height:230px}
+  .homes-chat{gap:6px}
+  .homes-chat button{min-width:64px}
+  .homes-drawer-toggle{min-height:42px}
+  .homes-furnishing{height:190%;width:110%}
+}
+@media(max-width:350px){
+  .homes-roomcanvas.homes-isometric{aspect-ratio:1.0}
+  .homes-main-title h3{font-size:14px}
+  .homes-social-head{gap:5px}
+  .homes-roommessages{min-height:140px}
+}
+@media(prefers-reduced-motion:reduce){
+  .homes-roomcanvas.homes-isometric button{transition:none}
+}
