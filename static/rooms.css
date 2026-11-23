@@ -630,3 +630,42 @@ button[data-sku="lamp"] .homes-furnishing::before{box-shadow:0 0 24px 5px #f5dc8
  .homes-fixture-wall-banner{height:8%}
  .homes-roomcanvas.homes-isometric .homes-character-name{max-width:64px}
 }
+
+/* Atrium grand-room scenery: hotel furnishings painted behind the interactive
+   floor. These are architectural fixtures, not purchasable or occupied tiles. */
+.homes-fixture-bookcase-left,.homes-fixture-bookcase-right{
+  top:29%;width:11%;height:17%;
+  border:clamp(2px,.45vw,5px) solid #aa7e56;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 29%,#654936 30% 35%),
+    repeating-linear-gradient(90deg,#b68b65 0 11%,#516e71 11% 17%,#cfaa78 17% 25%,#6d7e68 25% 32%);
+  box-shadow:inset 0 0 0 3px #3c3d39,3px 5px 0 #142e39;
+  opacity:.92;
+}
+.homes-fixture-bookcase-left{left:8%;transform:skewY(-12deg)}
+.homes-fixture-bookcase-right{right:8%;transform:skewY(12deg)}
+.homes-fixture-hanging-light{
+  top:20%;left:48%;width:4%;height:11%;
+  background:linear-gradient(90deg,transparent 42%,#d2b887 42% 58%,transparent 58%);
+}
+.homes-fixture-hanging-light::after{
+  content:"";position:absolute;left:-70%;right:-70%;bottom:0;height:40%;
+  border:3px solid #d5b784;border-radius:50% 50% 32% 32%;
+  background:linear-gradient(#f8e5b2,#bd955f);
+  box-shadow:0 0 18px 8px #f9d78d44;
+}
+.homes-fixture-planter-left,.homes-fixture-planter-right{
+  top:43%;width:8%;height:15%;
+  background:
+    radial-gradient(ellipse at 50% 24%,#85a977 0 26%,transparent 28%),
+    radial-gradient(ellipse at 28% 34%,#528b6c 0 24%,transparent 26%),
+    radial-gradient(ellipse at 72% 38%,#6b9d75 0 24%,transparent 26%),
+    linear-gradient(180deg,transparent 0 47%,#c29267 48% 82%,#674c43 83%);
+  filter:drop-shadow(2px 4px 2px #102b3599);
+}
+.homes-fixture-planter-left{left:10%}
+.homes-fixture-planter-right{right:10%}
+@media(max-width:350px){
+  .homes-fixture-bookcase-left,.homes-fixture-bookcase-right{width:9%;height:12%}
+  .homes-fixture-planter-left,.homes-fixture-planter-right{width:7%;height:10%}
+}
