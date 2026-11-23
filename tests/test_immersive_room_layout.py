@@ -48,6 +48,16 @@ class ImmersiveRoomLayoutTests(unittest.TestCase):
         self.assertIn("height:40dvh;max-height:40dvh", CSS)
         self.assertIn("aspect-ratio:1.2;min-height:240px", CSS)
 
+    def test_decorative_suite_preserves_interactive_tiles(self):
+        self.assertIn('architecture.setAttribute("aria-hidden","true")', JS)
+        self.assertIn('canvas.prepend(architecture)', JS)
+        self.assertIn('canvas.append(avatarLayer)', JS)
+        for fixture in ("window-left", "window-right", "wall-clock", "wall-banner", "floor-rug"):
+            self.assertIn(fixture, JS)
+        self.assertIn("pointer-events:none", CSS)
+        self.assertIn("--atrium-label-lift", CSS)
+        self.assertIn("labelPositions.push", JS)
+
     def test_accessibility_and_reduced_motion(self):
         self.assertIn(".homes-drawer-toggle:focus-visible", CSS)
         self.assertIn("@media(prefers-reduced-motion:reduce)", CSS)
