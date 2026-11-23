@@ -67,7 +67,7 @@ def main():
             print("ATRIUM INVENTORY HIT TEST:", hit, flush=True)
             assert hit["hit"], "Inventory Reading chair center is obstructed: " + repr(hit)
             alice.locator("#homesInventory").get_by_role("button", name="Reading chair").click()
-            alice.get_by_role("button", name="Close room tools").click()
+            alice.get_by_role("button", name="Close room tools", exact=True).click()
             alice.locator("#homeGrid").get_by_role("button", name="Tile 2,2").click()
             expect(alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2")).to_be_visible()
             alice.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-desktop.png"), full_page=True)
@@ -146,7 +146,7 @@ def main():
             assert title and grid and title["y"] >= 0 and grid["y"] < 700, "320px room must appear in initial viewport"
             bob.locator("#shopHomes").tap()
             expect(bob.locator("#homesShop").get_by_role("button", name="Reading chair")).to_be_visible()
-            bob.get_by_role("button", name="Close room tools").tap()
+            bob.get_by_role("button", name="Close room tools", exact=True).tap()
             assert bob.locator("#homeGrid").bounding_box()["y"] < 700, "return to room should restore visibility"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
 
