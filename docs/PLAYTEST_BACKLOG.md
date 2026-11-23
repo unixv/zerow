@@ -416,3 +416,16 @@ No new live Raspberry Pi gameplay was observed in this change.
 - PR #65 candidate `605ef49` reduces mobile header/wallet/chat chrome, reserves at least 240–250px for the isometric room at 320px widths, and limits the open furniture workshop to 42dvh (40dvh on short screens). The room remains the primary visible scene. Existing tile coordinate logic, accounts, coins and SQLite are unchanged.
 - Added source regression checks for the new responsive breakpoints. **Not yet visually accepted:** inspect actual 320px/390px screenshots with workshop both open and closed, plus complete desktop two-player scenes. Confirm the stage is not clipped and touch movement, furniture placement, seating and chat remain usable.
 - Both Verify ZeroW and ZeroW Player Playtest must pass on the exact new head before merge. No production Pi deployment or live mobile verification is claimed.
+
+
+## Development handoff — November 23, 2026 (hotel architecture)
+
+- PR #65 now includes CSS-only architectural atmosphere: wall detailing,
+  paired warm sconces, richer floor colors and diffuse lighting, plus 320px
+  simplification. No additional furniture inventory, server state or requests.
+- Static regression added in `tests/test_isometric_room.py`.
+- **Not yet visually accepted**: capture complete two-player desktop room,
+  closed/open 320px and 390px workshop views, and verify that the decorative
+  wall lighting does not reduce tile or avatar readability.
+- Both required CI workflows must pass on the **latest exact head** before
+  merging. Prior green runs apply only to earlier commits. Live Pi untested.
