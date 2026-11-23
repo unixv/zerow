@@ -462,3 +462,41 @@ button[data-sku="lamp"] .homes-furnishing::before{box-shadow:0 0 24px 5px #f5dc8
   .homes-drawer-open .homes-sidebar,.homes-sidebar{height:46dvh;max-height:46dvh}
   .homes-drawer-open .homes-drawer-toggle{bottom:calc(46dvh + 8px)}
 }
+
+/* Atrium room atmosphere: a richer illustrated stage without image downloads. */
+.homes-roomcanvas.homes-isometric{
+  background:
+    radial-gradient(ellipse at 50% 73%,#a1a77a2c 0,transparent 60%),
+    linear-gradient(165deg,#466d70 0 23%,#1a3947 23% 100%);
+  border:5px solid #9baf9d;
+  box-shadow:inset 0 0 0 3px #233e48,inset 0 18px 55px #071c2b99,0 14px 28px #07182088;
+}
+.homes-roomcanvas.homes-isometric::before{
+  background:
+    repeating-linear-gradient(0deg,transparent 0 26px,#1c454a24 27px 29px),
+    linear-gradient(180deg,#9eb6a5 0 8%,#658b84 8% 64%,#c4aa81 64% 67%,#476d6c 67% 72%,#264b52 72%);
+  clip-path:polygon(50% 0,97% 23%,97% 45%,50% 21%,3% 45%,3% 23%);
+}
+.homes-roomcanvas.homes-isometric::after{
+  background:
+    radial-gradient(ellipse at 50% 81%,#f2d89a22,transparent 58%),
+    linear-gradient(110deg,transparent 0 38%,#fff4c014 41% 47%,transparent 52%);
+}
+.homes-roomcanvas.homes-isometric .homes-walker{
+  width:clamp(35px,4vw,46px);
+  height:clamp(58px,6.2vw,76px);
+  filter:drop-shadow(2px 4px 2px #071c2899);
+}
+.homes-roomcanvas.homes-isometric .homes-walker-self{
+  filter:drop-shadow(0 0 5px #f9dc91) drop-shadow(2px 4px 2px #071c2899);
+}
+.homes-furnishing{width:125%;height:195%;filter:drop-shadow(4px 7px 2px #081e2baa)}
+.homes-character-name{font-size:11px;padding:3px 6px}
+@media(max-width:760px){
+  .homes-roomcanvas.homes-isometric .homes-walker{width:clamp(25px,7.5vw,34px);height:clamp(43px,12vw,58px)}
+  .homes-furnishing{width:130%;height:205%}
+  .homes-character-name{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .homes-roomcanvas.homes-isometric .homes-walker{transition:none}
+}
