@@ -40,6 +40,17 @@ class IsometricRoomTests(unittest.TestCase):
         self.assertIn(".homes-character-name", css)
         self.assertIn("@media(prefers-reduced-motion:reduce)", css)
 
+    def test_hotel_architecture_stays_decorative(self):
+        css = (ROOT / "static/rooms.css").read_text()
+        self.assertIn("Atrium hotel suite: architectural details", css)
+        self.assertIn("radial-gradient(ellipse at 26% 28%", css)
+        self.assertIn("radial-gradient(ellipse at 74% 28%", css)
+        self.assertIn("clip-path:none;", css)
+        self.assertIn("@media(max-width:350px)", css)
+        # The existing interactive tile projection and furnishings are retained.
+        self.assertIn(".homes-roomcanvas.homes-isometric button:not([data-filled=true])", css)
+        self.assertIn(".homes-furnishing", css)
+
     def test_room_first_social_interactions(self):
         js = (ROOT / "static/rooms.js").read_text()
         css = (ROOT / "static/rooms.css").read_text()
