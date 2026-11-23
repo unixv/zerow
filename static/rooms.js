@@ -16,6 +16,8 @@
   avatarLayer.setAttribute("aria-label", "Players walking in this room");
   function paintWalkers(){
     const present = new Set();
+    // Separate nearby nameplates so guests can identify each other in a gathering.
+    const labelPositions=[];
     for(const person of walkers){
       if(!Number.isInteger(person.x)||!Number.isInteger(person.y))continue;
       const key=String(person.name);
@@ -37,6 +39,9 @@
       avatar.style.left=position.left;
       avatar.style.top=position.top;
       avatar.style.zIndex=String(20+person.x+person.y);
+      const nearby=labelPositions.filter(p=>Math.abs(p.x-person.x)<=1 && Math.abs(p.y-person.y)<=1).length;
+      avatar.style.setProperty("--atrium-label-lift",Math.min(nearby,3)*18+"px");
+      labelPositions.push({x:person.x,y:person.y});
       // Colors are only accepted as CSS hex colors, never HTML.
       const colors={moss:"#6cc4a0",ocean:"#68b9e9",sunset:"#f19b74",violet:"#b6a0f5",gold:"#efcb76",rose:"#e994b7"};
       avatar.style.setProperty("--walker-color",colors[person.avatar_color]||"#8fc9bc");
@@ -413,6 +418,17 @@
       if(!room.room.editable&&item&&!["chair","sofa"].includes(item.sku))b.disabled=true;
       canvas.append(b);
     }
+    // Architectural fixtures are decorative, not purchasable furniture or blocked tiles.
+    // Render behind the interactive floor and keep all walking hit targets intact.
+    const architecture=document.createElement("div");
+    architecture.className="homes-architecture";
+    architecture.setAttribute("aria-hidden","true");
+    for(const fixture of ["window-left","window-right","wall-clock","wall-banner","floor-rug"]){
+      const detail=document.createElement("span");
+      detail.className="homes-fixture homes-fixture-"+fixture;
+      architecture.append(detail);
+    }
+    canvas.prepend(architecture);
     canvas.append(avatarLayer);
     paintWalkers();
   }
