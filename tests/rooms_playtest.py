@@ -106,6 +106,21 @@ def main():
             seat.tap()
             expect(bob.locator(".homes-walker-self.homes-character-seated")).to_be_visible(timeout=12000)
             expect(alice.locator(".homes-walker.homes-character-seated[aria-label^='roomplayer_b']")).to_be_visible(timeout=12000)
+            # Reconnect the seated visitor's browser without logging out. Both
+            # clients must converge on one authoritative seat assignment.
+            print("Seated visitor reload: recover shared occupancy in both browsers")
+            bob.reload()
+            bob.locator("#openRooms").tap()
+            expect(bob.locator("#homesOverlay")).to_be_visible()
+            if bob.locator("#homesRoomTitle").inner_text() != "The Fern Loft":
+                bob.locator(".homes-drawer-toggle").tap()
+                bob.locator("#homesRooms").get_by_role("button", name="The Fern Loft").tap()
+            expect(bob.locator("#homesRoomTitle")).to_have_text("The Fern Loft")
+            expect(bob.locator(".homes-walker-self.homes-character-seated")).to_be_visible(timeout=12000)
+            expect(alice.locator(".homes-walker.homes-character-seated[aria-label^='roomplayer_b']")).to_be_visible(timeout=12000)
+            expect(alice.locator("#homesVisitorCount")).to_have_text("2 here", timeout=12000)
+            expect(bob.locator("#homesVisitorCount")).to_have_text("2 here", timeout=12000)
+            assert bob.locator(".homes-walker-self").count() == 1, "Reload duplicated the local visitor"
             bob.screenshot(path=str(ARTIFACTS / "atrium-seated-visitor-mobile.png"), full_page=True)
             alice.screenshot(path=str(ARTIFACTS / "atrium-seated-visitor-desktop.png"), full_page=True)
             alice.locator("#homeGrid").get_by_role("button", name="Sit on Reading chair at 2,2").click()
