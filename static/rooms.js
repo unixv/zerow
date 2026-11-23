@@ -423,7 +423,7 @@
     const architecture=document.createElement("div");
     architecture.className="homes-architecture";
     architecture.setAttribute("aria-hidden","true");
-    for(const fixture of ["window-left","window-right","wall-clock","wall-banner","floor-rug"]){
+    for(const fixture of ["window-left","window-right","wall-clock","wall-banner","floor-rug","bookcase-left","bookcase-right","hanging-light","planter-left","planter-right"]){
       const detail=document.createElement("span");
       detail.className="homes-fixture homes-fixture-"+fixture;
       architecture.append(detail);
