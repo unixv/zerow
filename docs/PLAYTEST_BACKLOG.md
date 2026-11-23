@@ -409,3 +409,10 @@ No new live Raspberry Pi gameplay was observed in this change.
 - Follow-up adds a dismissible room-tools backdrop, closes tools rather than exiting the entire room on first Escape, returns focus to the tools toggle, and makes the closed drawer inert for keyboard navigation. Mobile tools occupy at most 88vw, leaving a clear dismissal region.
 - Source-level regression coverage added in `tests/test_immersive_room_layout.py`. **Pending:** both workflows on the new head, browser proof of closed/open 320px and 390px drawers, two-player seating, unobstructed Send, and final visual acceptance.
 - No Pi deployment or signed-in production gameplay was verified by this update. Keep the release draft until all gates are met.
+
+
+## November 23 — scene-first narrow-screen candidate
+
+- PR #65 candidate `605ef49` reduces mobile header/wallet/chat chrome, reserves at least 240–250px for the isometric room at 320px widths, and limits the open furniture workshop to 42dvh (40dvh on short screens). The room remains the primary visible scene. Existing tile coordinate logic, accounts, coins and SQLite are unchanged.
+- Added source regression checks for the new responsive breakpoints. **Not yet visually accepted:** inspect actual 320px/390px screenshots with workshop both open and closed, plus complete desktop two-player scenes. Confirm the stage is not clipped and touch movement, furniture placement, seating and chat remain usable.
+- Both Verify ZeroW and ZeroW Player Playtest must pass on the exact new head before merge. No production Pi deployment or live mobile verification is claimed.
