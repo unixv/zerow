@@ -429,3 +429,11 @@ No new live Raspberry Pi gameplay was observed in this change.
   wall lighting does not reduce tile or avatar readability.
 - Both required CI workflows must pass on the **latest exact head** before
   merging. Prior green runs apply only to earlier commits. Live Pi untested.
+
+
+## Development candidate — November 23, 2026 (12:31 CST)
+
+- PR #65 now adds original, CSS-only architectural scenery (paired windows, wall clock, banner and floor rug) behind the walkable floor; these are not purchasable furniture and do not change occupancy or coins.
+- Nearby avatar labels receive deterministic vertical separation; no presence or chat protocol changes.
+- Source regression assertions added. **Unverified candidate** until both Verify ZeroW and Player Playtest pass on the new exact head, and desktop/two-player/320px screenshots are reviewed. Existing sparse *owned furniture* remains a distinct product limitation; decoration does not falsely count as inventory.
+- No public Pi or production browser verification was performed in this development pass. Keep PR #65 draft until visual acceptance.
