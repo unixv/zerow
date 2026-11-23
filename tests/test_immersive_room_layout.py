@@ -52,7 +52,7 @@ class ImmersiveRoomLayoutTests(unittest.TestCase):
         self.assertIn('architecture.setAttribute("aria-hidden","true")', JS)
         self.assertIn('canvas.prepend(architecture)', JS)
         self.assertIn('canvas.append(avatarLayer)', JS)
-        for fixture in ("window-left", "window-right", "wall-clock", "wall-banner", "floor-rug"):
+        for fixture in ("window-left", "window-right", "wall-clock", "wall-banner", "floor-rug", "bookcase-left", "bookcase-right", "hanging-light", "planter-left", "planter-right"):
             self.assertIn(fixture, JS)
         self.assertIn("pointer-events:none", CSS)
         self.assertIn("--atrium-label-lift", CSS)
