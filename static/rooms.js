@@ -225,8 +225,20 @@
   drawerButton.setAttribute("aria-controls","atriumRoomDrawer");
   sidebar.id="atriumRoomDrawer";
   document.querySelector(".homes-main-title").append(drawerButton);
+  // A dismissible backdrop prevents the furniture tools from obscuring room play.
+  // It is a sibling of the drawer so its hit area never covers inventory controls.
+  const drawerBackdrop=document.createElement("button");
+  drawerBackdrop.type="button";
+  drawerBackdrop.className="homes-drawer-backdrop";
+  drawerBackdrop.setAttribute("aria-label","Close room tools and return to the room");
+  drawerBackdrop.hidden=true;
+  root.querySelector(".homes-content").append(drawerBackdrop);
+  drawerBackdrop.addEventListener("click",()=>{setDrawer(false);drawerButton.focus();});
   function setDrawer(open){
     root.classList.toggle("homes-drawer-open",open);
+    drawerBackdrop.hidden=!open;
+    sidebar.setAttribute("aria-hidden",String(!open));
+    if("inert" in sidebar)sidebar.inert=!open;
     drawerButton.setAttribute("aria-expanded",String(open));
     drawerButton.textContent=open?"Close room tools":"Rooms & furniture";
     // The mobile content scroller can retain a desktop/tablet position after
@@ -411,6 +423,9 @@
     catch(e){status(e.message);}
   }
   function close(){setDrawer(false);root.hidden=true;resetSocial();request("/api/homes/leave","POST",{}).catch(()=>{});byId("openRooms").focus();}
+  // Keep the closed tools out of keyboard navigation on every viewport.
+  sidebar.setAttribute("aria-hidden","true");
+  if("inert" in sidebar)sidebar.inert=true;
   byId("browseHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesRooms");});
   byId("shopHomes").addEventListener("click",()=>{setDrawer(true);jumpTo("#homesShop");});
   byId("viewHome").addEventListener("click",()=>jumpTo(".homes-main"));
@@ -443,7 +458,13 @@
     }catch(e){status(e.message);}finally{releaseBusy();}
   });
   root.addEventListener("keydown",e=>{
-    if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close();return;}
+    if(e.key==="Escape"){
+      e.preventDefault();e.stopPropagation();
+      if(root.classList.contains("homes-drawer-open")){
+        setDrawer(false);drawerButton.focus();
+      }else close();
+      return;
+    }
     if(e.key==="Tab"){
       const focusable=[...root.querySelectorAll("button:not(:disabled),input:not(:disabled)")].filter(el=>el.getClientRects().length);
       const first=focusable[0],last=focusable[focusable.length-1];
