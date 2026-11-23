@@ -39,6 +39,15 @@ class ImmersiveRoomLayoutTests(unittest.TestCase):
         self.assertIn("height:clamp(43px,12vw,58px)", CSS)
         self.assertIn(".homes-furnishing{width:125%;height:195%", CSS)
 
+    def test_scene_first_mobile_viewport(self):
+        self.assertIn("aspect-ratio:1.35", CSS)
+        self.assertIn("min-height:250px", CSS)
+        self.assertIn("max-height:min(58dvh,470px)", CSS)
+        self.assertIn("height:min(42dvh,330px)", CSS)
+        self.assertIn("bottom:calc(min(42dvh,330px) + 8px)", CSS)
+        self.assertIn("height:40dvh;max-height:40dvh", CSS)
+        self.assertIn("aspect-ratio:1.2;min-height:240px", CSS)
+
     def test_accessibility_and_reduced_motion(self):
         self.assertIn(".homes-drawer-toggle:focus-visible", CSS)
         self.assertIn("@media(prefers-reduced-motion:reduce)", CSS)
