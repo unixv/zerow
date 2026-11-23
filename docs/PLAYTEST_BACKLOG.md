@@ -402,3 +402,10 @@ head and inspect 320px, 390px, tablet, short-desktop and two-player seating
 screenshots. Check drawer hit targets, chat input, clipping, furniture depth
 and scrolling. Source-level layout tests do not establish visual acceptance.
 No new live Raspberry Pi gameplay was observed in this change.
+
+## Atrium room-first follow-up — November 22, 2026 (evening)
+
+- PR #65 had both required checks green on `e7effcd`: [Verify ZeroW 45083439625](https://github.com/unixv/zerow/actions/runs/45083439625) and [Player Playtest 45083439553](https://github.com/unixv/zerow/actions/runs/45083439553). These are **prior-head isolated** results, not approval of subsequent changes.
+- Follow-up adds a dismissible room-tools backdrop, closes tools rather than exiting the entire room on first Escape, returns focus to the tools toggle, and makes the closed drawer inert for keyboard navigation. Mobile tools occupy at most 88vw, leaving a clear dismissal region.
+- Source-level regression coverage added in `tests/test_immersive_room_layout.py`. **Pending:** both workflows on the new head, browser proof of closed/open 320px and 390px drawers, two-player seating, unobstructed Send, and final visual acceptance.
+- No Pi deployment or signed-in production gameplay was verified by this update. Keep the release draft until all gates are met.
