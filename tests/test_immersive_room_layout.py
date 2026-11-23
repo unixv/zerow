@@ -31,6 +31,14 @@ class ImmersiveRoomLayoutTests(unittest.TestCase):
         self.assertIn("bottom:calc(min(48dvh,390px) + 12px)", CSS)
         self.assertIn("@media(max-width:760px) and (max-height:550px)", CSS)
 
+    def test_room_atmosphere_and_character_scale(self):
+        self.assertIn("/* Atrium room atmosphere:", CSS)
+        self.assertIn("width:clamp(35px,4vw,46px)", CSS)
+        self.assertIn("height:clamp(58px,6.2vw,76px)", CSS)
+        self.assertIn("width:clamp(25px,7.5vw,34px)", CSS)
+        self.assertIn("height:clamp(43px,12vw,58px)", CSS)
+        self.assertIn(".homes-furnishing{width:125%;height:195%", CSS)
+
     def test_accessibility_and_reduced_motion(self):
         self.assertIn(".homes-drawer-toggle:focus-visible", CSS)
         self.assertIn("@media(prefers-reduced-motion:reduce)", CSS)
