@@ -500,3 +500,51 @@ button[data-sku="lamp"] .homes-furnishing::before{box-shadow:0 0 24px 5px #f5dc8
 @media(prefers-reduced-motion:reduce){
   .homes-roomcanvas.homes-isometric .homes-walker{transition:none}
 }
+
+
+/* Atrium scene-first viewport: preserve a readable world on narrow and short
+   displays without changing tile coordinates, hit targets or server state. */
+.homes-roomcanvas.homes-isometric{
+  container-type:inline-size;
+  background-image:
+    radial-gradient(ellipse at 50% 70%,#f3dba11a,transparent 57%),
+    linear-gradient(165deg,#466d70 0 23%,#1a3947 23% 100%);
+}
+.homes-roomcanvas.homes-isometric button[data-filled=true] .homes-furnishing{
+  transform:translateX(-50%);
+}
+.homes-roomcanvas.homes-isometric .homes-walker{
+  transform-origin:50% 82%;
+}
+@media(max-width:760px){
+  .homes-header{min-height:43px}
+  .homes-wallet{gap:5px;font-size:11px}
+  .homes-wallet strong{font-size:13px}
+  .homes-main-title{min-height:40px}
+  .homes-main-title h3{font-size:14px}
+  .homes-roomcanvas.homes-isometric{
+    aspect-ratio:1.35;
+    min-height:250px;
+    max-height:min(58dvh,470px);
+    flex:0 0 auto;
+  }
+  .homes-drawer-open .homes-sidebar{
+    height:min(42dvh,330px);
+    max-height:min(42dvh,330px);
+  }
+  .homes-sidebar{height:min(42dvh,330px)}
+  .homes-drawer-open .homes-drawer-toggle{
+    bottom:calc(min(42dvh,330px) + 8px);
+  }
+  .homes-roommessages{min-height:115px;max-height:175px}
+}
+@media(max-width:760px) and (max-height:550px){
+  .homes-roomcanvas.homes-isometric{min-height:210px;max-height:55dvh}
+  .homes-drawer-open .homes-sidebar,.homes-sidebar{height:40dvh;max-height:40dvh}
+  .homes-drawer-open .homes-drawer-toggle{bottom:calc(40dvh + 8px)}
+}
+@media(max-width:350px){
+  .homes-roomcanvas.homes-isometric{aspect-ratio:1.2;min-height:240px}
+  .homes-header h2{font-size:17px}
+  .homes-main{gap:5px}
+}
