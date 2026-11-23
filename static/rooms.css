@@ -548,3 +548,43 @@ button[data-sku="lamp"] .homes-furnishing::before{box-shadow:0 0 24px 5px #f5dc8
   .homes-header h2{font-size:17px}
   .homes-main{gap:5px}
 }
+
+
+/* Atrium hotel suite: architectural details are painted behind interactive
+   tiles. No new objects, purchases, hit targets, or network requests. */
+.homes-roomcanvas.homes-isometric{
+  background:
+    radial-gradient(ellipse at 50% 75%,#ffe1a526 0 19%,transparent 62%),
+    repeating-linear-gradient(90deg,transparent 0 34px,#142f3920 35px 36px),
+    linear-gradient(165deg,#4e7778 0 24%,#1b3947 24% 100%);
+}
+.homes-roomcanvas.homes-isometric::before{
+  background:
+    /* Framed windows on both wings of the hotel room. */
+    linear-gradient(115deg,transparent 0 18%,#f4dba255 18% 21%,transparent 21% 100%),
+    repeating-linear-gradient(90deg,transparent 0 49px,#d7c7a338 50px 52px),
+    repeating-linear-gradient(0deg,transparent 0 24px,#243f4938 25px 27px),
+    linear-gradient(180deg,#afc3b0 0 10%,#71958b 10% 59%,#d9ba87 59% 64%,#416b6b 64% 72%,#233f4b 72%);
+  clip-path:polygon(50% 0,97% 23%,97% 45%,50% 21%,3% 45%,3% 23%);
+}
+.homes-roomcanvas.homes-isometric::after{
+  background:
+    /* Subtle room-wide wall sconces and floor light, behind characters. */
+    radial-gradient(ellipse at 26% 28%,#ffe4a24a 0 3%,transparent 14%),
+    radial-gradient(ellipse at 74% 28%,#ffe4a24a 0 3%,transparent 14%),
+    radial-gradient(ellipse at 50% 76%,#f6d99a36,transparent 59%);
+  clip-path:none;
+}
+.homes-roomcanvas.homes-isometric button:not([data-filled=true]){
+  background:#987f62;
+  box-shadow:inset 0 0 0 1px #d6b68a55;
+}
+.homes-roomcanvas.homes-isometric button:nth-child(odd):not([data-filled=true]){background:#a38a6a}
+.homes-roomcanvas.homes-isometric button:nth-child(3n):not([data-filled=true]){background:#ab906d}
+@media(max-width:350px){
+  .homes-roomcanvas.homes-isometric::before{
+    background:
+      repeating-linear-gradient(90deg,transparent 0 34px,#d7c7a338 35px 37px),
+      linear-gradient(180deg,#afc3b0 0 10%,#71958b 10% 59%,#d9ba87 59% 64%,#416b6b 64% 72%,#233f4b 72%);
+  }
+}
