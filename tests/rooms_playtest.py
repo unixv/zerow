@@ -129,8 +129,15 @@ def main():
             alice.locator("#homesChatDraft").fill("Welcome to the Fern Loft!")
             alice.locator("#homesChatForm").get_by_role("button", name="Send").click()
             expect(bob.locator("#homesRoomMessages")).to_contain_text("Welcome to the Fern Loft!", timeout=12000)
-            alice.screenshot(path=str(ARTIFACTS / "atrium-two-player-gathering-desktop.png"), full_page=True)
-            bob.screenshot(path=str(ARTIFACTS / "atrium-two-player-gathering-mobile.png"), full_page=True)
+            for page, label in ((alice, "desktop"), (bob, "mobile")):
+                room = page.locator("#homeGrid")
+                room.scroll_into_view_if_needed()
+                bounds = room.bounding_box()
+                viewport = page.evaluate("({width:innerWidth,height:innerHeight})")
+                assert bounds and bounds["width"] >= 200, f"{label} room too narrow"
+                assert bounds["y"] < viewport["height"] and bounds["y"] + bounds["height"] > 0, f"{label} room outside viewport"
+                room.screenshot(path=str(ARTIFACTS / f"atrium-two-player-room-{label}.png"))
+                page.screenshot(path=str(ARTIFACTS / f"atrium-two-player-gathering-{label}.png"), full_page=False)
 
             print("Narrow 320px Atrium Homes: visitor controls and viewport containment")
             bob.set_viewport_size({"width": 320, "height": 700})
@@ -144,8 +151,12 @@ def main():
             title = bob.locator("#homesRoomTitle").bounding_box()
             grid = bob.locator("#homeGrid").bounding_box()
             assert title and grid and title["y"] >= 0 and grid["y"] < 700, "320px room must appear in initial viewport"
+            bob.screenshot(path=str(ARTIFACTS / "atrium-room-320px-workshop-closed.png"), full_page=False)
             bob.locator("#shopHomes").tap()
             expect(bob.locator("#homesShop").get_by_role("button", name="Reading chair")).to_be_visible()
+            sheet = bob.locator("#atriumRoomDrawer").bounding_box()
+            assert sheet and sheet["height"] <= 0.44 * 700, "320px workshop obscures too much of the world"
+            bob.screenshot(path=str(ARTIFACTS / "atrium-room-320px-workshop-open.png"), full_page=False)
             bob.get_by_role("button", name="Close room tools", exact=True).tap()
             assert bob.locator("#homeGrid").bounding_box()["y"] < 700, "return to room should restore visibility"
             bob.screenshot(path=str(ARTIFACTS / "atrium-furnished-room-320px.png"), full_page=True)
